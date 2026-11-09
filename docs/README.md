@@ -1,9 +1,11 @@
-# Documentación de SST360
+# Documentación de Norvia
 
 **Estado:** propuesta para aprobación del equipo
-**Fecha:** 7 de noviembre de 2026
+**Fecha:** 9 de noviembre de 2026
 
-SST360 es el proyecto final de la clase de Sistemas Expertos (UNAH, III PAC 2026). Es una plataforma para que las empresas hondureñas gestionen la seguridad y salud de sus trabajadores.
+**Norvia** (Normativa + Vía) es el producto del proyecto final de Sistemas Expertos (UNAH, III PAC 2026): una plataforma para que las empresas hondureñas gestionen la seguridad y salud de sus trabajadores.
+
+Antes de editar varios archivos, lee la [guía de edición de la documentación](00-guia-edicion-docs.md).
 
 ## Por dónde empezar
 
@@ -25,9 +27,11 @@ Si una palabra no te resulta conocida, búscala en el [glosario](11-glosario.md)
 | [05-actores-roles.md](05-actores-roles.md) | Quién usa el sistema y qué puede hacer | Todos |
 | [06-marco-normativo.md](06-marco-normativo.md) | Qué exigen ISO 45001 y la ley hondureña | Quien trabaje en reglas o módulos |
 | [07-reglas-negocio.md](07-reglas-negocio.md) | Condiciones que debe respetar el sistema | Quien diseñe o programe |
+| [00-guia-edicion-docs.md](00-guia-edicion-docs.md) | Convenciones al cambiar decisiones, reglas y modelo | Quien edite la documentación |
 | [08-decisiones-bd.md](08-decisiones-bd.md) | Decisiones que definen la base de datos | Quien diseñe la base de datos |
 | [09-entidades.md](09-entidades.md) | Datos principales que guardará el sistema | Quien diseñe la base de datos |
 | [10-historias-usuario.md](10-historias-usuario.md) | Todo el trabajo, historia por historia | Todos |
+| [14-cambios-realizados.md](14-cambios-realizados.md) | Bitácora del equipo: problema, decisiones y HUs (antes/ahora) sin abrir otros docs | Quien se incorpore o retome el proyecto |
 | [11-glosario.md](11-glosario.md) | Significado de términos y siglas | Consulta |
 | [12-modelo-datos.md](12-modelo-datos.md) | Tablas, columnas, relaciones, restricciones e índices | Quien diseñe o programe |
 | [13-sprint-backlog.md](13-sprint-backlog.md) | Sprint backlog priorizado para Fase 1 y 2 (entrega actual) | Desarrolladores y evaluadores |
@@ -36,7 +40,7 @@ Si una palabra no te resulta conocida, búscala en el [glosario](11-glosario.md)
 
 1. Los 12 módulos y lo que queda fuera ([alcance](03-alcance.md)).
 2. El orden de construcción en 3 entregas ([alcance](03-alcance.md)).
-3. Las decisiones de modelado ([decisiones](08-decisiones-bd.md)).
+3. Las decisiones de modelado D1–D22 ([decisiones](08-decisiones-bd.md)).
 
 ## Siguiente paso
 

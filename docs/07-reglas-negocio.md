@@ -9,13 +9,24 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | Código | Regla |
 |---|---|
 | RN-01 | Cada empresa tiene un identificador único |
-| RN-02 | Un usuario puede pertenecer a una o varias empresas |
-| RN-03 | Un usuario puede tener un rol distinto en cada empresa |
+| RN-02 | Una misma persona física puede tener varios vínculos en empresas distintas; cada vínculo es independiente |
+| RN-03 | Cada vínculo lleva un solo rol de sistema; puede ser distinto al de otro vínculo de la misma persona |
 | RN-04 | Todo dato operativo pertenece a una sola empresa |
-| RN-05 | Un usuario no puede consultar información de una empresa a la que no pertenece |
-| RN-06 | La empresa de cada operación se toma de la sesión autenticada, nunca de lo que envíe el cliente |
+| RN-05 | Quien opera con un vínculo no puede consultar información de otra empresa |
+| RN-06 | La empresa de cada operación se toma del token autenticado, nunca de lo que envíe el cliente |
 | RN-07 | Un registro solo puede relacionarse con registros de su misma empresa |
-| RN-08 | Una empresa siempre debe tener al menos un Administrador activo |
+| RN-08 | Una empresa siempre debe tener al menos un vínculo activo con rol Administrador de empresa |
+
+## Identidad y acceso
+
+| Código | Regla |
+|---|---|
+| RN-57 | El login de empresa usa el correo institucional y la contraseña del **VinculoEmpresa** |
+| RN-58 | Suspender un vínculo no altera otros vínculos de la misma persona |
+| RN-59 | Todo cambio de estado de un vínculo registra historial con motivo y actualiza el estado actual en la misma transacción |
+| RN-60 | Si la empresa está suspendida, ningún vínculo de esa empresa puede iniciar sesión |
+| RN-61 | El cargo en la comisión no sustituye ni amplía los permisos del rol en el vínculo |
+| RN-62 | El nombre completo de una persona se obtiene de sus columnas de nombre; no se guarda como texto concatenado |
 
 ## Perfil y encuesta
 
@@ -54,7 +65,7 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | Código | Regla |
 |---|---|
 | RN-26 | Cada evento se clasifica como accidente, incidente o enfermedad profesional. Una enfermedad profesional se marca como sospechosa o diagnosticada |
-| RN-27 | Cualquier usuario de la empresa puede reportar un evento |
+| RN-27 | Cualquier vínculo activo de la empresa puede reportar un evento |
 | RN-28 | Un evento no se cierra sin causas y medidas correctivas registradas (art. 46.1.a) |
 | RN-29 | Un accidente grave genera una convocatoria a reunión extraordinaria (art. 32) |
 | RN-30 | Los datos de las personas afectadas solo son visibles para el Responsable SST y la comisión |
@@ -73,7 +84,7 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-38 | El acta pasa por borrador, aprobada y firmada (art. 27.c) |
 | RN-39 | Sin quórum no se puede aprobar el acta |
 | RN-40 | Un acta firmada no se puede editar ni borrar; las correcciones se hacen en un acta nueva |
-| RN-41 | Cada firma guarda usuario, fecha y hash del contenido, una huella que permite detectar cambios |
+| RN-41 | Cada firma guarda vínculo, fecha y hash del contenido, una huella que permite detectar cambios |
 
 ## Gestión del riesgo
 
@@ -103,4 +114,4 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-53 | Cada empresa tiene como máximo una cuenta de Google conectada, y sus credenciales nunca se muestran |
 | RN-54 | Las fechas de tareas, reuniones, mantenimientos, informes y vencimiento de la comisión se crean como eventos en el Google Calendar de la empresa |
 | RN-55 | Si una fecha cambia, su evento se actualiza; si se cancela, el evento se elimina |
-| RN-56 | Si Google no responde, la operación se guarda igual en SST360 y el evento se vuelve a intentar |
+| RN-56 | Si Google no responde, la operación se guarda igual en Norvia y el evento se vuelve a intentar |

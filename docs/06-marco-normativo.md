@@ -1,15 +1,15 @@
 # Marco normativo
 
-**Para qué sirve:** explica qué exigen la norma y la ley en las que se basa SST360.
+**Para qué sirve:** explica qué exigen la norma y la ley en las que se basa Norvia.
 
-SST360 se apoya en dos fuentes:
+Norvia se apoya en dos fuentes:
 
 - **ISO 45001:** norma internacional voluntaria para gestionar la seguridad y salud en el trabajo. Una empresa puede certificarse con un organismo externo.
 - **Reglamento General de Medidas Preventivas de Accidentes de Trabajo y Enfermedades Profesionales:** norma hondureña obligatoria, conocida por su acuerdo STSS-053-04. Aquí se le llama "el reglamento".
 
 ## ISO 45001
 
-La norma tiene derechos de autor, por lo que SST360 no debe copiar su texto. Esta tabla es una referencia de orientación por número de cláusula. El equipo no tuvo acceso al texto oficial, así que debe confirmarla alguien con conocimiento de la norma.
+La norma tiene derechos de autor, por lo que Norvia no debe copiar su texto. Esta tabla es una referencia de orientación por número de cláusula. El equipo no tuvo acceso al texto oficial, así que debe confirmarla alguien con conocimiento de la norma.
 
 | Cláusula | Tema | Módulo |
 |---|---|---|
@@ -45,7 +45,7 @@ Fuente: texto reformado, publicado en La Gaceta 30,523 del 19 de octubre de 2004
 | Art. | Qué exige | Módulo |
 |---|---|---|
 | 12 | Con 10 o más trabajadores permanentes debe existir una comisión, con igual número de representantes del empleador y de los trabajadores | M2, M7 |
-| 13 | Un centro de trabajo puede tener una o más comisiones, según jornadas, trabajadores o centros | M7. SST360 maneja una sola comisión por empresa |
+| 13 | Un centro de trabajo puede tener una o más comisiones, según jornadas, trabajadores o centros | M7. Norvia maneja una sola comisión por empresa |
 | 14 | Representantes por parte: 10–49 trabajadores, 1; 50–99, 2; 100–499, 3; 500–999, 4; 1000 o más, 5. Cada uno con su suplente | M2, M7 |
 | 14 | Los suplentes asisten solo en ausencia de los propietarios | M7 |
 | 15 | La comisión se constituye en un máximo de 30 días desde el inicio de operaciones y se registra ante la Secretaría | M7 |

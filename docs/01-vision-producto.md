@@ -1,6 +1,6 @@
 # Visión del producto
 
-**Para qué sirve:** explica qué es SST360, qué problema resuelve y cómo se usa.
+**Para qué sirve:** explica qué es **Norvia** (Normativa + Vía), qué problema resuelve y cómo se usa.
 
 ## El problema
 
@@ -16,11 +16,11 @@ Hoy, la mayoría de las empresas gestiona todo esto con plantillas de Word, corr
 
 ## La solución
 
-SST360 es una plataforma que guía a cada empresa, paso a paso, para conocer sus riesgos, controlarlos y demostrar que cumple. Funciona en web y en el teléfono.
+Norvia es una plataforma que guía a cada empresa, paso a paso, para conocer sus riesgos, controlarlos y demostrar que cumple. Funciona en web y en el teléfono.
 
 Es un SaaS multiempresa: varias empresas usan la misma plataforma, pero cada una ve solo su información.
 
-| Lo que necesita la empresa | Lo que da SST360 |
+| Lo que necesita la empresa | Lo que da Norvia |
 |---|---|
 | Conocer sus riesgos | Una encuesta a sus trabajadores que sugiere peligros, y una matriz para evaluarlos |
 | Saber qué hacer | Un plan con tareas, responsables y fechas |
@@ -35,15 +35,15 @@ Es un SaaS multiempresa: varias empresas usan la misma plataforma, pero cada una
 - Constructoras.
 - Medianas empresas y empresas pequeñas con 10 o más trabajadores.
 
-SST360 trabaja con 4 rubros: oficina administrativa, comercio o tienda, maquila o fábrica, y construcción.
+Norvia trabaja con 4 rubros: oficina administrativa, comercio o tienda, maquila o fábrica, y construcción.
 
 ## Recorrido del usuario
 
 Este es el ciclo principal del producto:
 
 1. **Registro.** Una persona registra su empresa, completa sus datos, crea sus áreas y conecta su cuenta de Google.
-2. **Encuesta.** El Responsable de SST elige las categorías de riesgo que le interesan, como trabajo en alturas o alto voltaje. SST360 arma la encuesta con las preguntas de esas categorías y la publica en Google Forms.
-3. **Respuestas.** Los trabajadores responden desde el enlace. SST360 trae las respuestas y sugiere los peligros detectados en cada área.
+2. **Encuesta.** El Responsable de SST elige las categorías de riesgo que le interesan, como trabajo en alturas o alto voltaje. Norvia arma la encuesta con las preguntas de esas categorías y la publica en Google Forms.
+3. **Respuestas.** Los trabajadores responden desde el enlace. Norvia trae las respuestas y sugiere los peligros detectados en cada área.
 4. **Matriz de riesgos.** El Responsable de SST confirma los peligros, evalúa cada riesgo y define controles.
 5. **Plan de trabajo.** Los riesgos se convierten en tareas con responsable y fecha.
 6. **Operación diaria.** Se registran mantenimientos con fotos desde el teléfono, se entrega equipo de protección, se reportan accidentes, y la Comisión Mixta se reúne y firma sus actas.
@@ -52,7 +52,7 @@ Este es el ciclo principal del producto:
 
 El ciclo se repite: un accidente o un mantenimiento pueden revelar un riesgo nuevo, que vuelve a la matriz.
 
-## Qué no es SST360
+## Qué no es Norvia
 
 - **No certifica.** Prepara a la empresa para ISO 45001, pero la certificación la otorga un organismo externo.
 - **No reemplaza a un profesional de SST.** Sugiere y organiza; las personas validan los resultados.

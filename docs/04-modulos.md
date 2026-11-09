@@ -34,11 +34,11 @@ Las historias detalladas de cada módulo están en [historias de usuario](10-his
 Cada rubro tiene categorías de riesgo, como trabajo en alturas o alto voltaje, y cada categoría tiene preguntas exploratorias. Rubros, categorías y preguntas se guardan en la base de datos.
 
 1. El Responsable de SST elige las categorías que quiere explorar. Solo ve las de su rubro.
-2. SST360 reúne las preguntas de esas categorías y agrega una pregunta sobre el área en que trabaja cada persona.
-3. SST360 crea la encuesta en Google Forms, la publica y muestra el enlace para compartirlo con los trabajadores.
+2. Norvia reúne las preguntas de esas categorías y agrega una pregunta sobre el área en que trabaja cada persona.
+3. Norvia crea la encuesta en Google Forms, la publica y muestra el enlace para compartirlo con los trabajadores.
 4. Los trabajadores responden en Google Forms.
-5. SST360 importa las respuestas y muestra un resumen por pregunta y por área.
-6. SST360 sugiere peligros. Cada pregunta puede asociarse a un peligro y a la respuesta que indica exposición. Si al menos un trabajador da esa respuesta, el peligro se sugiere en su área, indicando cuántos trabajadores la dieron.
+5. Norvia importa las respuestas y muestra un resumen por pregunta y por área.
+6. Norvia sugiere peligros. Cada pregunta puede asociarse a un peligro y a la respuesta que indica exposición. Si al menos un trabajador da esa respuesta, el peligro se sugiere en su área, indicando cuántos trabajadores la dieron.
 
 Los peligros sugeridos pasan a la matriz de riesgos, donde el Responsable de SST los confirma. Corresponde a la idea de "contexto de la organización" de ISO 45001.
 
@@ -155,7 +155,7 @@ Un peligro es lo que puede causar daño, como una escalera en mal estado. El rie
 
 **Propósito:** que nadie olvide una fecha importante.
 
-SST360 usa Google Calendar con la cuenta conectada por la empresa. Crea un evento, e invita a las personas que corresponde, para:
+Norvia usa Google Calendar con la cuenta conectada por la empresa. Crea un evento, e invita a las personas que corresponde, para:
 
 - La fecha límite de cada tarea.
 - Cada reunión de la comisión.

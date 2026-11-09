@@ -71,7 +71,7 @@ Este sprint cubre la preparación conceptual, el modelado y la definición de co
 | **HU-011** | Definir restricciones e índices | Restricciones de unicidad, foráneas e índices por tenant | Must | HU-010 |
 | **HU-012** | Definir los contratos de la API | Catálogo de endpoints HTTP y esquemas DTO | Must | HU-002, HU-010 |
 | **HU-013** | Diseñar la arquitectura del backend | Definición de capas Clean Architecture y dependencias | Must | HU-001 |
-| **HU-014** | Diseñar autenticación y autorización | Estructura de JWT con claims y modelo RBAC | Must | HU-009 |
+| **HU-014** | Diseñar autenticación y autorización | JWT por `VinculoEmpresa`; claims cifrados; `Permiso`/`RolPermiso` | Must | HU-009 |
 | **HU-015** | Redactar el pitch de 1 página | Documento de pitch para la entrega del SaaS | Must | HU-001 |
 | **HU-016** | Configurar el tablero Kanban | Tablero en GitHub Projects con columnas e issues creados | Must | HU-005 |
 
@@ -88,8 +88,8 @@ Este sprint construye el motor del sistema. Para obtener la máxima nota en la r
 | **HU-091** | Crear la solución con Clean Architecture | Solución .NET dividida estrictamente en `Domain`, `Application`, `Infrastructure` y `API` | Must | HU-013 |
 | **HU-092** | Configurar EF Core Code-First | Modelado de entidades maestras y transaccionales con Npgsql / PostgreSQL y migraciones | Must | HU-010, HU-091 |
 | **HU-093** | Aplicar filtros globales por empresa | `HasQueryFilter` en `DbContext` para filtrar automáticamente por `EmpresaId` | Must | HU-009, HU-092 |
-| **HU-094** | Implementar autenticación JWT | Emisión y validación de tokens JWT con claim `EmpresaId` encriptado | Must | HU-014, HU-091 |
-| **HU-095** | Implementar autorización por roles | Middleware / atributos de autorización RBAC (`AdminPlataforma`, `AdminEmpresa`, etc.) | Must | HU-094 |
+| **HU-094** | Implementar autenticación JWT | Login por vínculo; token con `VinculoEmpresaId` y `EmpresaId` cifrado | Must | HU-014, HU-091 |
+| **HU-095** | Implementar autorización por roles | RBAC con `Permiso`/`RolPermiso`; admin plataforma aparte | Must | HU-094 |
 | **HU-096** | Validar con FluentValidation | Pipeline de validación semántica con middleware global que captura excepciones y retorna Problem Details (RFC 7807) | Must | HU-012, HU-091 |
 | **HU-097** | Cargar los catálogos iniciales | Script de migración / seed data con rubros, categorías, peligros base y roles | Must | HU-092 |
 | **HU-098** | Probar el aislamiento entre empresas | Pruebas de integración automatizadas que verifiquen la imposibilidad de fuga de datos entre empresas | Must | HU-093, HU-094 |
@@ -105,7 +105,7 @@ Para demostrar que EF Core, los filtros globales y las validaciones funcionan co
 | **HU-018** | Iniciar y cerrar sesión | `POST /api/auth/login` (Autenticación, hash seguro de contraseña, emisión de JWT con tenant) | Must | HU-094, HU-017 |
 | **HU-019** | Cambiar de empresa | `POST /api/auth/cambiar-empresa` (Reemisión de token cuando un usuario pertenece a varias empresas) | Must | HU-018 |
 | **HU-020** | Agregar usuarios | `POST /api/usuarios` (Registro de nuevo usuario bajo la empresa activa) | Must | HU-018, HU-093 |
-| **HU-021** | Gestionar roles y membresías | `PUT /api/usuarios/{id}/roles` (Asignación de roles según matriz RBAC) | Must | HU-020, HU-095 |
+| **HU-021** | Gestionar roles y vínculos | `PATCH /api/vinculos/{id}` (rol, estado y motivo; matriz `Permiso`/`RolPermiso`) | Must | HU-020, HU-095 |
 
 #### Módulo 2: Configuración Empresarial
 | ID | Historia | Endpoint / Operación backend | Prioridad | Depende de |

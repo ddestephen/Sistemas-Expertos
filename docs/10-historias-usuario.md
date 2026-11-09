@@ -109,7 +109,7 @@ Cada historia termina con estos datos:
 - Se documenta mantenimiento con fotos → tarea de reparación.
 - Se documenta ingreso de EPP → entrega → inventario.
 - Se documenta plantilla → borrador → aprobación → versión vigente.
-- Se documenta fecha en SST360 → evento en Google Calendar → actualización o eliminación.
+- Se documenta fecha en Norvia → evento en Google Calendar → actualización o eliminación.
 - Cada flujo indica inicio, resultado, alternativas y errores.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-002 · **Reglas:** ninguna
@@ -133,8 +133,8 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Se listan las tablas con `EmpresaId` y las entidades globales.
-- Se documenta el manejo de usuarios en varias empresas.
-- Se define cómo se obtiene la empresa activa.
+- Se documenta el patrón `VinculoEmpresa` (varias empresas = varios vínculos y credenciales separadas).
+- Se define cómo el JWT fija una sola empresa por sesión (sin selector tras login).
 - Se documenta cómo se impiden las referencias entre empresas.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008 · **Reglas:** RN-04, RN-05, RN-06, RN-07, D1, D7, D15
@@ -198,22 +198,24 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se definen los claims, incluida la empresa activa.
-- Se define cómo se obtiene un token al cambiar de empresa.
+- Login con correo institucional y contraseña de `VinculoEmpresa`.
+- Claims: `EmpresaId` cifrado, `VinculoEmpresaId`, `RolId`.
+- Autorización vía `Permiso`/`RolPermiso` (RBAC en BD, D20).
+- Admin de plataforma usa tabla `Usuario` aparte.
 - Se resuelve con el catedrático cómo cumplir `EmpresaId` encriptado.
-- Se define la estrategia por roles (RBAC).
 - Se identifican endpoints públicos y protegidos.
 - Se documentan las respuestas 401 y 403.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-009 · **Reglas:** RN-03, RN-06, D1
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-009 · **Reglas:** RN-03, RN-05, RN-06, RN-57, RN-61, D1, D20, D21
 
 ### HU-015 | Redactar el pitch de 1 página
 
-**Como** equipo, **quiero** resumir SST360 en una página, **para** cumplir el entregable de la Fase 1 del curso.
+**Como** equipo, **quiero** resumir Norvia en una página, **para** cumplir el entregable de la Fase 1 del curso.
 
 **Criterios de aceptación:**
 
 - Ocupa una página y define problema, solución, cliente y MVP.
+- Nombre del producto: **Norvia** (Normativa + Vía).
 - Coincide con el alcance aprobado.
 - Indica que la plataforma prepara a la empresa y no certifica.
 
@@ -241,73 +243,74 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se crean la empresa, el usuario y su membresía en una sola operación.
-- Quien registra queda como Administrador de empresa.
-- Un identificador de empresa repetido se rechaza con un mensaje claro.
-- La contraseña se guarda con hash, nunca en texto plano.
+- Se crean la empresa, la persona, el vínculo con correo institucional y contraseña en una sola operación.
+- Quien registra queda como Administrador de empresa en ese vínculo.
+- Un RTN de empresa repetido se rechaza con un mensaje claro.
+- La contraseña del vínculo se guarda con hash, nunca en texto plano.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-091, HU-092 · **Reglas:** RN-01, D2
 
 ### HU-018 | Iniciar y cerrar sesión
 
-**Como** usuario, **quiero** iniciar y cerrar sesión, **para** acceder de forma segura.
+**Como** operador de una empresa, **quiero** iniciar y cerrar sesión con mi correo institucional, **para** acceder de forma segura.
 
 **Criterios de aceptación:**
 
-- Con una sola membresía activa entro directamente a esa empresa.
+- El login usa correo institucional y contraseña del vínculo (`VinculoEmpresa`).
+- Si la empresa está suspendida o el vínculo no está activo, no hay acceso.
 - Las credenciales incorrectas reciben un mensaje que no revela qué dato falló.
-- Una membresía desactivada no da acceso a esa empresa.
+- El JWT incluye `EmpresaId` cifrado, `VinculoEmpresaId` y rol (HU-014).
 
-**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-017, HU-094 · **Reglas:** RN-02, D1
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-017, HU-094 · **Reglas:** RN-57, RN-60, D1, D21
 
-### HU-019 | Cambiar de empresa
+### HU-019 | Acceder a otra empresa
 
-**Como** usuario de varias empresas, **quiero** cambiar de empresa activa, **para** trabajar en cada una sin volver a entrar.
-
-**Criterios de aceptación:**
-
-- Solo veo empresas donde tengo membresía activa.
-- Al cambiar, recibo un token con la nueva empresa y mi rol en ella.
-- Pedir una empresa ajena devuelve 403.
-- Dejan de mostrarse los datos de la empresa anterior.
-
-**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** RN-02, RN-03, RN-05, D1
-
-### HU-020 | Agregar usuarios
-
-**Como** Administrador de empresa, **quiero** agregar usuarios, **para** que participen en la gestión.
+**Como** persona con vínculos en varias empresas, **quiero** entrar con el correo de cada empresa, **para** que los accesos sigan separados.
 
 **Criterios de aceptación:**
 
-- Si el correo ya existe, solo se crea la membresía.
-- Si no existe, se crea el usuario y recibe un acceso temporal.
-- Elijo su rol al agregarlo.
-- Un usuario no puede tener dos membresías en la misma empresa.
+- No existe un selector de empresa tras un solo login: cada empresa usa su correo institucional y su contraseña.
+- Cerrar sesión en una empresa no afecta otra.
+- Pedir datos con token de otra empresa devuelve 403.
+
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** RN-02, RN-05, RN-58, D21
+
+### HU-020 | Agregar vínculos
+
+**Como** Administrador de empresa, **quiero** dar de alta personas con correo institucional, **para** que participen en la gestión.
+
+**Criterios de aceptación:**
+
+- Creo o enlazo `Persona` y `VinculoEmpresa` con correo institucional único en la plataforma.
+- Asigno rol al crear el vínculo.
+- Una persona no puede tener dos vínculos en la misma empresa.
+- El correo institucional no se reutiliza en otro vínculo activo.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** RN-02, D5
 
-### HU-021 | Gestionar roles y membresías
+### HU-021 | Gestionar roles y vínculos
 
-**Como** Administrador de empresa, **quiero** cambiar roles y desactivar membresías, **para** controlar quién accede.
+**Como** Administrador de empresa, **quiero** cambiar roles y estados de vínculos, **para** controlar quién accede.
 
 **Criterios de aceptación:**
 
 - Solo afecta a mi empresa.
-- Desactivar no borra el historial del usuario.
-- La empresa no puede quedar sin Administrador activo.
+- Suspender o dar de baja registra `HistorialEstadoVinculo` con motivo.
+- La empresa no puede quedar sin Administrador con vínculo activo.
 - Otros roles reciben 403.
 
-**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-020, HU-095 · **Reglas:** RN-03, RN-08
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-020, HU-095 · **Reglas:** RN-03, RN-08, RN-59
 
 ### HU-022 | Cambiar mi contraseña
 
-**Como** usuario, **quiero** cambiar mi contraseña, **para** proteger mi cuenta.
+**Como** operador con vínculo activo, **quiero** cambiar la contraseña de mi vínculo, **para** proteger el acceso a esa empresa.
 
 **Criterios de aceptación:**
 
-- Debo indicar la contraseña actual.
+- Debo indicar la contraseña actual del vínculo.
 - La nueva cumple la política definida.
 - Debo cambiar el acceso temporal al entrar por primera vez.
+- No altera contraseñas de vínculos en otras empresas.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Should · **Depende de:** HU-018 · **Reglas:** ninguna
 
@@ -342,10 +345,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Autorizo el acceso desde SST360 con la cuenta de Google de la empresa.
+- Autorizo el acceso desde Norvia con la cuenta de Google de la empresa.
 - La empresa tiene como máximo una cuenta conectada.
 - Puedo desconectarla y conectar otra.
-- Sin cuenta conectada, SST360 indica que no se pueden generar encuestas ni eventos.
+- Sin cuenta conectada, Norvia indica que no se pueden generar encuestas ni eventos.
 - Las credenciales nunca se muestran.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-021, HU-113 · **Reglas:** RN-53, D16
@@ -416,7 +419,7 @@ Cada historia termina con estos datos:
 
 - La encuesta se crea en la cuenta de Google de la empresa con las preguntas de las categorías elegidas.
 - Incluye una pregunta sobre el área, con las áreas de la empresa como opciones.
-- Queda publicada, y SST360 muestra su enlace para compartirlo.
+- Queda publicada, y Norvia muestra su enlace para compartirlo.
 - Se registran categorías, preguntas, fecha y autor.
 - Si Google falla, se informa el error y no queda una encuesta a medias.
 
@@ -424,7 +427,7 @@ Cada historia termina con estos datos:
 
 ### HU-031 | Importar las respuestas
 
-**Como** Responsable SST, **quiero** traer las respuestas de la encuesta, **para** analizarlas en SST360.
+**Como** Responsable SST, **quiero** traer las respuestas de la encuesta, **para** analizarlas en Norvia.
 
 **Criterios de aceptación:**
 
@@ -894,7 +897,7 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Indico trabajador, área o puesto, artículo, cantidad y fecha.
-- El trabajador no necesita cuenta en SST360.
+- El trabajador no necesita cuenta en Norvia.
 - No puedo entregar más de lo que hay en inventario.
 
 **Módulo:** M8 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-067 · **Reglas:** art. 47.d, RN-47, RN-48, D18
@@ -1118,7 +1121,7 @@ Cada historia termina con estos datos:
 
 - Si una fecha cambia, su evento se actualiza.
 - Si algo se cancela o se elimina, su evento se elimina.
-- Si Google no responde, el cambio se guarda en SST360 y el evento se vuelve a intentar.
+- Si Google no responde, el cambio se guarda en Norvia y el evento se vuelve a intentar.
 
 **Módulo:** M11 · **Entrega:** E3 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-081 · **Reglas:** RN-55, RN-56, D16
 
@@ -1214,28 +1217,29 @@ Cada historia termina con estos datos:
 
 ### HU-094 | Implementar autenticación JWT
 
-**Como** equipo, **quiero** emitir y validar JWT, **para** identificar al usuario y su empresa activa.
+**Como** equipo, **quiero** emitir y validar JWT, **para** identificar el vínculo y la empresa de la sesión.
 
 **Criterios de aceptación:**
 
-- El token lleva usuario, empresa activa y rol.
-- `EmpresaId` viaja como se definió en el diseño.
+- El token incluye `VinculoEmpresaId`, `EmpresaId` (cifrado según HU-014) y `RolId`.
+- El login previo valida correo institucional y contraseña del vínculo.
 - Se validan firma, emisor, audiencia y expiración.
 - Un token inválido recibe 401.
 
-**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-014, HU-091 · **Reglas:** RN-06, D1
+**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-014, HU-091 · **Reglas:** RN-06, RN-57, D1, D21
 
 ### HU-095 | Implementar autorización por roles
 
-**Como** equipo, **quiero** proteger los endpoints por rol, **para** que cada usuario haga solo lo permitido.
+**Como** equipo, **quiero** proteger los endpoints según permisos del rol del vínculo, **para** que cada operador haga solo lo permitido.
 
 **Criterios de aceptación:**
 
-- Cada endpoint protegido declara sus roles.
-- Un rol no permitido recibe 403.
+- Cada endpoint protegido se resuelve contra `Permiso`/`RolPermiso` (semilla alineada al ERD).
+- Un rol sin permiso recibe 403.
+- El admin de plataforma usa política aparte (`Usuario`).
 - Las acciones de la comisión se validan contra el cargo de la persona.
 
-**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-094 · **Reglas:** RN-03, D3
+**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-094 · **Reglas:** RN-03, RN-61, D3, D20
 
 ### HU-096 | Validar con FluentValidation
 
@@ -1442,7 +1446,7 @@ Cada historia termina con estos datos:
 
 ### HU-113 | Integrar con Google Forms y Google Calendar
 
-**Como** equipo, **quiero** conectar SST360 con las APIs de Google, **para** generar encuestas, leer respuestas y gestionar eventos.
+**Como** equipo, **quiero** conectar Norvia con las APIs de Google, **para** generar encuestas, leer respuestas y gestionar eventos.
 
 **Criterios de aceptación:**
 
@@ -1480,9 +1484,9 @@ Total: 113 historias: 90 Must y 23 Should. Por entrega: Diseño 16, E1 44, E2 25
 | HU-016 | Configurar el tablero Kanban | Diseño | Diseño | No aplica | Must |
 | HU-017 | Registrar mi empresa | M1 | E1 | Web | Must |
 | HU-018 | Iniciar y cerrar sesión | M1 | E1 | Web y teléfono | Must |
-| HU-019 | Cambiar de empresa | M1 | E1 | Web y teléfono | Must |
-| HU-020 | Agregar usuarios | M1 | E1 | Web | Must |
-| HU-021 | Gestionar roles y membresías | M1 | E1 | Web | Must |
+| HU-019 | Acceder a otra empresa | M1 | E1 | Web y teléfono | Must |
+| HU-020 | Agregar vínculos | M1 | E1 | Web | Must |
+| HU-021 | Gestionar roles y vínculos | M1 | E1 | Web | Must |
 | HU-022 | Cambiar mi contraseña | M1 | E1 | Web y teléfono | Should |
 | HU-023 | Administrar los catálogos | M1 | E3 | Web | Should |
 | HU-024 | Consultar las empresas registradas | M1 | E3 | Web | Should |

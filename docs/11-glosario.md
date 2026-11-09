@@ -41,10 +41,17 @@
 
 | Término | Significado |
 |---|---|
+| Norvia | Plataforma SaaS de SST multiempresa; nombre oficial del producto (Normativa + Vía) |
+| SST360 | Nombre de trabajo anterior; usar **Norvia** en documentación nueva |
+| Persona | Identidad humana sin credenciales; nombres en cuatro columnas |
+| VinculoEmpresa | Relación persona–empresa: rol, correo institucional, contraseña y estado |
+| Membresia | Nombre anterior de **VinculoEmpresa**; no usar en diseño nuevo |
+| Cargo (comisión) | Función en la Comisión Mixta (`presidente`, `secretario`, `miembro`); no es rol del sistema |
+| Rol (sistema) | Permisos en Norvia para un vínculo (`admin_empresa`, `responsable_sst`, `colaborador`) |
 | Encuesta | Cuestionario que responden los trabajadores para identificar peligros |
 | Entrega | Etapa de construcción que deja algo demostrable |
-| Google Calendar | Calendario de Google; SST360 crea allí eventos con recordatorios |
-| Google Forms | Servicio de formularios de Google; SST360 crea allí las encuestas |
+| Google Calendar | Calendario de Google; Norvia crea allí eventos con recordatorios |
+| Google Forms | Servicio de formularios de Google; Norvia crea allí las encuestas |
 | Historia de usuario (HU) | Descripción breve de lo que alguien necesita y para qué |
 | Inventario | Cantidad disponible de cada artículo de EPP |
 | Kanban | Tablero para visualizar el trabajo por estados |
@@ -54,7 +61,7 @@
 | Pitch | Presentación breve de una idea de negocio |
 | Razón social | Nombre legal de la empresa |
 | RTN | Registro Tributario Nacional de Honduras |
-| Rubro | Tipo de actividad de la empresa. SST360 trabaja con 4: oficina administrativa, comercio o tienda, maquila o fábrica, y construcción |
+| Rubro | Tipo de actividad de la empresa. Norvia trabaja con 4: oficina administrativa, comercio o tienda, maquila o fábrica, y construcción |
 | SaaS | Software como servicio: se usa por internet sin instalarlo en servidores propios |
 | Should | Prioridad: aporta valor, pero se puede recortar |
 
@@ -63,10 +70,10 @@
 | Término | Significado |
 |---|---|
 | 3FN | Tercera forma normal: forma de organizar tablas para evitar datos repetidos |
-| API | Interfaz por la que un sistema se comunica con otro, como los clientes con el backend o SST360 con Google |
+| API | Interfaz por la que un sistema se comunica con otro, como los clientes con el backend o Norvia con Google |
 | Backend | Parte del sistema que corre en el servidor |
 | Claim | Dato incluido dentro de un token |
-| Cascada | Borrar o cambiar automáticamente los registros hijos al borrar o cambiar el padre. SST360 no la usa |
+| Cascada | Borrar o cambiar automáticamente los registros hijos al borrar o cambiar el padre. Norvia no la usa |
 | Clean Architecture | Forma de separar el código en capas con dependencias controladas |
 | Disparador | Código que la base de datos ejecuta automáticamente ante un cambio; en inglés, trigger |
 | DTO | Objeto que define los datos que entran y salen de la API |

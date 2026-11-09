@@ -1,6 +1,6 @@
 # Entidades candidatas
 
-**Para qué sirve:** lista los datos principales que guardará SST360. Es el punto de partida del diccionario de datos.
+**Para qué sirve:** lista los datos principales que guardará **Norvia**. Es el punto de partida del diccionario de datos.
 
 Es una lista conceptual: todavía no incluye atributos ni relaciones. Puede cambiar durante el diseño.
 
@@ -16,9 +16,12 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 
 | Tipo | Entidad | Qué guarda | Módulo |
 |---|---|---|---|
-| Raíz | Empresa | Cada empresa cliente: razón social, RTN, dirección, actividad económica, rubro y trabajadores permanentes | M1, M2 |
-| Global | Usuario | Cuenta de cada persona | M1 |
-| Global | Rol | Roles del sistema | M1 |
+| Raíz | Empresa | Cada empresa cliente: razón social, RTN, dirección, actividad, rubro, trabajadores y estado del tenant | M1, M2 |
+| Global | Persona | Identidad humana (nombres y documento), sin correo ni contraseña | M1, M6, M8 |
+| Global | Usuario | Cuenta del administrador de plataforma Norvia (no empleados de empresas) | M1 |
+| Global | Rol | Roles del sistema en una empresa | M1 |
+| Global | Permiso | Operación permitida en la API (ruta y verbo) | M1 |
+| Global | RolPermiso | Qué permisos tiene cada rol | M1 |
 | Global | Rubro | Los 4 rubros | M2 |
 | Global | CategoriaRiesgo | Categorías de riesgo de cada rubro | M3 |
 | Global | PreguntaExploratoria | Preguntas de cada categoría, con su peligro asociado | M3 |
@@ -26,7 +29,9 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Global | Peligro | Catálogo de peligros | M3, M4 |
 | Global | PlantillaTarea | Tareas modelo | M4, M5 |
 | Global | PlantillaDocumento | Políticas y procedimientos modelo | M9 |
-| Con `EmpresaId` | Membresia | Usuario, empresa y rol | M1 |
+| Con `EmpresaId` | VinculoEmpresa | Persona en la empresa: rol, correo institucional, contraseña y estado | M1 |
+| Con `EmpresaId` | HistorialEstadoVinculo | Cambios de estado del vínculo con motivo | M1 |
+| Con `EmpresaId` | HistorialEstadoEmpresa | Cambios de estado del tenant (p. ej. mora) | M1 |
 | Con `EmpresaId` | ConexionGoogle | Cuenta de Google conectada y sus credenciales cifradas | M1 |
 | Con `EmpresaId` | RegistroAuditoria | Acciones importantes | Todos |
 | Con `EmpresaId` | Area | Áreas de la empresa | M2 |
@@ -63,3 +68,5 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 **M12 no tiene entidades propias:** solo lee datos de los demás módulos.
 
 El detalle de cada tabla está en el [modelo de datos](12-modelo-datos.md).
+
+**Nota:** *Membresia* fue el nombre anterior de **VinculoEmpresa** (ver [glosario](11-glosario.md)).

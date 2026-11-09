@@ -1,8 +1,12 @@
 # Modelo de datos
 
-**Para qué sirve:** define todas las tablas de SST360, sus columnas, relaciones, restricciones e índices. Es la base del diagrama entidad-relación (ERD) que exige el curso y de la implementación con EF Core.
+**Para qué sirve:** define todas las tablas de Norvia, sus columnas, relaciones, restricciones e índices. Es la base del diagrama entidad-relación (ERD) que exige el curso y de la implementación con EF Core.
 
-El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D18 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega dos tablas que el diseño hizo necesarias: OpcionPregunta y EncuestaOpcion.
+El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D22 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaOpcion, Persona, VinculoEmpresa, historiales de estado y RBAC (`Permiso`, `RolPermiso`).
+
+### Nombres de persona (3FN)
+
+Los nombres se guardan en cuatro columnas en `Persona`. **No** existe `NombreCompleto` en base de datos; la aplicación lo concatena al mostrar (RN-62).
 
 ## 1. Convenciones
 
@@ -52,15 +56,15 @@ Las columnas que terminan en `En`, como `CreadoEn` o `RegistradoEn`, toman la ho
 | Tipo de tabla | Tiene `EmpresaId` | Tablas |
 |---|---|---|
 | Raíz | Es la empresa | Empresa |
-| Global | No | Usuario, Rol, Rubro, CategoriaRiesgo, PreguntaExploratoria, OpcionPregunta, Peligro, PlantillaTarea, PlantillaDocumento |
-| De empresa | Sí, obligatorio | Las 33 restantes |
+| Global | No | Persona, Usuario, Rol, Permiso, RolPermiso, Rubro, CategoriaRiesgo, PreguntaExploratoria, OpcionPregunta, Peligro, PlantillaTarea, PlantillaDocumento |
+| De empresa | Sí, obligatorio | Las demás tablas operativas (incluye VinculoEmpresa y historiales) |
 
 Reglas que cumplen todas las tablas de empresa:
 
 1. **`EmpresaId` es obligatorio** y es FK hacia `Empresa`.
 2. **Cada tabla tiene un valor único compuesto `(EmpresaId, Id)`**, además de su PK. Esto permite que otras tablas apunten a ella incluyendo la empresa.
 3. **Las FK entre tablas de empresa son compuestas:** incluyen `EmpresaId`. Por ejemplo, `Tarea (EmpresaId, AreaId) → Area (EmpresaId, Id)`. Así la base de datos rechaza que una tarea de la empresa A apunte a un área de la empresa B (decisión D15, regla RN-07). En los diccionarios se marcan como "FK compuesta".
-4. **Las personas se referencian a través de su membresía.** Una columna como `ResponsableId` guarda el `UsuarioId`, pero su FK compuesta apunta a `Membresia (EmpresaId, UsuarioId)`. Así solo se puede asignar a alguien que pertenece a la empresa.
+4. **Las personas con operación en la empresa se referencian a través de su vínculo.** Una columna como `ResponsableId` es FK compuesta hacia `VinculoEmpresa (EmpresaId, Id)`. Así solo se asigna a quien tiene vínculo en esa empresa.
 5. **EF Core aplica un filtro global** (`HasQueryFilter`) en cada tabla de empresa, usando la empresa activa del token.
 6. **`EmpresaId` se asigna al guardar** desde la empresa activa, nunca desde lo que envía el cliente (RN-06).
 
@@ -76,9 +80,12 @@ Cardinalidades: `||` es exactamente uno, `o|` es cero o uno, `o{` es cero o much
 
 ```mermaid
 erDiagram
-    Usuario ||--o{ Membresia : "pertenece por"
-    Empresa ||--o{ Membresia : "tiene"
-    Rol ||--o{ Membresia : "define permisos de"
+    Persona ||--o{ VinculoEmpresa : "tiene"
+    Empresa ||--o{ VinculoEmpresa : "acoge"
+    Rol ||--o{ VinculoEmpresa : "define permisos de"
+    Rol ||--o{ RolPermiso : "tiene"
+    Permiso ||--o{ RolPermiso : "concede"
+    Persona ||--o| Usuario : "admin plataforma opcional"
     Rubro ||--o{ Empresa : "clasifica"
     Empresa ||--o{ Area : "se divide en"
     Empresa ||--o| ConexionGoogle : "conecta"
@@ -163,20 +170,36 @@ erDiagram
 
 ### 4.1 Tablas globales
 
-#### Usuario
+#### Persona
 
-Cuenta de cada persona. Es global porque una persona puede pertenecer a varias empresas (D1).
+Identidad humana (D19, D21). Sin correo ni contraseña.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
-| Email | varchar(254) | No | UQ | Único sin distinguir mayúsculas: índice único sobre `lower(Email)` |
-| NombreCompleto | varchar(150) | No | | |
-| PasswordHash | varchar(255) | No | | Hash de la contraseña; nunca la contraseña en texto plano |
-| DebeCambiarPassword | boolean | No | | Por defecto `false`. `true` al recibir un acceso temporal |
-| EsAdministradorPlataforma | boolean | No | | Por defecto `false`. Rol global, no depende de una empresa |
-| Activo | boolean | No | | Por defecto `true` |
+| PrimerNombre | varchar(80) | No | | |
+| SegundoNombre | varchar(80) | Sí | | |
+| PrimerApellido | varchar(80) | No | | |
+| SegundoApellido | varchar(80) | Sí | | |
+| TipoDocumento | varchar(15) | Sí | | `dni`, `pasaporte`, `otro` |
+| NumeroDocumento | varchar(50) | Sí | | |
+| Telefono | varchar(30) | Sí | | |
 | CreadoEn | timestamptz | No | | Lo fija el servidor |
+
+**Restricciones:** UQ `(TipoDocumento, NumeroDocumento)` cuando ambos tienen valor.
+
+#### Usuario
+
+Cuenta del **administrador de plataforma** únicamente (D21). Los operadores de empresa autentican con `VinculoEmpresa`.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| Email | varchar(254) | No | UQ | Índice único sobre `lower(Email)` |
+| PasswordHash | varchar(255) | No | | |
+| DebeCambiarPassword | boolean | No | | Por defecto `false` |
+| Activo | boolean | No | | Por defecto `true` |
+| CreadoEn | timestamptz | No | | |
 
 #### Rol
 
@@ -188,7 +211,27 @@ Roles que una persona puede tener dentro de una empresa.
 | Codigo | varchar(30) | No | UQ | `admin_empresa`, `responsable_sst`, `colaborador` |
 | Nombre | varchar(60) | No | | Nombre visible |
 
-El Administrador de plataforma no está aquí porque no pertenece a una empresa: se marca en `Usuario.EsAdministradorPlataforma`.
+El Administrador de plataforma no usa `VinculoEmpresa`: entra por tabla `Usuario`.
+
+#### Permiso
+
+Catálogo de operaciones de la API (D20, HU-014).
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | smallint | No | PK | |
+| Codigo | varchar(60) | No | UQ | Identificador estable |
+| Nombre | varchar(120) | No | | |
+| MetodoHttp | varchar(10) | No | | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
+| RutaPatron | varchar(200) | No | | Ejemplo: `/api/riesgos/*` |
+| Activo | boolean | No | | Por defecto `true` |
+
+#### RolPermiso
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| RolId | smallint | No | PK, FK → Rol | |
+| PermisoId | smallint | No | PK, FK → Permiso | |
 
 #### Rubro
 
@@ -300,30 +343,66 @@ Políticas y procedimientos modelo.
 | RubroId | smallint | Sí | FK → Rubro | Nulo hasta completar el perfil (RN-09) |
 | TrabajadoresPermanentes | integer | Sí | | CHECK `>= 0` |
 | FechaInicioOperaciones | date | Sí | | Sirve para advertir el plazo de 30 días de la comisión |
-| Activa | boolean | No | | Por defecto `true` |
+| Estado | varchar(12) | No | | `activa`, `suspendida`, `inactiva` (D22, RN-60) |
 | CreadaEn | timestamptz | No | | Lo fija el servidor |
 
 ### 4.3 Tablas de empresa
 
 En todas: `Id uuid` es la PK, `EmpresaId uuid` es obligatorio y es FK hacia `Empresa`, y existe UQ `(EmpresaId, Id)`. Las tablas con PK compuesta lo indican.
 
-#### Membresia
+#### VinculoEmpresa
 
-Une a un usuario con una empresa y su rol (D1).
+Relación persona–empresa con rol y credenciales institucionales (D1, D21).
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
-| UsuarioId | uuid | No | FK → Usuario | |
+| PersonaId | uuid | No | FK → Persona | |
 | RolId | smallint | No | FK → Rol | |
-| Activa | boolean | No | | Por defecto `true`. Desactivar no borra el historial |
-| CreadaEn | timestamptz | No | | |
+| Email | varchar(254) | No | | Correo institucional y login de este vínculo |
+| PasswordHash | varchar(255) | No | | Clave solo de este vínculo |
+| DebeCambiarPassword | boolean | No | | Por defecto `false` |
+| Estado | varchar(12) | No | | `activo`, `suspendido`, `baja` |
+| CreadoEn | timestamptz | No | | |
 
 **Restricciones:**
 
-- UQ `(EmpresaId, UsuarioId)`: un usuario tiene una sola membresía por empresa. Es también el destino de todas las referencias a personas.
-- Al menos un Administrador activo por empresa (RN-08): lo valida la aplicación.
+- UQ `(EmpresaId, PersonaId)`: una persona, un vínculo por empresa.
+- UQ índice sobre `lower(Email)` (RN-57).
+- Destino de FK compuestas operativas (`ResponsableId`, etc.).
+- Al menos un vínculo `activo` con rol admin por empresa (RN-08): lo valida la aplicación.
+
+#### HistorialEstadoVinculo
+
+Auditoría de cambios de estado del vínculo (D22, RN-59).
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| EmpresaId | uuid | No | FK → Empresa | |
+| VinculoEmpresaId | uuid | No | FK compuesta → VinculoEmpresa | |
+| EstadoAnterior | varchar(12) | Sí | | Nulo en el primer registro |
+| EstadoNuevo | varchar(12) | No | | |
+| MotivoCodigo | varchar(30) | No | | `decision_admin`, `baja_laboral`, `falta_pago_empresa`, `otro` |
+| MotivoDetalle | text | Sí | | |
+| RegistradoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
+| RegistradoEn | timestamptz | No | | |
+
+#### HistorialEstadoEmpresa
+
+Suspensión o reactivación del tenant (D22).
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| EmpresaId | uuid | No | FK → Empresa | |
+| EstadoAnterior | varchar(12) | Sí | | |
+| EstadoNuevo | varchar(12) | No | | |
+| MotivoCodigo | varchar(30) | No | | `falta_pago_plataforma`, `reactivacion`, `otro` |
+| MotivoDetalle | text | Sí | | |
+| RegistradoPorId | uuid | Sí | FK → Usuario | Admin plataforma; nulo si es proceso automático |
+| RegistradoEn | timestamptz | No | | |
 
 #### ConexionGoogle
 
@@ -336,7 +415,7 @@ Cuenta de Google conectada por la empresa (D16).
 | CuentaGoogle | varchar(254) | No | | Correo de la cuenta conectada |
 | RefreshTokenCifrado | bytea | No | | Credencial cifrada por la aplicación; nunca se envía al cliente |
 | Alcances | text | No | | Permisos concedidos (Forms y Calendar) |
-| ConectadaPorId | uuid | No | FK compuesta → Membresia | |
+| ConectadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | ConectadaEn | timestamptz | No | | |
 | Activa | boolean | No | | Por defecto `true` |
 
@@ -350,7 +429,8 @@ Acciones importantes, para que la evidencia sea verificable.
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
-| UsuarioId | uuid | Sí | FK → Usuario | Nulo si la acción la hizo el sistema |
+| VinculoEmpresaId | uuid | Sí | FK compuesta → VinculoEmpresa | Quien actuó en la empresa |
+| UsuarioId | uuid | Sí | FK → Usuario | Solo acciones del admin de plataforma |
 | Accion | varchar(50) | No | | Por ejemplo `acta_firmada` |
 | Entidad | varchar(60) | No | | Tabla afectada |
 | EntidadId | uuid | No | | Registro afectado; sin FK, porque puede apuntar a cualquier tabla |
@@ -367,7 +447,7 @@ Acciones importantes, para que la evidencia sea verificable.
 | EmpresaId | uuid | No | FK → Empresa | |
 | Nombre | varchar(100) | No | | |
 | Descripcion | text | Sí | | |
-| EncargadoId | uuid | Sí | FK compuesta → Membresia | Encargado de área |
+| EncargadoId | uuid | Sí | FK compuesta → VinculoEmpresa | Encargado de área |
 | Activa | boolean | No | | Por defecto `true`. Un área con registros se desactiva, no se borra |
 
 **Restricciones:** UQ `(EmpresaId, Nombre)`.
@@ -384,7 +464,7 @@ Cada encuesta generada en Google Forms (D8).
 | GoogleFormId | varchar(100) | No | UQ | Identificador del formulario en Google |
 | UrlRespuesta | varchar(500) | No | | Enlace que se comparte con los trabajadores |
 | Estado | varchar(10) | No | | `publicada`, `cerrada` |
-| CreadaPorId | uuid | No | FK compuesta → Membresia | |
+| CreadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | CreadaEn | timestamptz | No | | |
 | UltimaImportacionEn | timestamptz | Sí | | |
 
@@ -489,7 +569,7 @@ Riesgos de la empresa. Un riesgo empieza como sugerido por una encuesta o lo cre
 | Estado | varchar(12) | No | | `sugerido`, `confirmado`, `descartado` (RN-18) |
 | EncuestaId | uuid | Sí | FK compuesta → Encuesta | Encuesta que lo sugirió |
 | CreadoEn | timestamptz | No | | |
-| RevisadoPorId | uuid | Sí | FK compuesta → Membresia | Quien lo confirmó o descartó |
+| RevisadoPorId | uuid | Sí | FK compuesta → VinculoEmpresa | Quien lo confirmó o descartó |
 | RevisadoEn | timestamptz | Sí | | |
 
 **Restricciones:**
@@ -510,7 +590,7 @@ Cada evaluación de un riesgo. Una nueva no reemplaza a la anterior (RN-20, D10)
 | Tipo | varchar(10) | No | | `inicial`, `residual` |
 | Probabilidad | smallint | No | | CHECK entre 1 y 5 |
 | Severidad | smallint | No | | CHECK entre 1 y 5 |
-| EvaluadoPorId | uuid | No | FK compuesta → Membresia | |
+| EvaluadoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | EvaluadoEn | timestamptz | No | | |
 
 El nivel (`Probabilidad × Severidad`) y su clasificación se calculan; no se guardan (RN-15, RN-16).
@@ -541,7 +621,7 @@ Tareas de todos los módulos (D6). El origen se deduce de qué columna de origen
 | Descripcion | text | Sí | | |
 | Estado | varchar(12) | No | | `pendiente`, `en_progreso`, `completada`, `cancelada` |
 | Prioridad | smallint | No | | CHECK entre 1 (alta) y 3 (baja) |
-| ResponsableId | uuid | Sí | FK compuesta → Membresia | |
+| ResponsableId | uuid | Sí | FK compuesta → VinculoEmpresa | |
 | FechaLimite | date | Sí | | |
 | RequiereEvidencia | boolean | No | | Por defecto `false` |
 | PlantillaTareaId | uuid | Sí | FK → PlantillaTarea | |
@@ -550,7 +630,7 @@ Tareas de todos los módulos (D6). El origen se deduce de qué columna de origen
 | EquipoId | uuid | Sí | FK compuesta → Equipo | Origen: mantenimiento |
 | AccidenteId | uuid | Sí | FK compuesta → Accidente | Origen: accidente |
 | ActaId | uuid | Sí | FK compuesta → Acta | Origen: acuerdo de reunión |
-| CreadaPorId | uuid | No | FK compuesta → Membresia | |
+| CreadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | CreadaEn | timestamptz | No | | |
 | CompletadaEn | timestamptz | Sí | | |
 
@@ -575,7 +655,7 @@ Datos y enlace de cada archivo guardado en el almacenamiento externo (D14). El a
 | TipoContenido | varchar(100) | No | | Por ejemplo `image/jpeg` o `application/pdf` |
 | TamanoBytes | bigint | No | | CHECK `> 0`. El máximo se define en los requerimientos no funcionales |
 | ClaveAlmacenamiento | varchar(500) | No | UQ | Ubicación en el almacenamiento externo |
-| SubidoPorId | uuid | No | FK compuesta → Membresia | |
+| SubidoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | SubidoEn | timestamptz | No | | |
 | TareaId | uuid | Sí | FK compuesta → Tarea | Evidencia de una tarea |
 | AccidenteId | uuid | Sí | FK compuesta → Accidente | Foto de un accidente |
@@ -598,7 +678,7 @@ Accidentes, incidentes y enfermedades profesionales (RN-26).
 | FechaHoraEvento | timestamptz | No | | La indica quien reporta (RN-31) |
 | AreaId | uuid | No | FK compuesta → Area | |
 | Descripcion | text | No | | |
-| ReportadoPorId | uuid | No | FK compuesta → Membresia | |
+| ReportadoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | RegistradoEn | timestamptz | No | | Lo fija el servidor (RN-31) |
 | Estado | varchar(16) | No | | `abierto`, `en_investigacion`, `cerrado` |
 | CerradoEn | timestamptz | Sí | | |
@@ -611,14 +691,15 @@ Accidentes, incidentes y enfermedades profesionales (RN-26).
 
 #### PersonaAfectada
 
-Personas afectadas por un evento (D11). No necesitan cuenta.
+Personas afectadas por un evento (D11). No necesitan vínculo. Puede enlazarse a `Persona` para evitar duplicar identidad.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | AccidenteId | uuid | No | FK compuesta → Accidente | |
-| NombreCompleto | varchar(150) | No | | |
+| PersonaId | uuid | Sí | FK → Persona | Opcional |
+| NombreParaRegistro | varchar(200) | No | | Texto capturado en el evento si no hay Persona |
 | Puesto | varchar(100) | Sí | | |
 | TipoLesion | varchar(150) | Sí | | |
 | DiasIncapacidad | integer | No | | Por defecto 0. CHECK `>= 0` |
@@ -635,7 +716,7 @@ Solo el Responsable SST y la comisión pueden consultarla (RN-30); lo valida la 
 | CausasInmediatas | text | No | | |
 | CausasBasicas | text | No | | Causas de fondo |
 | Conclusiones | text | Sí | | |
-| InvestigadaPorId | uuid | No | FK compuesta → Membresia | |
+| InvestigadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | FechaInvestigacion | date | No | | |
 
 Las medidas correctivas son tareas con `AccidenteId`.
@@ -661,7 +742,7 @@ Las medidas correctivas son tareas con `AccidenteId`.
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | ComisionId | uuid | No | FK compuesta → Comision | |
-| UsuarioId | uuid | No | FK compuesta → Membresia | |
+| VinculoEmpresaId | uuid | No | FK compuesta → VinculoEmpresa | |
 | Parte | varchar(14) | No | | `empleador`, `trabajadores` |
 | Condicion | varchar(11) | No | | `propietario`, `suplente` |
 | Cargo | varchar(11) | No | | `presidente`, `secretario`, `miembro` |
@@ -691,7 +772,7 @@ Las medidas correctivas son tareas con `AccidenteId`.
 | Motivo | text | Sí | | |
 | AccidenteId | uuid | Sí | FK compuesta → Accidente | Accidente grave que la motivó (art. 32) |
 | Estado | varchar(10) | No | | `programada`, `realizada`, `cancelada` |
-| ConvocadaPorId | uuid | No | FK compuesta → Membresia | |
+| ConvocadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | CreadaEn | timestamptz | No | | |
 
 **Restricciones:** CHECK: si `Tipo = 'extraordinaria'`, `Motivo` tiene valor.
@@ -719,7 +800,7 @@ El quórum se calcula a partir de esta tabla (RN-34, RN-35).
 | ResultadosInvestigaciones | text | Sí | | |
 | ActividadesEducativas | text | Sí | | |
 | OtrosTemas | text | Sí | | |
-| RedactadaPorId | uuid | No | FK compuesta → Membresia | |
+| RedactadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | CreadaEn | timestamptz | No | | |
 | AprobadaEn | timestamptz | Sí | | |
 | FirmadaEn | timestamptz | Sí | | |
@@ -754,7 +835,7 @@ La aplicación verifica que `HashFirmado` coincida con `Acta.HashContenido` y qu
 | Nombre | varchar(150) | No | | |
 | Tipo | varchar(80) | No | | |
 | AreaId | uuid | No | FK compuesta → Area | |
-| ResponsableMantenimientoId | uuid | No | FK compuesta → Membresia | |
+| ResponsableMantenimientoId | uuid | No | FK compuesta → VinculoEmpresa | |
 | EsEquipoEmergencia | boolean | No | | Por defecto `false` |
 | ProximoMantenimiento | date | Sí | | |
 | Activo | boolean | No | | Por defecto `true` |
@@ -770,7 +851,7 @@ La aplicación verifica que `HashFirmado` coincida con `Acta.HashContenido` y qu
 | EquipoId | uuid | No | FK compuesta → Equipo | |
 | Tipo | varchar(11) | No | | `preventivo`, `correctivo` |
 | Descripcion | text | No | | |
-| ResponsableId | uuid | No | FK compuesta → Membresia | |
+| ResponsableId | uuid | No | FK compuesta → VinculoEmpresa | |
 | Estado | varchar(10) | No | | `en_proceso`, `realizado` |
 | RealizadoEn | timestamptz | Sí | | |
 | RegistradoEn | timestamptz | No | | Lo fija el servidor (RN-44) |
@@ -803,7 +884,7 @@ La aplicación verifica que `HashFirmado` coincida con `Acta.HashContenido` y qu
 | ArticuloEPPId | uuid | No | FK compuesta → ArticuloEPP | |
 | Cantidad | integer | No | | CHECK `> 0` |
 | Fecha | date | No | | |
-| RegistradoPorId | uuid | No | FK compuesta → Membresia | |
+| RegistradoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | RegistradoEn | timestamptz | No | | |
 
 #### EntregaEPP
@@ -818,7 +899,7 @@ La aplicación verifica que `HashFirmado` coincida con `Acta.HashContenido` y qu
 | Puesto | varchar(100) | Sí | | |
 | Cantidad | integer | No | | CHECK `> 0` |
 | Fecha | date | No | | |
-| RegistradoPorId | uuid | No | FK compuesta → Membresia | |
+| RegistradoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | RegistradoEn | timestamptz | No | | |
 
 **Restricciones:**
@@ -835,7 +916,7 @@ La aplicación verifica que `HashFirmado` coincida con `Acta.HashContenido` y qu
 | PlantillaDocumentoId | uuid | Sí | FK → PlantillaDocumento | Plantilla de origen |
 | Titulo | varchar(200) | No | | |
 | TipoDocumento | varchar(15) | No | | `politica`, `procedimiento` |
-| CreadoPorId | uuid | No | FK compuesta → Membresia | |
+| CreadoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | CreadoEn | timestamptz | No | | |
 
 #### VersionDocumento
@@ -848,9 +929,9 @@ La aplicación verifica que `HashFirmado` coincida con `Acta.HashContenido` y qu
 | NumeroVersion | integer | No | | CHECK `>= 1` |
 | Contenido | text | No | | |
 | Estado | varchar(11) | No | | `borrador`, `vigente`, `reemplazada` |
-| CreadaPorId | uuid | No | FK compuesta → Membresia | |
+| CreadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | CreadaEn | timestamptz | No | | |
-| AprobadaPorId | uuid | Sí | FK compuesta → Membresia | |
+| AprobadaPorId | uuid | Sí | FK compuesta → VinculoEmpresa | |
 | AprobadaEn | timestamptz | Sí | | |
 
 **Restricciones:**
@@ -875,7 +956,7 @@ Cada reporte generado. El PDF está en Archivo.
 | ActaId | uuid | Sí | FK compuesta → Acta | Solo en reportes de acta |
 | RetosSiguientePeriodo | text | Sí | | Texto que redacta el Responsable SST para el informe anual |
 | ArchivoId | uuid | No | UQ, FK compuesta → Archivo | PDF generado |
-| GeneradoPorId | uuid | No | FK compuesta → Membresia | |
+| GeneradoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | GeneradoEn | timestamptz | No | | |
 
 **Restricciones:**
@@ -886,7 +967,7 @@ Cada reporte generado. El PDF está en Archivo.
 
 #### EventoCalendario
 
-Une cada registro de SST360 con su evento en Google Calendar (D16, RN-54 a RN-56).
+Une cada registro de Norvia con su evento en Google Calendar (D16, RN-54 a RN-56).
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
@@ -915,7 +996,7 @@ Une cada registro de SST360 con su evento en Google Calendar (D16, RN-54 a RN-56
 
 | Relación | Cardinalidad | Cómo se implementa |
 |---|---|---|
-| Usuario – Empresa | Muchos a muchos | Tabla intermedia Membresia |
+| Persona – Empresa | Muchos a muchos | Tabla intermedia VinculoEmpresa |
 | Encuesta – CategoriaRiesgo | Muchos a muchos | Tabla intermedia EncuestaCategoria |
 | Reunion – IntegranteComision (asistencia) | Muchos a muchos | Tabla intermedia Asistencia |
 | Acta – IntegranteComision (firmas) | Muchos a muchos | Tabla intermedia FirmaActa |
@@ -983,6 +1064,7 @@ No se guardan datos que se puedan obtener de otros:
 
 | Dato | Cómo se obtiene |
 |---|---|
+| Nombre completo de Persona | Concatenación de las cuatro columnas de nombre (RN-62) |
 | Nivel y clasificación del riesgo | `Probabilidad × Severidad` |
 | Número de representantes de la comisión | `Empresa.TrabajadoresPermanentes` y la tabla del art. 14 |
 | Fin del periodo de un integrante | `FechaInicio` más 2 años |
@@ -1010,11 +1092,16 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | Regla | Dónde | Cómo |
 |---|---|---|
 | RN-01 | BD | UQ `Empresa.RTN` |
-| RN-02, RN-03 | BD | Membresia con UQ `(EmpresaId, UsuarioId)` y `RolId` |
+| RN-02, RN-03 | BD | VinculoEmpresa con UQ `(EmpresaId, PersonaId)` y `RolId` |
+| RN-57 | BD | `VinculoEmpresa.Email` y `PasswordHash` |
+| RN-58, RN-59 | BD y App | `HistorialEstadoVinculo` y transacción con `Estado` |
+| RN-60 | BD | `Empresa.Estado` |
+| RN-61 | App | Cargo vs rol en permisos |
+| RN-62 | App | Sin `NombreCompleto` en Persona/Usuario |
 | RN-04 | BD | `EmpresaId` obligatorio |
 | RN-05, RN-06 | App | Filtro global de EF Core y empresa tomada del token |
 | RN-07 | BD | FK compuestas con `EmpresaId` |
-| RN-08 | App | Validación al cambiar roles o desactivar membresías |
+| RN-08 | App | Validación al cambiar roles o suspender vínculos |
 | RN-09 | BD | `Empresa.RubroId` es una sola columna |
 | RN-10, RN-11 | App | Validación antes de generar la encuesta |
 | RN-12 | BD | Copias en EncuestaPregunta y EncuestaOpcion |

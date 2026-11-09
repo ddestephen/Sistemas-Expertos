@@ -61,7 +61,7 @@ Diseñar, desarrollar, contenerizar y desplegar una plataforma web transaccional
 | DevOps local | No compila en Docker | Dockerfile básico funcional | `docker-compose.yml` levanta el sistema completo con un solo comando |
 | Despliegue | Solo funciona en localhost | Despliegue parcial | Todo en la nube: Vercel, Render y Neon, con HTTPS |
 
-## Qué implica para SST360
+## Qué implica para Norvia
 
 - La nota evalúa sobre todo la calidad de ingeniería, no la cantidad de módulos. Un módulo bien aislado y validado vale más que tres a medias.
 - La versión para teléfono no aparece en estos requisitos. El frontend calificado es el web, por lo que no debe sacrificarse.

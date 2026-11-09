@@ -1,17 +1,17 @@
 2. ENT-01 | Análisis y diseño del sistema
 Vamos a definirlo como un conjunto de issues independientes, con descripción y criterios de aceptación para que puedas asignarlos directamente.
 Entregable: diseño aprobado para iniciar desarrollo
-EP-00 | Análisis y diseño de SST360
+EP-00 | Análisis y diseño de Norvia
 Esta sería una épica transversal, no un módulo funcional de la plataforma.
 
-Objetivo: establecer los requerimientos funcionales y técnicos, las reglas de negocio y los modelos necesarios para orientar la construcción de SST360.
+Objetivo: establecer los requerimientos funcionales y técnicos, las reglas de negocio y los modelos necesarios para orientar la construcción de Norvia.
 HU-001 | Definir el alcance funcional del sistema
 Como equipo de desarrollo,
-quiero definir el alcance funcional de SST360,
+quiero definir el alcance funcional de Norvia,
 para establecer qué funcionalidades se desarrollarán en el MVP y cuáles quedarán para futuras iteraciones.
 
 Criterios de aceptación:
-- Se identifican los módulos funcionales que conforman SST360.
+- Se identifican los módulos funcionales que conforman Norvia.
 - Se define el propósito de cada módulo.
 - Se identifican las funcionalidades principales de cada módulo.
 - Se establece qué funcionalidades forman parte del MVP.
@@ -21,7 +21,7 @@ Criterios de aceptación:
 Entregable: documento de alcance funcional.
 HU-002 | Identificar actores y perfiles de usuario
 Como equipo de desarrollo,
-quiero identificar los actores que interactuarán con SST360,
+quiero identificar los actores que interactuarán con Norvia,
 para determinar sus necesidades y responsabilidades dentro del sistema.
 
 Criterios de aceptación:
@@ -42,7 +42,7 @@ Actores iniciales propuestos:
 Entregable: catálogo de actores y perfiles.
 HU-003 | Levantar requerimientos funcionales
 Como equipo de desarrollo,
-quiero identificar y documentar los requerimientos funcionales de SST360,
+quiero identificar y documentar los requerimientos funcionales de Norvia,
 para establecer las operaciones que deberá permitir el sistema.
 
 Criterios de aceptación:
@@ -57,7 +57,7 @@ Criterios de aceptación:
 Entregable: catálogo de requerimientos funcionales.
 HU-004 | Levantar requerimientos no funcionales
 Como equipo de desarrollo,
-quiero definir los requerimientos no funcionales de SST360,
+quiero definir los requerimientos no funcionales de Norvia,
 para establecer las condiciones de calidad, seguridad y operación que deberá cumplir la plataforma.
 
 Criterios de aceptación:
@@ -71,7 +71,7 @@ Criterios de aceptación:
 Entregable: catálogo de requerimientos no funcionales.
 HU-005 | Identificar y documentar reglas de negocio
 Como equipo de desarrollo,
-quiero documentar las reglas de negocio de SST360,
+quiero documentar las reglas de negocio de Norvia,
 para establecer las condiciones que controlarán las operaciones del sistema.
 
 Criterios de aceptación:
@@ -109,7 +109,7 @@ Entregable: backlog priorizado.
 EP-00 | Diseño funcional
 HU-007 | Elaborar diagramas de casos de uso
 Como equipo de desarrollo,
-quiero representar las interacciones entre los actores y SST360,
+quiero representar las interacciones entre los actores y Norvia,
 para visualizar las funcionalidades disponibles para cada perfil.
 
 Criterios de aceptación:
@@ -138,7 +138,7 @@ Entregable: diagramas de actividad o flujos de procesos.
 EP-00 | Diseño de base de datos
 HU-009 | Identificar entidades y atributos del sistema
 Como equipo de desarrollo,
-quiero identificar las entidades y atributos necesarios para SST360,
+quiero identificar las entidades y atributos necesarios para Norvia,
 para establecer la estructura de información que utilizará la plataforma.
 
 Criterios de aceptación:
@@ -152,7 +152,7 @@ Criterios de aceptación:
 - Las entidades responden a los requerimientos funcionales definidos.
 HU-010 | Diseñar el modelo entidad-relación
 Como equipo de desarrollo,
-quiero elaborar el modelo entidad-relación de SST360,
+quiero elaborar el modelo entidad-relación de Norvia,
 para representar las relaciones entre las entidades y establecer la estructura de la base de datos.
 
 Criterios de aceptación:
@@ -212,7 +212,7 @@ Entregable: catálogo de restricciones e índices.
 EP-00 | Diseño de API y arquitectura
 HU-014 | Definir contratos de API
 Como equipo de desarrollo,
-quiero definir los endpoints de SST360,
+quiero definir los endpoints de Norvia,
 para establecer cómo se comunicarán los clientes con el backend.
 
 Criterios de aceptación:
@@ -260,7 +260,7 @@ Entregable: diagrama de arquitectura y estructura propuesta de proyectos.
 HU-017 | Diseñar la estrategia de autenticación y autorización
 Como equipo de desarrollo,
 quiero definir el mecanismo de autenticación y autorización,
-para proteger los recursos de SST360 y controlar el acceso de los usuarios.
+para proteger los recursos de Norvia y controlar el acceso de los usuarios.
 
 Criterios de aceptación:
 - Se define el mecanismo de autenticación JWT.

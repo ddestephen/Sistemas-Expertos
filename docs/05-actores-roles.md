@@ -1,18 +1,19 @@
 # Actores y roles
 
-**Para qué sirve:** define quién usa SST360 y qué puede hacer.
+**Para qué sirve:** define quién usa Norvia y qué puede hacer.
 
-Hay dos conceptos distintos:
+Hay tres conceptos distintos:
 
-- **Rol:** define los permisos dentro del sistema. Cada persona tiene un rol por empresa.
-- **Asignación:** describe el papel de la persona en la organización. Una persona puede tener varias.
+- **Rol:** define los permisos dentro del sistema. Cada **vínculo activo** (`VinculoEmpresa`) tiene un rol en esa empresa.
+- **Cargo:** función en la Comisión Mixta (`presidente`, `secretario`, `miembro`). No sustituye al rol.
+- **Asignación:** describe el papel organizacional (encargado de área, etc.). Una persona puede tener varias.
 
 ## Roles del sistema
 
 | Rol | Alcance | Puede |
 |---|---|---|
 | Administrador de plataforma | Toda la plataforma | Administrar los catálogos comunes (rubros, categorías de riesgo, preguntas, peligros y plantillas) y ver datos básicos de las empresas. No ve su información de SST |
-| Administrador de empresa | Su empresa | Configurar la empresa, conectar su cuenta de Google y gestionar usuarios y roles |
+| Administrador de empresa | Su empresa | Configurar la empresa, conectar su cuenta de Google y gestionar vínculos y roles |
 | Responsable SST | Su empresa | Gestionar encuestas, riesgos, plan, accidentes, comisión, equipos, EPP, documentos y reportes |
 | Colaborador | Su empresa | Atender sus tareas, reportar accidentes, registrar mantenimientos y firmar actas cuando le corresponda |
 

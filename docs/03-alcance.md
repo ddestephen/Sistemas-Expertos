@@ -6,7 +6,7 @@ MVP significa "producto mínimo viable": la versión más pequeña que ya resuel
 
 ## Qué incluye
 
-SST360 tiene 12 módulos, descritos en [módulos](04-modulos.md).
+Norvia tiene 12 módulos, descritos en [módulos](04-modulos.md).
 
 | # | Módulo | En una frase |
 |---|---|---|
@@ -25,7 +25,7 @@ SST360 tiene 12 módulos, descritos en [módulos](04-modulos.md).
 
 ## Web y teléfono
 
-SST360 es multiplataforma, con reparto según el uso:
+Norvia es multiplataforma, con reparto según el uso:
 
 - **Teléfono, para el trabajo de campo:** registrar mantenimientos con fotos, reportar accidentes, atender tareas y firmar actas. Las fechas y recordatorios llegan por Google Calendar.
 - **Web, para todo lo demás:** configuración, encuesta, matriz de riesgos, inventario de equipo de protección, documentos, reportes y panel. La web también incluye las funciones del teléfono.
@@ -71,7 +71,7 @@ Si falta tiempo, se recorta en este orden:
 - Los clientes son empresas con 10 o más trabajadores permanentes.
 - Cada empresa corresponde a un solo rubro.
 - Cada empresa tiene una cuenta de Google para crear sus encuestas y su calendario.
-- Los trabajadores responden la encuesta desde un enlace, sin cuenta en SST360.
+- Los trabajadores responden la encuesta desde un enlace, sin cuenta en Norvia.
 - Hay conexión a internet al registrar mantenimientos y reportar accidentes.
 - La firma electrónica es la de un usuario autenticado, no una firma avanzada certificada.
 - El contenido de las categorías, preguntas, peligros y plantillas lo redacta el equipo en cantidad reducida por rubro, y debe revisarlo alguien con conocimiento de SST.
