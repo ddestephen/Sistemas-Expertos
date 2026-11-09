@@ -28,14 +28,14 @@ Diseñar, desarrollar, contenerizar y desplegar una plataforma web transaccional
 ## Fase 2: backend
 
 - **Clean Architecture:** capas `Domain`, `Application`, `Infrastructure` y `API`.
-- **Persistencia y aislamiento:** Entity Framework Core (Code-First) y Global Query Filters (`HasQueryFilter`), para que las consultas filtren automáticamente por el `EmpresaId` del usuario actual.
+- **Persistencia y aislamiento:** Entity Framework Core (Code-First) y Global Query Filters (`HasQueryFilter`), para que las consultas filtren automáticamente por el `EmpresaId` del JWT (vínculo autenticado).
 - **Seguridad:** autenticación con tokens JWT. `EmpresaId` debe viajar encriptado como claim dentro del token, para que el backend sepa a qué empresa pertenece quien hace la petición.
 - **Validación:** FluentValidation, con los errores propagados a la capa API mediante un middleware global.
 
 ## Fase 3: frontend
 
 - **Vertical Slicing:** agrupación por funcionalidades, por ejemplo `features/auth`.
-- **Rutas protegidas:** guardias de navegación con `react-router-dom` para bloquear usuarios sin JWT.
+- **Rutas protegidas:** guardias de navegación con `react-router-dom` para bloquear el acceso sin JWT.
 - **Validación en vivo:** Zod y React Hook Form con `mode: 'onChange'`, en simetría con FluentValidation.
 - **Resiliencia HTTP:** extractor universal de errores, el programado en la Clase 16, e interceptores de Axios para adjuntar el JWT como `Bearer`.
 

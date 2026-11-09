@@ -33,3 +33,14 @@ Seguir este orden al cambiar el modelo o las reglas:
 | **Usuario** | Solo administrador de plataforma Norvia |
 | **Rol** | Permisos del sistema en un vínculo |
 | **Cargo** | Solo comisión (`IntegranteComision.Cargo`), no rol |
+| **Operador** | Quien usa la app con un vínculo activo; no confundir con tabla `Usuario` |
+
+## Revisión de coherencia (checklist)
+
+Tras un cambio de acceso o modelo, buscar en `docs/`:
+
+- `Membresia`, `cambiar-empresa`, `/api/usuarios`, “empresa activa” (como selector), “usuario de la empresa” (usar **operador con vínculo**).
+- Endpoints M1 en `13-sprint-backlog.md` alineados a vínculos.
+- ERD §3.1 en `12-modelo-datos.md` con historiales y sin Persona→Usuario operativo.
+
+**Fuera de `docs/`:** `HUs.txt` y código en `ProyectoFinal/` pueden quedar desfasados hasta que el equipo los actualice.

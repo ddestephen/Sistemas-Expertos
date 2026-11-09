@@ -65,14 +65,14 @@ Reglas que cumplen todas las tablas de empresa:
 2. **Cada tabla tiene un valor único compuesto `(EmpresaId, Id)`**, además de su PK. Esto permite que otras tablas apunten a ella incluyendo la empresa.
 3. **Las FK entre tablas de empresa son compuestas:** incluyen `EmpresaId`. Por ejemplo, `Tarea (EmpresaId, AreaId) → Area (EmpresaId, Id)`. Así la base de datos rechaza que una tarea de la empresa A apunte a un área de la empresa B (decisión D15, regla RN-07). En los diccionarios se marcan como "FK compuesta".
 4. **Las personas con operación en la empresa se referencian a través de su vínculo.** Una columna como `ResponsableId` es FK compuesta hacia `VinculoEmpresa (EmpresaId, Id)`. Así solo se asigna a quien tiene vínculo en esa empresa.
-5. **EF Core aplica un filtro global** (`HasQueryFilter`) en cada tabla de empresa, usando la empresa activa del token.
-6. **`EmpresaId` se asigna al guardar** desde la empresa activa, nunca desde lo que envía el cliente (RN-06).
+5. **EF Core aplica un filtro global** (`HasQueryFilter`) en cada tabla de empresa, usando el **`EmpresaId` del JWT** (un vínculo = una empresa por sesión; sin selector).
+6. **`EmpresaId` se asigna al guardar** desde el token autenticado, nunca desde lo que envía el cliente (RN-06).
 
 Las referencias desde tablas de empresa hacia tablas globales son FK simples, por ejemplo `RiesgoEmpresa.PeligroId → Peligro.Id`.
 
 ## 3. Diagramas
 
-Los diagramas están separados por área para que sean legibles. Solo muestran relaciones; las columnas están en el diccionario. Casi todas las tablas tienen además relación con `Empresa` (por `EmpresaId`) y con `Usuario` (autores y responsables); se omiten para no saturar los dibujos.
+Los diagramas están separados por área para que sean legibles. Solo muestran relaciones; las columnas están en el diccionario. Las tablas de empresa referencian a quien actuó mediante **`VinculoEmpresa`** (FK compuesta). **`Usuario`** solo aparece en acciones del administrador de plataforma (p. ej. `HistorialEstadoEmpresa`, `RegistroAuditoria.UsuarioId`). Las FK a `Empresa` se omiten en los dibujos para no saturarlos.
 
 Cardinalidades: `||` es exactamente uno, `o|` es cero o uno, `o{` es cero o muchos y `|{` es uno o muchos.
 
@@ -82,14 +82,17 @@ Cardinalidades: `||` es exactamente uno, `o|` es cero o uno, `o{` es cero o much
 erDiagram
     Persona ||--o{ VinculoEmpresa : "tiene"
     Empresa ||--o{ VinculoEmpresa : "acoge"
+    Empresa ||--o{ HistorialEstadoEmpresa : "audita estado"
+    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "audita estado"
+    Usuario ||--o{ HistorialEstadoEmpresa : "registra suspensión SaaS"
     Rol ||--o{ VinculoEmpresa : "define permisos de"
     Rol ||--o{ RolPermiso : "tiene"
     Permiso ||--o{ RolPermiso : "concede"
-    Persona ||--o| Usuario : "admin plataforma opcional"
+    Usuario ||--o{ RegistroAuditoria : "acciones plataforma"
+    VinculoEmpresa ||--o{ RegistroAuditoria : "acciones en empresa"
     Rubro ||--o{ Empresa : "clasifica"
     Empresa ||--o{ Area : "se divide en"
     Empresa ||--o| ConexionGoogle : "conecta"
-    Empresa ||--o{ RegistroAuditoria : "registra"
     Rubro ||--o{ CategoriaRiesgo : "agrupa"
     CategoriaRiesgo ||--o{ PreguntaExploratoria : "contiene"
     PreguntaExploratoria ||--o{ OpcionPregunta : "ofrece"
@@ -132,7 +135,8 @@ erDiagram
     Accidente |o--o{ Tarea : "genera medidas"
     Accidente |o--o{ Archivo : "tiene fotos"
     Accidente |o--o{ Reunion : "convoca"
-    Comision ||--|{ IntegranteComision : "integra"
+    VinculoEmpresa ||--o{ IntegranteComision : "integra comisión"
+    Comision ||--|{ IntegranteComision : "tiene"
     IntegranteComision |o--o| IntegranteComision : "es suplente de"
     Comision ||--o{ Reunion : "celebra"
     Comision |o--o{ Archivo : "acta de constitución"

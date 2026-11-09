@@ -6,6 +6,8 @@
 
 Una historia de usuario (HU) dice quién necesita algo, qué necesita y para qué. Sus criterios de aceptación indican cuándo está terminada.
 
+**Lenguaje de acceso:** quien opera dentro de una empresa es un **operador con vínculo activo** (`VinculoEmpresa`). La tabla **`Usuario`** es solo el administrador de plataforma Norvia. En criterios antiguos decía “usuario de la empresa”; significa lo mismo que operador con vínculo.
+
 | Código | Contenido |
 |---|---|
 | `HU-001` a `HU-016` | Análisis y diseño, antes de programar |
@@ -123,8 +125,9 @@ Cada historia termina con estos datos:
 - Cada entidad tiene atributos, tipos, llaves primarias y foráneas.
 - Se indican los atributos obligatorios y opcionales.
 - Cada entidad se clasifica como raíz, global o con `EmpresaId`.
+- Acceso: `Persona`, `VinculoEmpresa` (credenciales por empresa), `Usuario` solo admin plataforma; `Permiso`/`RolPermiso`.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** D1 a D18
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** D1 a D22
 
 ### HU-009 | Definir el aislamiento multiempresa
 
@@ -150,8 +153,9 @@ Cada historia termina con estos datos:
 - Las tablas cumplen 1FN, 2FN y 3FN.
 - Las decisiones de normalización quedan documentadas.
 - Cada tabla existe en el diccionario de datos.
+- El ERD incluye `Persona`, `VinculoEmpresa`, historiales de estado, `Permiso`/`RolPermiso`; no `Membresia`; `Usuario` solo plataforma.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008, HU-009 · **Reglas:** D1 a D18
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008, HU-009 · **Reglas:** D1 a D22
 
 ### HU-011 | Definir restricciones e índices
 
@@ -334,7 +338,7 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Veo nombre, rubro, fecha de registro y número de usuarios.
+- Veo nombre, rubro, fecha de registro y número de vínculos activos.
 - No veo su información de SST.
 
 **Módulo:** M1 · **Entrega:** E3 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-017 · **Reglas:** RN-05
@@ -581,7 +585,7 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Solo puedo asignar usuarios activos de mi empresa.
+- Solo puedo asignar vínculos activos de mi empresa como responsables.
 - La tarea exige fecha límite.
 - Puedo crear tareas manuales.
 
@@ -607,7 +611,7 @@ Cada historia termina con estos datos:
 
 - Puedo adjuntar imágenes y PDF dentro del tamaño permitido.
 - El archivo queda con fecha y autor.
-- Solo usuarios de mi empresa pueden verlo.
+- Solo operadores con vínculo en mi empresa pueden verlo.
 - Si la tarea exige evidencia, no se completa sin ella.
 
 **Módulo:** M5 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-044, HU-100 · **Reglas:** RN-05, RN-25, D14
@@ -638,7 +642,7 @@ Cada historia termina con estos datos:
 - Puedo indicar si el accidente es grave.
 - Puedo adjuntar fotos.
 - El sistema registra quién reporta y cuándo.
-- Cualquier usuario de la empresa puede reportar.
+- Cualquier operador con vínculo activo en la empresa puede reportar.
 
 **Módulo:** M6 · **Entrega:** E2 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-027, HU-100, HU-105 · **Reglas:** arts. 9.j, 46.1.d, RN-26, RN-27, RN-31
 
@@ -727,7 +731,7 @@ Cada historia termina con estos datos:
 - Se exige el mismo número de representantes por parte.
 - Cada propietario tiene suplente.
 - Hay un presidente y un secretario activos.
-- Los integrantes son usuarios de la empresa.
+- Cada integrante es un vínculo activo de la empresa (`IntegranteComision.VinculoEmpresaId`).
 
 **Módulo:** M7 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-053, HU-020 · **Reglas:** arts. 14, 19, 20, 21, 28.c, RN-32, RN-33, RN-36, D3, D5
 
@@ -794,7 +798,7 @@ Cada historia termina con estos datos:
 
 ### HU-060 | Consultar el historial de actas
 
-**Como** usuario de la empresa, **quiero** consultar las actas, **para** tenerlas disponibles ante la autoridad.
+**Como** operador con vínculo en la empresa, **quiero** consultar las actas, **para** tenerlas disponibles ante la autoridad.
 
 **Criterios de aceptación:**
 
@@ -967,7 +971,7 @@ Cada historia termina con estos datos:
 
 ### HU-074 | Consultar los documentos vigentes
 
-**Como** usuario de la empresa, **quiero** consultar los documentos vigentes, **para** conocer las políticas y procedimientos.
+**Como** operador con vínculo en la empresa, **quiero** consultar los documentos vigentes, **para** conocer las políticas y procedimientos.
 
 **Criterios de aceptación:**
 
@@ -1034,7 +1038,7 @@ Cada historia termina con estos datos:
 
 ### HU-079 | Descargar un acta en PDF
 
-**Como** usuario de la empresa, **quiero** descargar un acta firmada, **para** presentarla ante la autoridad.
+**Como** operador con vínculo en la empresa, **quiero** descargar un acta firmada, **para** presentarla ante la autoridad.
 
 **Criterios de aceptación:**
 
@@ -1115,7 +1119,7 @@ Cada historia termina con estos datos:
 
 ### HU-086 | Mantener el calendario actualizado
 
-**Como** usuario, **quiero** que el calendario refleje los cambios, **para** no ir a reuniones canceladas ni trabajar con fechas viejas.
+**Como** operador autenticado con vínculo, **quiero** que el calendario refleje los cambios, **para** no ir a reuniones canceladas ni trabajar con fechas viejas.
 
 **Criterios de aceptación:**
 
@@ -1209,8 +1213,8 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Toda entidad con `EmpresaId` tiene filtro global.
-- La empresa activa sale del token, nunca del cliente.
-- Al guardar, `EmpresaId` se asigna desde la empresa activa.
+- El tenant sale del JWT (`EmpresaId` del vínculo autenticado), nunca del cliente.
+- Al guardar, `EmpresaId` se asigna desde el token, no desde el cuerpo del request.
 - El uso de `IgnoreQueryFilters` está limitado y justificado.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-092, HU-094 · **Reglas:** RN-04, RN-05, RN-06, RN-07, D15
@@ -1284,7 +1288,7 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se registran usuario, empresa, acción, entidad y fecha.
+- Se registran `VinculoEmpresaId` o `UsuarioId` (admin plataforma), empresa, acción, entidad y fecha.
 - El registro no se puede editar desde la aplicación.
 - Cubre al menos firmas, aprobaciones, cambios de rol, mantenimientos y entregas de EPP.
 
@@ -1316,7 +1320,7 @@ Cada historia termina con estos datos:
 
 ### HU-102 | Proteger las rutas
 
-**Como** equipo, **quiero** guardias con `react-router-dom`, **para** bloquear a usuarios sin JWT.
+**Como** equipo, **quiero** guardias con `react-router-dom`, **para** bloquear el acceso sin JWT válido.
 
 **Criterios de aceptación:**
 

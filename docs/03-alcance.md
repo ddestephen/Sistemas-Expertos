@@ -10,7 +10,7 @@ Norvia tiene 12 módulos, descritos en [módulos](04-modulos.md).
 
 | # | Módulo | En una frase |
 |---|---|---|
-| M1 | Empresas y acceso | Cada empresa tiene su espacio, sus usuarios y su cuenta de Google conectada |
+| M1 | Empresas y acceso | Cada empresa tiene su espacio, sus vínculos operativos y su cuenta de Google conectada |
 | M2 | Perfil de empresa | Datos de la empresa, rubro y áreas |
 | M3 | Diagnóstico de contexto | Encuesta a los trabajadores en Google Forms que sugiere peligros |
 | M4 | Matriz de riesgos | Identificar, evaluar y controlar riesgos |
@@ -73,7 +73,7 @@ Si falta tiempo, se recorta en este orden:
 - Cada empresa tiene una cuenta de Google para crear sus encuestas y su calendario.
 - Los trabajadores responden la encuesta desde un enlace, sin cuenta en Norvia.
 - Hay conexión a internet al registrar mantenimientos y reportar accidentes.
-- La firma electrónica es la de un usuario autenticado, no una firma avanzada certificada.
+- La firma electrónica es la de un operador autenticado con vínculo, no una firma avanzada certificada.
 - El contenido de las categorías, preguntas, peligros y plantillas lo redacta el equipo en cantidad reducida por rubro, y debe revisarlo alguien con conocimiento de SST.
 
 ## Limitaciones

@@ -72,6 +72,27 @@ Trabajador que no usa la app → puede ser solo Persona (sin VinculoEmpresa)
 - Creó guía de edición (`00`) y esta bitácora (`14`).
 - **Pendiente explícito:** issues del tablero Kanban, PDF del pitch, código en `ProyectoFinal/`, archivo `HUs.txt` de la raíz.
 
+**Ajuste posterior (mismo lote):** se alineó el ERD en `12-modelo-datos.md` (historiales, vínculo en comisión, sin enlace erróneo Persona–Usuario), criterios HU-008/010/093, endpoints M1 en `13-sprint-backlog.md`.
+
+**Revisión de coherencia (segunda pasada):** unificación de lenguaje y caza de restos del modelo viejo.
+
+| Archivo | Qué se corrigió |
+|---------|------------------|
+| `10-historias-usuario.md` | Nota al inicio: operador vs `Usuario`; criterios HU-024, 043, 045, 047, 054, 060, 074, 079, 086, 099, 102 |
+| `04-modulos.md`, `03-alcance.md` | M1 sin “cambiar empresa”; vínculos en lugar de “usuarios” |
+| `13-sprint-backlog.md` | Pasos 3.1–3.3 y DoD HU-098 |
+| `02-requisitos-curso.md` | `HasQueryFilter` y rutas sin “usuario genérico” |
+| `11-glosario.md` | Términos **Operador**, **Usuario**, JWT/token |
+| `00-guia-edicion-docs.md` | Checklist de búsqueda de discrepancias |
+
+| Fuente | Estado |
+|--------|--------|
+| Carpeta `docs/` | Coherente con vínculos (salvo citas históricas en este `14`) |
+| `HUs.txt` (raíz) | **Desactualizado** — aún describe usuario multiempresa y RN viejas |
+| `ProyectoFinal/` (código) | **No revisado** en este lote — implementar según `12` + HUs M1 |
+| GitHub Projects (tablero) | **Pendiente** — checks Tablero en `[ ]` abajo |
+| PDF pitch / lineamientos | **No regenerados** |
+
 ### Seguimiento por historia (resumen + checks)
 
 | HU | Doc en repo | Tablero GitHub |

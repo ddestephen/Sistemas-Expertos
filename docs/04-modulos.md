@@ -8,13 +8,13 @@ Las historias detalladas de cada módulo están en [historias de usuario](10-his
 
 **Propósito:** dar a cada empresa un espacio aislado y controlar quién entra.
 
-- Registrar una empresa e iniciar sesión.
-- Agregar usuarios y asignar roles.
-- Elegir o cambiar de empresa, si el usuario pertenece a varias.
+- Registrar una empresa e iniciar sesión con el vínculo (correo institucional de esa empresa).
+- Agregar vínculos (`Persona` + rol + credenciales) y gestionar su estado.
+- Trabajar en otra empresa: nuevo inicio de sesión con el vínculo de esa empresa (no hay “cambiar empresa” en la misma sesión).
 - Conectar la cuenta de Google de la empresa, que se usa para las encuestas y el calendario.
 - Administrar los contenidos comunes de la plataforma: rubros, categorías de riesgo, preguntas, peligros y plantillas.
 
-**Se usa en:** web. Iniciar sesión y cambiar de empresa también en teléfono.
+**Se usa en:** web. Iniciar sesión también en teléfono (cada sesión = un vínculo / una empresa).
 
 ## M2. Perfil de empresa
 

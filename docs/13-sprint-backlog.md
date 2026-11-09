@@ -101,11 +101,11 @@ Para demostrar que EF Core, los filtros globales y las validaciones funcionan co
 #### Módulo 1: Empresas y Acceso (El Core Multi-tenant)
 | ID | Historia | Endpoint / Operación backend | Prioridad | Depende de |
 |---|---|---|---|---|
-| **HU-017** | Registrar mi empresa | `POST /api/empresas` (Transacción atómica: crea empresa + usuario administrador inicial) | Must | HU-092, HU-096 |
-| **HU-018** | Iniciar y cerrar sesión | `POST /api/auth/login` (Autenticación, hash seguro de contraseña, emisión de JWT con tenant) | Must | HU-094, HU-017 |
-| **HU-019** | Cambiar de empresa | `POST /api/auth/cambiar-empresa` (Reemisión de token cuando un usuario pertenece a varias empresas) | Must | HU-018 |
-| **HU-020** | Agregar usuarios | `POST /api/usuarios` (Registro de nuevo usuario bajo la empresa activa) | Must | HU-018, HU-093 |
-| **HU-021** | Gestionar roles y vínculos | `PATCH /api/vinculos/{id}` (rol, estado y motivo; matriz `Permiso`/`RolPermiso`) | Must | HU-020, HU-095 |
+| **HU-017** | Registrar mi empresa | `POST /api/empresas` (Transacción: empresa + `Persona` + primer `VinculoEmpresa` admin) | Must | HU-092, HU-096 |
+| **HU-018** | Iniciar y cerrar sesión | `POST /api/auth/login` (Correo/clave del vínculo; JWT con `VinculoEmpresaId` y `EmpresaId`) | Must | HU-094, HU-017 |
+| **HU-019** | Acceder a otra empresa | Sin endpoint de “cambiar empresa”: nuevo login con credenciales del otro vínculo | Must | HU-018 |
+| **HU-020** | Agregar vínculos | `POST /api/vinculos` (`Persona` + vínculo; correo institucional único) | Must | HU-018, HU-093 |
+| **HU-021** | Gestionar roles y vínculos | `PATCH /api/vinculos/{id}` (rol, estado, `HistorialEstadoVinculo`; `Permiso`/`RolPermiso`) | Must | HU-020, HU-095 |
 
 #### Módulo 2: Configuración Empresarial
 | ID | Historia | Endpoint / Operación backend | Prioridad | Depende de |
@@ -139,7 +139,7 @@ Para considerar una historia como completada en el tablero Kanban de GitHub Proj
 - [ ] Las validaciones semánticas están escritas con FluentValidation y cubren casos límite.
 - [ ] Los errores se devuelven en formato estándar RFC 7807 mediante el middleware global.
 - [ ] El endpoint está documentado y probado en Swagger/OpenAPI.
-- [ ] Las pruebas de aislamiento (`HU-098`) verifican que el usuario A no puede leer ni escribir datos del usuario B.
+- [ ] Las pruebas de aislamiento (`HU-098`) verifican que el vínculo de la empresa A no puede leer ni escribir datos de la empresa B.
 
 ---
 
@@ -160,9 +160,9 @@ Paso 2: Andamiaje de Backend (.NET Core) (Fase 2 - Infraestructura)
   └── 2.6 Ejecutar seed data con rubros, peligros y roles base (HU-097)
 
 Paso 3: Slices Funcionales (Fase 2 - Casos de Uso Transaccionales)
-  ├── 3.1 Endpoint de Registro de Empresa y Admin (HU-017)
-  ├── 3.2 Endpoint de Autenticación y Login (HU-018)
-  ├── 3.3 CRUD de Usuarios y Asignación de Roles (HU-020, HU-021)
+  ├── 3.1 Registro empresa + Persona + vínculo admin (HU-017)
+  ├── 3.2 Login por vínculo y JWT (HU-018)
+  ├── 3.3 Alta y gestión de vínculos / roles (HU-020, HU-021)
   ├── 3.4 CRUD de Áreas de la empresa (HU-026, HU-027)
   └── 3.5 Creación y Evaluación de Riesgos (HU-036, HU-037, HU-038)
 

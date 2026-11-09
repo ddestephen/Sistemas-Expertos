@@ -45,6 +45,8 @@
 | SST360 | Nombre de trabajo anterior; usar **Norvia** en documentación nueva |
 | Persona | Identidad humana sin credenciales; nombres en cuatro columnas |
 | VinculoEmpresa | Relación persona–empresa: rol, correo institucional, contraseña y estado |
+| Operador (con vínculo) | Persona que inicia sesión en una empresa mediante su `VinculoEmpresa`; en HUs sustituye “usuario de la empresa” |
+| Usuario | Solo cuenta del **administrador de plataforma**; no es quien opera el SST de un cliente |
 | Membresia | Nombre anterior de **VinculoEmpresa**; no usar en diseño nuevo |
 | Cargo (comisión) | Función en la Comisión Mixta (`presidente`, `secretario`, `miembro`); no es rol del sistema |
 | Rol (sistema) | Permisos en Norvia para un vínculo (`admin_empresa`, `responsable_sst`, `colaborador`) |
@@ -89,14 +91,14 @@
 | Índice | Estructura que acelera las búsquedas en una tabla |
 | Índice parcial | Índice que solo incluye las filas que cumplen una condición |
 | JWE | Token JWT con el contenido cifrado |
-| JWT | Token firmado que identifica a un usuario |
+| JWT | Token firmado que identifica el vínculo (`VinculoEmpresaId`) y la empresa de la sesión |
 | Middleware | Componente que procesa todas las peticiones del backend |
 | Llave compuesta | Llave formada por dos o más columnas |
 | PDF | Formato de documento para descargar e imprimir |
 | PK | Llave primaria: columna que identifica cada fila |
 | RBAC | Control de acceso basado en roles |
 | Restricción CHECK | Condición que la base de datos verifica en cada fila antes de guardarla |
-| Token | Credencial que demuestra que un usuario inició sesión |
+| Token | Credencial que demuestra que un vínculo inició sesión (o el admin de plataforma vía `Usuario`) |
 | Transacción | Grupo de cambios que se guardan todos juntos o ninguno |
 | UUID | Identificador único de 128 bits generado al azar |
 | Vertical Slicing | Organizar el código por funcionalidad y no por tipo de archivo |
