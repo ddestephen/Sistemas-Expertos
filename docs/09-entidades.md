@@ -18,10 +18,13 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 |---|---|---|---|
 | Raíz | Empresa | Cada empresa cliente: razón social, RTN, dirección, actividad, rubro, trabajadores y estado del tenant | M1, M2 |
 | Global | Persona | Identidad humana (nombres y documento), sin correo ni contraseña | M1, M6, M8 |
-| Global | Usuario | Cuenta del administrador de plataforma Norvia (no empleados de empresas) | M1 |
-| Global | Rol | Roles del sistema en una empresa | M1 |
-| Global | Permiso | Operación permitida en la API (ruta y verbo) | M1 |
-| Global | RolPermiso | Qué permisos tiene cada rol | M1 |
+| Global | Usuario | Registro de persona en la plataforma: `Activo` (sin credenciales; login en vínculo o staff de plataforma) | M1 |
+| Global | StaffPlataforma | Login del staff Norvia (correo, clave, rol de plataforma); no opera empresas cliente | M1 |
+| Global | RolStaffPlataforma | Rol del staff (p. ej. admin catálogos, soporte); no gestiona `Rol` de empresas | M1 |
+| Global | Rol | Rol **de empresa** asignado en cada `VinculoEmpresa` | M1 |
+| Global | Permiso | Catálogo de operaciones HTTP (`Codigo`, ruta, método) y **`Alcance`**: `empresa` (tenant) o `plataforma` (operación global vía **StaffPlataforma**; el alcance no se llama `staff`) | M1 |
+| Global | RolPermiso | Permisos de cada **Rol** de empresa | M1 |
+| Global | RolStaffPlataformaPermiso | Permisos de cada **RolStaffPlataforma** | M1 |
 | Global | Rubro | Los 4 rubros | M2 |
 | Global | CategoriaRiesgo | Categorías de riesgo de cada rubro | M3 |
 | Global | PreguntaExploratoria | Preguntas de cada categoría, con su peligro asociado | M3 |

@@ -2,9 +2,11 @@
 
 **Para qué sirve:** define quién usa Norvia y qué puede hacer.
 
-Hay tres conceptos distintos:
+Hay cuatro conceptos distintos en acceso:
 
-- **Rol:** define los permisos dentro del sistema. Cada **vínculo activo** (`VinculoEmpresa`) tiene un rol en esa empresa.
+- **Rol de empresa:** permisos **dentro del tenant**. Cada **vínculo activo** (`VinculoEmpresa`) tiene un `RolId` (`admin_empresa`, `responsable_sst`, `colaborador`). Gestionar vínculos y roles de la empresa lo hace un vínculo con `admin_empresa`, no el staff Norvia.
+- **Usuario (`Activo`):** si la persona tiene fila `Usuario` y está activa, puede autenticarse con algún vínculo. Trabajadores solo en **Persona** (sin `Usuario`) no entran a la app.
+- **Staff de plataforma:** permisos **globales** (catálogos, listado de empresas, suspender tenant). Quien inicia sesión con **`StaffPlataforma`** tiene un `RolStaffPlataforma` (soporte o admin); **no** asigna roles de empresa a clientes. En BD esos permisos son filas **Permiso** con **`Alcance = plataforma`** (D24); la cuenta de login sigue llamándose **`StaffPlataforma`**, no “Plataforma”.
 - **Cargo:** función en la Comisión Mixta (`presidente`, `secretario`, `miembro`). No sustituye al rol.
 - **Asignación:** describe el papel organizacional (encargado de área, etc.). Una persona puede tener varias.
 
@@ -12,8 +14,8 @@ Hay tres conceptos distintos:
 
 | Rol | Alcance | Puede |
 |---|---|---|
-| Administrador de plataforma | Toda la plataforma | Administrar los catálogos comunes (rubros, categorías de riesgo, preguntas, peligros y plantillas) y ver datos básicos de las empresas. No ve su información de SST |
-| Administrador de empresa | Su empresa | Configurar la empresa, conectar su cuenta de Google y gestionar vínculos y roles |
+| Staff con **RolStaffPlataforma** | Toda la plataforma | Catálogos globales, datos básicos de empresas, suspensión SaaS. Sin acceso SST de clientes ni asignación de `Rol` en vínculos |
+| Administrador de empresa (vínculo `admin_empresa`) | Su empresa | Configurar la empresa, Google, **altas y roles de vínculos** en esa empresa |
 | Responsable SST | Su empresa | Gestionar encuestas, riesgos, plan, accidentes, comisión, equipos, EPP, documentos y reportes |
 | Colaborador | Su empresa | Atender sus tareas, reportar accidentes, registrar mantenimientos y firmar actas cuando le corresponda |
 

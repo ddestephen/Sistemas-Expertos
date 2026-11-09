@@ -46,10 +46,15 @@
 | Persona | Identidad humana sin credenciales; nombres en cuatro columnas |
 | VinculoEmpresa | Relación persona–empresa: rol, correo institucional, contraseña y estado |
 | Operador (con vínculo) | Persona que inicia sesión en una empresa mediante su `VinculoEmpresa`; en HUs sustituye “usuario de la empresa” |
-| Usuario | Solo cuenta del **administrador de plataforma**; no es quien opera el SST de un cliente |
+| StaffPlataforma | Login del **equipo Norvia** (soporte, admin de catálogos) con **RolStaffPlataforma** |
+| RolStaffPlataforma | Rol del staff (`admin_plataforma`, `soporte_plataforma`); distinto de **Rol** en vínculos |
+| CuentaPlataforma | Nombre anterior de **StaffPlataforma**; no usar en diseño nuevo |
+| Usuario | Registro global por **Persona** con `Activo` (sin correo/clave). Login y rol de empresa van en **VinculoEmpresa** |
 | Membresia | Nombre anterior de **VinculoEmpresa**; no usar en diseño nuevo |
 | Cargo (comisión) | Función en la Comisión Mixta (`presidente`, `secretario`, `miembro`); no es rol del sistema |
 | Rol (sistema) | Permisos en Norvia para un vínculo (`admin_empresa`, `responsable_sst`, `colaborador`) |
+| Permiso | Fila del catálogo RBAC: código, ruta y método HTTP de una operación protegida |
+| Alcance (de permiso) | Columna **`Permiso.Alcance`**: `empresa` (sesión de **vínculo**, tenant) o `plataforma` (sesión **StaffPlataforma**, operaciones globales). No es el nombre de la tabla de login |
 | Encuesta | Cuestionario que responden los trabajadores para identificar peligros |
 | Entrega | Etapa de construcción que deja algo demostrable |
 | Google Calendar | Calendario de Google; Norvia crea allí eventos con recordatorios |
@@ -98,7 +103,7 @@
 | PK | Llave primaria: columna que identifica cada fila |
 | RBAC | Control de acceso basado en roles |
 | Restricción CHECK | Condición que la base de datos verifica en cada fila antes de guardarla |
-| Token | Credencial que demuestra que un vínculo inició sesión (o el admin de plataforma vía `Usuario`) |
+| Token | Credencial de sesión: vínculo de empresa o `StaffPlataforma` |
 | Transacción | Grupo de cambios que se guardan todos juntos o ninguno |
 | UUID | Identificador único de 128 bits generado al azar |
 | Vertical Slicing | Organizar el código por funcionalidad y no por tipo de archivo |

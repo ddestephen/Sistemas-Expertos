@@ -2,7 +2,7 @@
 
 **Para qué sirve:** define todas las tablas de Norvia, sus columnas, relaciones, restricciones e índices. Es la base del diagrama entidad-relación (ERD) que exige el curso y de la implementación con EF Core.
 
-El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D22 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaOpcion, Persona, VinculoEmpresa, historiales de estado y RBAC (`Permiso`, `RolPermiso`).
+El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D24 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaOpcion, Persona, VinculoEmpresa, `StaffPlataforma`, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
 
 ### Nombres de persona (3FN)
 
@@ -56,7 +56,7 @@ Las columnas que terminan en `En`, como `CreadoEn` o `RegistradoEn`, toman la ho
 | Tipo de tabla | Tiene `EmpresaId` | Tablas |
 |---|---|---|
 | Raíz | Es la empresa | Empresa |
-| Global | No | Persona, Usuario, Rol, Permiso, RolPermiso, Rubro, CategoriaRiesgo, PreguntaExploratoria, OpcionPregunta, Peligro, PlantillaTarea, PlantillaDocumento |
+| Global | No | Persona, Usuario, StaffPlataforma, RolStaffPlataforma, Rol, Permiso, RolPermiso, RolStaffPlataformaPermiso, Rubro, CategoriaRiesgo, PreguntaExploratoria, OpcionPregunta, Peligro, PlantillaTarea, PlantillaDocumento |
 | De empresa | Sí, obligatorio | Las demás tablas operativas (incluye VinculoEmpresa y historiales) |
 
 Reglas que cumplen todas las tablas de empresa:
@@ -72,7 +72,7 @@ Las referencias desde tablas de empresa hacia tablas globales son FK simples, po
 
 ## 3. Diagramas
 
-Los diagramas están separados por área para que sean legibles. Solo muestran relaciones; las columnas están en el diccionario. Las tablas de empresa referencian a quien actuó mediante **`VinculoEmpresa`** (FK compuesta). **`Usuario`** solo aparece en acciones del administrador de plataforma (p. ej. `HistorialEstadoEmpresa`, `RegistroAuditoria.UsuarioId`). Las FK a `Empresa` se omiten en los dibujos para no saturarlos.
+Los diagramas están separados por área para que sean legibles. Solo muestran relaciones; las columnas están en el diccionario. Las tablas de empresa referencian a quien actuó mediante **`VinculoEmpresa`** (FK compuesta). **`Usuario`** indica si la **persona** sigue habilitada en la plataforma (`Activo`); **`VinculoEmpresa.Estado`** indica si puede entrar a **esa** empresa. **`StaffPlataforma`** es el login del staff Norvia. Las FK a `Empresa` se omiten en los dibujos para no saturarlos.
 
 Cardinalidades: `||` es exactamente uno, `o|` es cero o uno, `o{` es cero o muchos y `|{` es uno o muchos.
 
@@ -80,15 +80,19 @@ Cardinalidades: `||` es exactamente uno, `o|` es cero o uno, `o{` es cero o much
 
 ```mermaid
 erDiagram
+    Persona ||--o| Usuario : "registro Activo"
     Persona ||--o{ VinculoEmpresa : "tiene"
     Empresa ||--o{ VinculoEmpresa : "acoge"
     Empresa ||--o{ HistorialEstadoEmpresa : "audita estado"
     VinculoEmpresa ||--o{ HistorialEstadoVinculo : "audita estado"
-    Usuario ||--o{ HistorialEstadoEmpresa : "registra suspensión SaaS"
+    StaffPlataforma ||--o{ HistorialEstadoEmpresa : "registra suspensión SaaS"
+    RolStaffPlataforma ||--o{ StaffPlataforma : "autoriza"
+    RolStaffPlataforma ||--o{ RolStaffPlataformaPermiso : "tiene"
     Rol ||--o{ VinculoEmpresa : "define permisos de"
     Rol ||--o{ RolPermiso : "tiene"
-    Permiso ||--o{ RolPermiso : "concede"
-    Usuario ||--o{ RegistroAuditoria : "acciones plataforma"
+    Permiso ||--o{ RolPermiso : "concede empresa"
+    Permiso ||--o{ RolStaffPlataformaPermiso : "concede plataforma"
+    StaffPlataforma ||--o{ RegistroAuditoria : "acciones plataforma"
     VinculoEmpresa ||--o{ RegistroAuditoria : "acciones en empresa"
     Rubro ||--o{ Empresa : "clasifica"
     Empresa ||--o{ Area : "se divide en"
@@ -194,20 +198,44 @@ Identidad humana (D19, D21). Sin correo ni contraseña.
 
 #### Usuario
 
-Cuenta del **administrador de plataforma** únicamente (D21). Los operadores de empresa autentican con `VinculoEmpresa`.
+Registro global de la persona en Norvia (D21). **No** guarda correo ni contraseña; el login de empresa va en `VinculoEmpresa`. Sirve para saber si la persona sigue **activa en la plataforma** antes de validar un vínculo.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
+| PersonaId | uuid | No | FK → Persona, UQ | Una fila por persona que usa la app |
+| Activo | boolean | No | | Por defecto `true`; `false` bloquea cualquier vínculo de esa persona |
+| CreadoEn | timestamptz | No | | |
+
+Quien solo existe como **Persona** (accidente, EPP) **no** tiene fila `Usuario` hasta que se le da un vínculo o se registra explícitamente.
+
+#### StaffPlataforma
+
+Cuenta de **staff / soporte Norvia** (D21, D23): correo corporativo del equipo, no de clientes. No es vínculo de empresa y **no** asigna `RolId` a terceros.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| RolStaffPlataformaId | smallint | No | FK → RolStaffPlataforma | |
 | Email | varchar(254) | No | UQ | Índice único sobre `lower(Email)` |
 | PasswordHash | varchar(255) | No | | |
 | DebeCambiarPassword | boolean | No | | Por defecto `false` |
 | Activo | boolean | No | | Por defecto `true` |
 | CreadoEn | timestamptz | No | | |
 
+#### RolStaffPlataforma
+
+Permisos globales (catálogos, listar empresas, suspender tenant). Separado de **Rol** de empresa.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | smallint | No | PK | |
+| Codigo | varchar(30) | No | UQ | `admin_plataforma`, `soporte_plataforma` |
+| Nombre | varchar(60) | No | | |
+
 #### Rol
 
-Roles que una persona puede tener dentro de una empresa.
+Rol **dentro de una empresa** (`VinculoEmpresa.RolId`). Quien gestiona vínculos y roles de su tenant es un vínculo con rol `admin_empresa`, no una cuenta de plataforma.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
@@ -215,26 +243,45 @@ Roles que una persona puede tener dentro de una empresa.
 | Codigo | varchar(30) | No | UQ | `admin_empresa`, `responsable_sst`, `colaborador` |
 | Nombre | varchar(60) | No | | Nombre visible |
 
-El Administrador de plataforma no usa `VinculoEmpresa`: entra por tabla `Usuario`.
-
 #### Permiso
 
-Catálogo de operaciones de la API (D20, HU-014).
+Catálogo de operaciones de la API (D20, D23, D24, HU-014). Una fila describe **qué endpoint** existe y **en qué tipo de sesión** aplica.
+
+**Qué es `Alcance`:** clasifica el permiso, no la tabla de login.
+
+| Valor de `Alcance` | Significado | Quién inicia sesión | Tabla de enlace rol–permiso |
+|---|---|---|---|
+| `empresa` | Operación dentro de un tenant (`EmpresaId` del token) | `VinculoEmpresa` | **RolPermiso** (`Rol` de empresa) |
+| `plataforma` | Operación global (catálogos, listado de tenants, suspensión SaaS) sin datos SST de clientes | **`StaffPlataforma`** | **RolStaffPlataformaPermiso** |
+
+El literal `plataforma` en **`Permiso.Alcance`** no renombra la tabla **`StaffPlataforma`** (cuenta del staff). Son capas distintas: **permiso** = qué ruta se puede llamar; **StaffPlataforma** = credencial del equipo Norvia.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | smallint | No | PK | |
 | Codigo | varchar(60) | No | UQ | Identificador estable |
 | Nombre | varchar(120) | No | | |
+| Alcance | varchar(10) | No | | `empresa` o `plataforma` (CHECK) — ver tabla anterior (D24) |
 | MetodoHttp | varchar(10) | No | | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | RutaPatron | varchar(200) | No | | Ejemplo: `/api/riesgos/*` |
 | Activo | boolean | No | | Por defecto `true` |
 
 #### RolPermiso
 
+Solo permisos con `Alcance = empresa` (RN-63).
+
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | RolId | smallint | No | PK, FK → Rol | |
+| PermisoId | smallint | No | PK, FK → Permiso | |
+
+#### RolStaffPlataformaPermiso
+
+Solo permisos con `Alcance = plataforma` (RN-63). La sesión proviene de **StaffPlataforma** (RN-64).
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| RolStaffPlataformaId | smallint | No | PK, FK → RolStaffPlataforma | |
 | PermisoId | smallint | No | PK, FK → Permiso | |
 
 #### Rubro
@@ -367,7 +414,7 @@ Relación persona–empresa con rol y credenciales institucionales (D1, D21).
 | Email | varchar(254) | No | | Correo institucional y login de este vínculo |
 | PasswordHash | varchar(255) | No | | Clave solo de este vínculo |
 | DebeCambiarPassword | boolean | No | | Por defecto `false` |
-| Estado | varchar(12) | No | | `activo`, `suspendido`, `baja` |
+| Estado | varchar(12) | No | | `activo`, `suspendido`, `baja` — activo **en esta empresa** (distinto de `Usuario.Activo`) |
 | CreadoEn | timestamptz | No | | |
 
 **Restricciones:**
@@ -405,7 +452,7 @@ Suspensión o reactivación del tenant (D22).
 | EstadoNuevo | varchar(12) | No | | |
 | MotivoCodigo | varchar(30) | No | | `falta_pago_plataforma`, `reactivacion`, `otro` |
 | MotivoDetalle | text | Sí | | |
-| RegistradoPorId | uuid | Sí | FK → Usuario | Admin plataforma; nulo si es proceso automático |
+| RegistradoPorId | uuid | Sí | FK → StaffPlataforma | Staff Norvia; nulo si es proceso automático |
 | RegistradoEn | timestamptz | No | | |
 
 #### ConexionGoogle
@@ -434,7 +481,7 @@ Acciones importantes, para que la evidencia sea verificable.
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | VinculoEmpresaId | uuid | Sí | FK compuesta → VinculoEmpresa | Quien actuó en la empresa |
-| UsuarioId | uuid | Sí | FK → Usuario | Solo acciones del admin de plataforma |
+| StaffPlataformaId | uuid | Sí | FK → StaffPlataforma | Solo acciones del staff Norvia |
 | Accion | varchar(50) | No | | Por ejemplo `acta_firmada` |
 | Entidad | varchar(60) | No | | Tabla afectada |
 | EntidadId | uuid | No | | Registro afectado; sin FK, porque puede apuntar a cualquier tabla |
@@ -1101,7 +1148,9 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-58, RN-59 | BD y App | `HistorialEstadoVinculo` y transacción con `Estado` |
 | RN-60 | BD | `Empresa.Estado` |
 | RN-61 | App | Cargo vs rol en permisos |
-| RN-62 | App | Sin `NombreCompleto` en Persona/Usuario |
+| RN-62 | App | Sin `NombreCompleto` en Persona |
+| RN-63 | BD y App | CHECK en `Permiso.Alcance`; semilla y FK solo combinan alcance correcto con `RolPermiso` o `RolStaffPlataformaPermiso` |
+| RN-64 | App | Middleware de autorización filtra por tipo de sesión (vínculo vs staff) |
 | RN-04 | BD | `EmpresaId` obligatorio |
 | RN-05, RN-06 | App | Filtro global de EF Core y empresa tomada del token |
 | RN-07 | BD | FK compuestas con `EmpresaId` |

@@ -10,9 +10,86 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-09 | Jonathan | **`Permiso.Alcance`** (`empresa` \| `plataforma`) documentado y distinto de tabla **`StaffPlataforma`** (D24, RN-63/64) | [Ver cambio](#cambio-2026-11-09-permiso-alcance) |
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-09-permiso-alcance` {#cambio-2026-11-09-permiso-alcance}
+
+| | |
+|---|---|
+| **Quién documentó** | Jonathan |
+| **Fecha** | 9 de noviembre de 2026 |
+| **Alcance** | Aclaración RBAC en `docs/` (decisión D24, RN-63/64, glosario, HU-014/095, diccionario). Sin código ni tablero. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **`StaffPlataforma`** es una **tabla de login** (correo, clave, `RolStaffPlataformaId`).
+2. **`Permiso.Alcance = plataforma`** es una **etiqueta del catálogo RBAC** que indica “esta ruta es global, sin tenant SST”.
+3. Sin texto explícito, quien implementa puede pensar que hay que renombrar tablas, unificar nombres o mezclar permisos de empresa con los del staff en una sola tabla puente.
+
+### Qué se decidió y por qué (en lenguaje del equipo)
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **D24** | Un catálogo **Permiso**; `Alcance` solo `empresa` o `plataforma` | Un solo inventario de endpoints |
+| **`empresa`** | Sesión de **vínculo**; enlace en **RolPermiso** | RBAC del tenant |
+| **`plataforma`** | Sesión **StaffPlataforma**; enlace en **RolStaffPlataformaPermiso** | RBAC del equipo Norvia |
+| **No renombrar** | No llamar la tabla `Plataforma` ni el alcance `staff` | `StaffPlataforma` = quién entra; `plataforma` = qué clase de API es |
+
+### Qué es `Permiso.Alcance` (explicación corta)
+
+Cada fila de **Permiso** describe una operación HTTP protegida (`MetodoHttp`, `RutaPatron`, `Codigo`). La columna **`Alcance`** responde: *¿esta operación requiere contexto de empresa cliente o es global?*
+
+- **`empresa`:** el JWT trae `VinculoEmpresaId` / `EmpresaId`; ejemplos: riesgos, accidentes, vínculos de esa empresa.
+- **`plataforma`:** el JWT es de **StaffPlataforma**; ejemplos: editar rubros, listar empresas, suspender tenant.
+
+La API, al autorizar, cruza **tipo de sesión** + **`Alcance`** + tabla puente correcta (RN-64).
+
+### Qué se actualizó en el repo
+
+| Archivo | Cambio |
+|---------|--------|
+| `08-decisiones-bd.md` | **D24** |
+| `07-reglas-negocio.md` | **RN-63**, **RN-64** (sección Autorización) |
+| `09-entidades.md`, `12-modelo-datos.md` | Texto y tabla en diccionario **Permiso**; trazabilidad §9 |
+| `11-glosario.md` | Entradas **Permiso** y **Alcance (de permiso)** |
+| `00-guia-edicion-docs.md`, `05-actores-roles.md` | Término y checklist |
+| `10-historias-usuario.md` | HU-014, HU-095 |
+| `13-sprint-backlog.md` | Nota HU-095 |
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero GitHub |
+|----|-------------|----------------|
+| 014, 095 | [x] | [ ] |
+
+#### HU-014 | Diseñar autenticación y autorización
+
+| | |
+|---|---|
+| **Antes** | RBAC empresa/plataforma citado sin definir `Alcance` ni reglas de mezcla. |
+| **Ahora** | Catálogo con `empresa` \| `plataforma`; criterios enlazan D24 y RN-63/64. |
+| **Tablero** | [ ] |
+
+#### HU-095 | Implementar autorización por roles
+
+| | |
+|---|---|
+| **Antes** | “Admin plataforma aparte” sin filtro por `Alcance`. |
+| **Ahora** | Autorización por tipo de sesión y tabla puente según `Permiso.Alcance`. |
+| **Tablero** | [ ] |
+
+### Mapa rápido
+
+| Tema | Archivo |
+|------|---------|
+| D24 | `08-decisiones-bd.md` |
+| RN-63, RN-64 | `07-reglas-negocio.md` |
+| Diccionario Permiso | `12-modelo-datos.md` § Permiso |
 
 ---
 
@@ -39,7 +116,8 @@ Si no se cambiaba, las HUs de login, onboarding y JWT seguían describiendo un f
 |----------|---------------|---------------|
 | **Persona** sin correo ni clave | Solo identidad (nombres en 4 columnas, sin “nombre completo” guardado) | Un trabajador puede existir en accidentes/EPP sin cuenta; la misma persona puede enlazarse a varios vínculos |
 | **VinculoEmpresa** | Persona + Empresa + rol + **correo institucional** + **contraseña** + estado | La empresa controla el correo de trabajo; suspender un vínculo no apaga a la persona ni otras empresas |
-| **Usuario** solo plataforma | Tabla aparte para admin de Norvia, no para operar una empresa | No mezclar SaaS interno con usuarios de cliente |
+| **Usuario** + **StaffPlataforma** | `Usuario.Activo` por persona (sin login); staff en `StaffPlataforma` + `RolStaffPlataforma` | Activación global vs credenciales en vínculo |
+| **Rol de empresa vs plataforma** (D23) | `Rol`/`RolPermiso` solo en vínculos; catálogos con `RolStaffPlataforma` | El staff **no** asigna roles de empresa |
 | **Login = vínculo** | Quien entra usa el correo/clave del vínculo, no una cuenta “global” | Cumple RN de no confiar en `EmpresaId` del cliente y aislar tenants |
 | **JWT** | Incluye vínculo, empresa (cifrada) y rol; **sin** selector de empresa después del login | Cada sesión es un tenant claro |
 | **Permiso / RolPermiso** | Catálogo de permisos y qué rol los tiene | El ERD y HU-014/095 demuestran RBAC; la API puede validar contra BD |
@@ -56,9 +134,11 @@ Persona (global, sin login)
     └── VinculoEmpresa (por Empresa): Email, PasswordHash, RolId, Estado
             └── JWT: VinculoEmpresaId + EmpresaId (cifrado) + RolId
 
-Usuario → solo administrador de la plataforma Norvia
+StaffPlataforma → staff Norvia (RolStaffPlataforma)
 
 Trabajador que no usa la app → puede ser solo Persona (sin VinculoEmpresa)
+
+Quien da de alta vínculos y roles en una empresa → vínculo `admin_empresa`, no StaffPlataforma
 ```
 
 **Otra empresa, mismo humano:** no es “cambiar empresa” en la misma sesión; es **otro vínculo** con **otras** credenciales (como dos cuentas de trabajo distintas).
@@ -84,6 +164,7 @@ Trabajador que no usa la app → puede ser solo Persona (sin VinculoEmpresa)
 | `02-requisitos-curso.md` | `HasQueryFilter` y rutas sin “usuario genérico” |
 | `11-glosario.md` | Términos **Operador**, **Usuario**, JWT/token |
 | `00-guia-edicion-docs.md` | Checklist de búsqueda de discrepancias |
+| `08`, `09`, `12`, `05` | **D21/D23:** `Usuario` solo `Activo`; credenciales en vínculo; `StaffPlataforma` staff |
 
 | Fuente | Estado |
 |--------|--------|
@@ -120,7 +201,7 @@ Cada bloque es el “commit” documental de esa HU dentro de este cambio.
 | | |
 |---|---|
 | **Antes** | Usuario global, membresía, empresa activa en claims; roles fijos en código. |
-| **Ahora** | Login en `VinculoEmpresa`; claims `VinculoEmpresaId`, `EmpresaId` cifrado, `RolId`; `Permiso`/`RolPermiso`; `Usuario` solo plataforma; 401/403. |
+| **Ahora** | Login empresa en `VinculoEmpresa`; staff en `StaffPlataforma`; RBAC empresa/plataforma separado (D23); 401/403. |
 | **Tablero** | [ ] |
 | **Referencia oficial** | [HU-014](10-historias-usuario.md#hu-014--diseñar-autenticación-y-autorización), `13-sprint-backlog.md` |
 
@@ -210,7 +291,7 @@ Cada bloque es el “commit” documental de esa HU dentro de este cambio.
 | | |
 |---|---|
 | **Antes** | `Membresia`, `Usuario` operativo de empresa. |
-| **Ahora** | `Persona`, `VinculoEmpresa`, historiales, RBAC en BD; `Usuario` solo plataforma. |
+| **Ahora** | `Persona`, `VinculoEmpresa`, `StaffPlataforma`, historiales, RBAC empresa y plataforma. |
 | **Tablero** | — |
 | **Referencia oficial** | [12-modelo-datos.md](12-modelo-datos.md), [HU-010](10-historias-usuario.md#hu-010--diseñar-el-diagrama-entidad-relación) |
 

@@ -89,7 +89,7 @@ Este sprint construye el motor del sistema. Para obtener la máxima nota en la r
 | **HU-092** | Configurar EF Core Code-First | Modelado de entidades maestras y transaccionales con Npgsql / PostgreSQL y migraciones | Must | HU-010, HU-091 |
 | **HU-093** | Aplicar filtros globales por empresa | `HasQueryFilter` en `DbContext` para filtrar automáticamente por `EmpresaId` | Must | HU-009, HU-092 |
 | **HU-094** | Implementar autenticación JWT | Login por vínculo; token con `VinculoEmpresaId` y `EmpresaId` cifrado | Must | HU-014, HU-091 |
-| **HU-095** | Implementar autorización por roles | RBAC con `Permiso`/`RolPermiso`; admin plataforma aparte | Must | HU-094 |
+| **HU-095** | Implementar autorización por roles | `Permiso.Alcance` (`empresa` \| `plataforma`); `RolPermiso` vs `RolStaffPlataformaPermiso` (D24) | Must | HU-094 |
 | **HU-096** | Validar con FluentValidation | Pipeline de validación semántica con middleware global que captura excepciones y retorna Problem Details (RFC 7807) | Must | HU-012, HU-091 |
 | **HU-097** | Cargar los catálogos iniciales | Script de migración / seed data con rubros, categorías, peligros base y roles | Must | HU-092 |
 | **HU-098** | Probar el aislamiento entre empresas | Pruebas de integración automatizadas que verifiquen la imposibilidad de fuga de datos entre empresas | Must | HU-093, HU-094 |

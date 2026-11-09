@@ -6,7 +6,7 @@
 
 Una historia de usuario (HU) dice quién necesita algo, qué necesita y para qué. Sus criterios de aceptación indican cuándo está terminada.
 
-**Lenguaje de acceso:** quien opera dentro de una empresa es un **operador con vínculo activo** (`VinculoEmpresa`). La tabla **`Usuario`** es solo el administrador de plataforma Norvia. En criterios antiguos decía “usuario de la empresa”; significa lo mismo que operador con vínculo.
+**Lenguaje de acceso:** **Persona** + **Usuario** (`Activo`: ¿puede usar la plataforma?). Entrar a una empresa: **VinculoEmpresa** (correo, clave, **Estado** activo/suspendido/baja, **Rol**). **Staff Norvia:** `StaffPlataforma` + `RolStaffPlataforma`. Gestionar roles de empresa: vínculo `admin_empresa`, no staff de plataforma.
 
 | Código | Contenido |
 |---|---|
@@ -125,9 +125,9 @@ Cada historia termina con estos datos:
 - Cada entidad tiene atributos, tipos, llaves primarias y foráneas.
 - Se indican los atributos obligatorios y opcionales.
 - Cada entidad se clasifica como raíz, global o con `EmpresaId`.
-- Acceso: `Persona`, `VinculoEmpresa` (credenciales por empresa), `Usuario` solo admin plataforma; `Permiso`/`RolPermiso`.
+- Acceso: `Persona`, `Usuario` (`Activo`), `VinculoEmpresa`, `StaffPlataforma`, `RolStaffPlataforma`; RBAC empresa/plataforma.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** D1 a D22
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** D1 a D24
 
 ### HU-009 | Definir el aislamiento multiempresa
 
@@ -153,9 +153,9 @@ Cada historia termina con estos datos:
 - Las tablas cumplen 1FN, 2FN y 3FN.
 - Las decisiones de normalización quedan documentadas.
 - Cada tabla existe en el diccionario de datos.
-- El ERD incluye `Persona`, `VinculoEmpresa`, historiales de estado, `Permiso`/`RolPermiso`; no `Membresia`; `Usuario` solo plataforma.
+- El ERD incluye `Persona`, `Usuario`, `VinculoEmpresa`, `StaffPlataforma`, historiales, RBAC; no `Membresia`.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008, HU-009 · **Reglas:** D1 a D22
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008, HU-009 · **Reglas:** D1 a D24
 
 ### HU-011 | Definir restricciones e índices
 
@@ -204,13 +204,14 @@ Cada historia termina con estos datos:
 
 - Login con correo institucional y contraseña de `VinculoEmpresa`.
 - Claims: `EmpresaId` cifrado, `VinculoEmpresaId`, `RolId`.
-- Autorización vía `Permiso`/`RolPermiso` (RBAC en BD, D20).
-- Admin de plataforma usa tabla `Usuario` aparte.
+- Catálogo **Permiso** con **`Alcance`**: `empresa` (vínculo) o `plataforma` (staff). Sin mezclar alcances en `RolPermiso` / `RolStaffPlataformaPermiso` (D24, RN-63).
+- Autorización: sesión empresa vía `Rol`/`RolPermiso` solo permisos `empresa`; sesión staff vía `RolStaffPlataforma`/`RolStaffPlataformaPermiso` solo permisos `plataforma` (D20, D23, RN-64).
+- Login plataforma: `StaffPlataforma`; JWT sin `EmpresaId` de tenant o con claim de plataforma explícito.
 - Se resuelve con el catedrático cómo cumplir `EmpresaId` encriptado.
 - Se identifican endpoints públicos y protegidos.
 - Se documentan las respuestas 401 y 403.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-009 · **Reglas:** RN-03, RN-05, RN-06, RN-57, RN-61, D1, D20, D21
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-009 · **Reglas:** RN-03, RN-05, RN-06, RN-57, RN-61, RN-63, RN-64, D1, D20, D21, D23, D24
 
 ### HU-015 | Redactar el pitch de 1 página
 
@@ -247,7 +248,7 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se crean la empresa, la persona, el vínculo con correo institucional y contraseña en una sola operación.
+- Se crean la empresa, la persona, la fila `Usuario` (`Activo = true`) y el vínculo con correo institucional y contraseña en una sola operación.
 - Quien registra queda como Administrador de empresa en ese vínculo.
 - Un RTN de empresa repetido se rechaza con un mensaje claro.
 - La contraseña del vínculo se guarda con hash, nunca en texto plano.
@@ -261,7 +262,7 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - El login usa correo institucional y contraseña del vínculo (`VinculoEmpresa`).
-- Si la empresa está suspendida o el vínculo no está activo, no hay acceso.
+- Si `Usuario.Activo` es falso, la empresa está suspendida o el vínculo no está `activo`, no hay acceso.
 - Las credenciales incorrectas reciben un mensaje que no revela qué dato falló.
 - El JWT incluye `EmpresaId` cifrado, `VinculoEmpresaId` y rol (HU-014).
 
@@ -285,7 +286,7 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Creo o enlazo `Persona` y `VinculoEmpresa` con correo institucional único en la plataforma.
+- Creo o enlazo `Persona`, `Usuario` (`Activo` si es nueva en la app) y `VinculoEmpresa` con correo único en la plataforma.
 - Asigno rol al crear el vínculo.
 - Una persona no puede tener dos vínculos en la misma empresa.
 - El correo institucional no se reutiliza en otro vínculo activo.
@@ -299,7 +300,7 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Solo afecta a mi empresa.
-- Suspender o dar de baja registra `HistorialEstadoVinculo` con motivo.
+- Suspender o dar de baja el **vínculo** registra `HistorialEstadoVinculo` con motivo (no confundir con `Usuario.Activo`, que bloquea a la persona en toda la plataforma y solo gestiona staff con `RolStaffPlataforma`).
 - La empresa no puede quedar sin Administrador con vínculo activo.
 - Otros roles reciben 403.
 
@@ -1238,12 +1239,12 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada endpoint protegido se resuelve contra `Permiso`/`RolPermiso` (semilla alineada al ERD).
+- Cada endpoint protegido se resuelve contra **Permiso** filtrado por **`Alcance`** y tipo de sesión: vínculo → `RolPermiso`; staff → `RolStaffPlataformaPermiso` (RN-63, RN-64, D24).
 - Un rol sin permiso recibe 403.
-- El admin de plataforma usa política aparte (`Usuario`).
+- El staff de plataforma usa `RolStaffPlataforma`/`RolStaffPlataformaPermiso` (`Alcance = plataforma`), sin permisos de gestionar vínculos ajenos.
 - Las acciones de la comisión se validan contra el cargo de la persona.
 
-**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-094 · **Reglas:** RN-03, RN-61, D3, D20
+**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-094 · **Reglas:** RN-03, RN-61, RN-63, RN-64, D3, D20, D24
 
 ### HU-096 | Validar con FluentValidation
 
@@ -1288,7 +1289,7 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se registran `VinculoEmpresaId` o `UsuarioId` (admin plataforma), empresa, acción, entidad y fecha.
+- Se registran `VinculoEmpresaId` o `StaffPlataformaId`, empresa (si aplica), acción, entidad y fecha.
 - El registro no se puede editar desde la aplicación.
 - Cubre al menos firmas, aprobaciones, cambios de rol, mantenimientos y entregas de EPP.
 

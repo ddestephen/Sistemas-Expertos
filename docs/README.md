@@ -40,7 +40,7 @@ Si una palabra no te resulta conocida, búscala en el [glosario](11-glosario.md)
 
 1. Los 12 módulos y lo que queda fuera ([alcance](03-alcance.md)).
 2. El orden de construcción en 3 entregas ([alcance](03-alcance.md)).
-3. Las decisiones de modelado D1–D22 ([decisiones](08-decisiones-bd.md)).
+3. Las decisiones de modelado D1–D24 ([decisiones](08-decisiones-bd.md)).
 
 ## Siguiente paso
 

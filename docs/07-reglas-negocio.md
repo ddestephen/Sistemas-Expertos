@@ -28,6 +28,13 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-61 | El cargo en la comisión no sustituye ni amplía los permisos del rol en el vínculo |
 | RN-62 | El nombre completo de una persona se obtiene de sus columnas de nombre; no se guarda como texto concatenado |
 
+## Autorización (RBAC)
+
+| Código | Regla |
+|---|---|
+| RN-63 | Cada **Permiso** tiene `Alcance` `empresa` o `plataforma`. Solo los de alcance `empresa` pueden enlazarse en **RolPermiso**; solo los de alcance `plataforma`, en **RolStaffPlataformaPermiso** |
+| RN-64 | Con sesión de **vínculo**, la API solo evalúa permisos con `Alcance = empresa`. Con sesión **StaffPlataforma**, solo permisos con `Alcance = plataforma` |
+
 ## Perfil y encuesta
 
 | Código | Regla |
