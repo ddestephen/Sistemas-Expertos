@@ -10,11 +10,44 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-09 | Jesús | Diagramas ERD y Relacional con tipos PostgreSQL exportables a draw.io en Mermaid (53 tablas, D25) | [Ver cambio](#cambio-2026-11-09-diagramas-drawio) |
 | 2026-11-09 | Jonathan | Tablas **`Acceso`** y **`RefreshToken`**; credenciales fuera de vínculo/staff (D21/D25, RN-57/65–67); alineado a `ProyectoFinal/backend` | [Ver cambio](#cambio-2026-11-09-acceso) |
 | 2026-11-09 | Jonathan | **`Permiso.Alcance`** (`empresa` \| `plataforma`) documentado y distinto de tabla **`StaffPlataforma`** (D24, RN-63/64) | [Ver cambio](#cambio-2026-11-09-permiso-alcance) |
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-09-diagramas-drawio` {#cambio-2026-11-09-diagramas-drawio}
+
+| | |
+|---|---|
+| **Quién documentó** | Jesús |
+| **Fecha** | 9 de noviembre de 2026 |
+| **Alcance** | Creación de `docs/15-diagramas-drawio.md` con especificaciones Mermaid completas de ERD Conceptual y Relacional Físico PostgreSQL importables en draw.io para las 53 tablas de Norvia. |
+
+### El problema (por qué hubo que cambiar)
+
+1. El equipo requería diagramas exportables e importables directamente en **draw.io** para la presentación del proyecto y los entregables de la Fase 1 (ERD 3FN) y Fase 2 (EF Core Code-First).
+2. Los diagramas existentes en `12-modelo-datos.md` §3 eran esquemas sintéticos sin columnas ni tipos de datos PostgreSQL.
+3. Se integraron las nuevas tablas **`Acceso`** y **`RefreshToken`** incorporadas por el backend de Jonathan (D25).
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Mermaid nativo para draw.io** | Bloques de código `erDiagram` listos para copiar y pegar | Draw.io convierte Mermaid a vectores editables en 3 clics sin instalar plugins |
+| **Cardinalidad en ambos** | ERD Conceptual = 1:1, 1:N, N:M del negocio; Relacional = Crow's foot (`\|\|--o{`) con N:M resueltas en tablas intermedias | Cumple la teoría de modelado de datos y los requisitos de la cátedra |
+| **Esquemas modulares y globales** | 4 dominios independientes + diagrama maestro de 53 tablas | Permite trabajar por pestañas limpias en draw.io sin saturar el lienzo |
+| **Tipos reales de PostgreSQL** | Tipos normalizados sin paréntesis (`uuid`, `varchar_80`, `timestamptz`, `smallint`) | Previene errores de parseo en el motor Mermaid de draw.io |
+
+### Qué se actualizó en el repo
+
+| Archivo | Cambio |
+|---------|--------|
+| `docs/15-diagramas-drawio.md` | Creación del documento con los diagramas conceptuales y físicos completos (53 tablas) |
+| `docs/README.md` | Enlace al nuevo documento en la tabla general y en siguientes pasos |
 
 ---
 
