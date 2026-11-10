@@ -80,7 +80,7 @@ erDiagram
         string Telefono
     }
     USUARIO {
-        uuid PersonaId PK_FK
+        uuid PersonaId PK, FK
         boolean Activo "Estado de acceso global"
     }
     STAFF_PLATAFORMA {
@@ -428,13 +428,13 @@ erDiagram
     }
 
     RolPermiso {
-        smallint RolId PK_FK
-        smallint PermisoId PK_FK
+        smallint RolId PK, FK
+        smallint PermisoId PK, FK
     }
 
     RolStaffPlataformaPermiso {
-        smallint RolStaffPlataformaId PK_FK
-        smallint PermisoId PK_FK
+        smallint RolStaffPlataformaId PK, FK
+        smallint PermisoId PK, FK
     }
 
     Empresa {
@@ -457,8 +457,6 @@ erDiagram
         uuid AccesoId FK "NOT NULL"
         smallint RolId FK "NOT NULL"
         varchar_20 Estado "NOT NULL, CHECK: activo, suspendido, baja"
-        timestamptz CreadoEn "NOT NULL"
-    }
         timestamptz CreadoEn "NOT NULL"
     }
 
@@ -633,8 +631,8 @@ erDiagram
     }
 
     EncuestaCategoria {
-        uuid EncuestaId PK_FK
-        uuid CategoriaRiesgoId PK_FK
+        uuid EncuestaId PK, FK
+        uuid CategoriaRiesgoId PK, FK
         uuid EmpresaId FK "NOT NULL"
     }
 
@@ -671,8 +669,8 @@ erDiagram
     }
 
     DetalleRespuesta {
-        uuid RespuestaEncuestaId PK_FK
-        uuid EncuestaPreguntaId PK_FK
+        uuid RespuestaEncuestaId PK, FK
+        uuid EncuestaPreguntaId PK, FK
         uuid EmpresaId FK "NOT NULL"
         uuid EncuestaOpcionId FK
         text TextoLibre
@@ -880,8 +878,8 @@ erDiagram
     }
 
     Asistencia {
-        uuid ReunionId PK_FK
-        uuid IntegranteComisionId PK_FK
+        uuid ReunionId PK, FK
+        uuid IntegranteComisionId PK, FK
         uuid EmpresaId FK "NOT NULL"
         boolean Asistio "NOT NULL, DEFAULT false"
     }
@@ -904,8 +902,8 @@ erDiagram
     }
 
     FirmaActa {
-        uuid ActaId PK_FK
-        uuid IntegranteComisionId PK_FK
+        uuid ActaId PK, FK
+        uuid IntegranteComisionId PK, FK
         uuid EmpresaId FK "NOT NULL"
         timestamptz FirmadaEn "NOT NULL"
         varchar_64 HashFirmado "NOT NULL"
@@ -1182,12 +1180,12 @@ erDiagram
         boolean Activo "NOT NULL"
     }
     RolPermiso {
-        smallint RolId PK_FK
-        smallint PermisoId PK_FK
+        smallint RolId PK, FK
+        smallint PermisoId PK, FK
     }
     RolStaffPlataformaPermiso {
-        smallint RolStaffPlataformaId PK_FK
-        smallint PermisoId PK_FK
+        smallint RolStaffPlataformaId PK, FK
+        smallint PermisoId PK, FK
     }
     Rubro {
         smallint Id PK
@@ -1328,8 +1326,8 @@ erDiagram
         timestamptz UltimaImportacionEn
     }
     EncuestaCategoria {
-        uuid EncuestaId PK_FK
-        uuid CategoriaRiesgoId PK_FK
+        uuid EncuestaId PK, FK
+        uuid CategoriaRiesgoId PK, FK
         uuid EmpresaId FK "NOT NULL"
     }
     EncuestaPregunta {
@@ -1362,8 +1360,8 @@ erDiagram
         timestamptz ImportadaEn "NOT NULL"
     }
     DetalleRespuesta {
-        uuid RespuestaEncuestaId PK_FK
-        uuid EncuestaPreguntaId PK_FK
+        uuid RespuestaEncuestaId PK, FK
+        uuid EncuestaPreguntaId PK, FK
         uuid EmpresaId FK "NOT NULL"
         uuid EncuestaOpcionId FK
         text TextoLibre
@@ -1504,8 +1502,8 @@ erDiagram
         timestamptz CreadaEn "NOT NULL"
     }
     Asistencia {
-        uuid ReunionId PK_FK
-        uuid IntegranteComisionId PK_FK
+        uuid ReunionId PK, FK
+        uuid IntegranteComisionId PK, FK
         uuid EmpresaId FK "NOT NULL"
         boolean Asistio "NOT NULL"
     }
@@ -1526,8 +1524,8 @@ erDiagram
         uuid CorrigeActaId FK
     }
     FirmaActa {
-        uuid ActaId PK_FK
-        uuid IntegranteComisionId PK_FK
+        uuid ActaId PK, FK
+        uuid IntegranteComisionId PK, FK
         uuid EmpresaId FK "NOT NULL"
         timestamptz FirmadaEn "NOT NULL"
         varchar_64 HashFirmado "NOT NULL"
