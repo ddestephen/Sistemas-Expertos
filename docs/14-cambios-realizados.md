@@ -10,12 +10,45 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-09 | Jesús | Archivo nativo editable **`docs/Diagramas.drawio`** (ERD Conceptual y Relacional Físico) y `.gitignore` | [Ver cambio](#cambio-2026-11-09-archivo-drawio) |
 | 2026-11-09 | Jesús | Diagramas ERD y Relacional con tipos PostgreSQL exportables a draw.io en Mermaid (53 tablas, D25) | [Ver cambio](#cambio-2026-11-09-diagramas-drawio) |
 | 2026-11-09 | Jonathan | Tablas **`Acceso`** y **`RefreshToken`**; credenciales fuera de vínculo/staff (D21/D25, RN-57/65–67); alineado a `ProyectoFinal/backend` | [Ver cambio](#cambio-2026-11-09-acceso) |
 | 2026-11-09 | Jonathan | **`Permiso.Alcance`** (`empresa` \| `plataforma`) documentado y distinto de tabla **`StaffPlataforma`** (D24, RN-63/64) | [Ver cambio](#cambio-2026-11-09-permiso-alcance) |
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-09-archivo-drawio` {#cambio-2026-11-09-archivo-drawio}
+
+| | |
+|---|---|
+| **Quién documentó** | Jesús |
+| **Fecha** | 9 de noviembre de 2026 |
+| **Alcance** | Incorporación del archivo nativo editable `docs/Diagramas.drawio` (con 2 páginas: Entidad-Relación y Relacional con tipos PostgreSQL) y configuración de `.gitignore` para archivos temporales de Draw.io. |
+
+### El problema (por qué hubo que cambiar)
+
+1. Aunque `docs/15-diagramas-drawio.md` contenía el código fuente Mermaid para importar en draw.io, el equipo necesitaba un archivo nativo ya procesado, maquetado y listo para abrir en **Draw.io Desktop** o en [app.diagrams.net](https://app.diagrams.net/).
+2. Al guardar y editar en Draw.io, la aplicación genera archivos temporales de respaldo (`.*.bkp`, `*.bkp`) que ensuciaban el árbol de trabajo de Git sin una regla de exclusión.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Archivo nativo versionado** | Guardar `docs/Diagramas.drawio` en el repositorio | Permite a cualquier integrante abrir, retocar visualmente o exportar a PNG/PDF de inmediato sin reimportar Mermaid |
+| **Multi-página** | Dos páginas integradas: *Entidad-Relación* (semántico) y *Relacional* (PostgreSQL) | Centraliza el modelo completo de 53 tablas en un solo archivo organizado por pestañas |
+| **`.gitignore` para Draw.io** | Ignorar patrones `.*.bkp`, `*.bkp` y `~$*` | Evita subir archivos temporales y bloqueos locales de Draw.io al repositorio remoto |
+
+### Qué se actualizó en el repo
+
+| Archivo | Cambio |
+|---------|--------|
+| `docs/Diagramas.drawio` | Archivo nativo de Draw.io con páginas *Entidad-Relación* y *Relacional* |
+| `.gitignore` | Creación de reglas de exclusión para temporales de Draw.io y del sistema operativo |
+| `docs/15-diagramas-drawio.md` | Nota informativa enlazando a `Diagramas.drawio` |
+| `docs/README.md` | Enlace a `Diagramas.drawio` en el índice de documentos y en pasos siguientes |
 
 ---
 

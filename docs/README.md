@@ -36,6 +36,7 @@ Si una palabra no te resulta conocida, búscala en el [glosario](11-glosario.md)
 | [12-modelo-datos.md](12-modelo-datos.md) | Tablas, columnas, relaciones, restricciones e índices | Quien diseñe o programe |
 | [13-sprint-backlog.md](13-sprint-backlog.md) | Sprint backlog priorizado para Fase 1 y 2 (entrega actual) | Desarrolladores y evaluadores |
 | [15-diagramas-drawio.md](15-diagramas-drawio.md) | Diagramas ERD y relacionales con tipos PostgreSQL exportables a draw.io | Quien diseñe o modele la base de datos |
+| [Diagramas.drawio](Diagramas.drawio) | Archivo vectorial nativo de Draw.io con páginas ERD y Relacional | Quien diseñe o modele la base de datos |
 
 ## Lo que el equipo debe aprobar
 
@@ -47,4 +48,4 @@ Si una palabra no te resulta conocida, búscala en el [glosario](11-glosario.md)
 
 1. El [modelo de datos](12-modelo-datos.md) es la propuesta para las historias HU-008 a HU-011 de [historias de usuario](10-historias-usuario.md). El equipo debe revisarlo antes de pasarlo a EF Core.
 2. Seguir el [sprint backlog](13-sprint-backlog.md) para ejecutar las historias prioritarias de la Fase 1 (análisis y gobierno ágil) y Fase 2 (backend transaccional .NET + PostgreSQL).
-3. Importar los diagramas en draw.io desde [15-diagramas-drawio.md](15-diagramas-drawio.md) para generar los entregables visuales de la Fase 1 (ERD en 3FN).
+3. Abrir o editar [Diagramas.drawio](Diagramas.drawio) en Draw.io (o importar los bloques Mermaid de [15-diagramas-drawio.md](15-diagramas-drawio.md)) para los entregables visuales de la Fase 1 (ERD en 3FN).

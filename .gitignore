@@ -1,0 +1,13 @@
+# Archivos temporales de Draw.io
+.*.bkp
+*.bkp
+~$*
+
+# Sistema operativo
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
+
+# Temporales y respaldos
+*.bak
+*.tmp

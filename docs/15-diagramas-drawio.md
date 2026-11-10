@@ -2,6 +2,9 @@
 
 **Para qué sirve:** este documento proporciona las especificaciones completas en sintaxis **Mermaid** para generar e importar directamente en **draw.io** tanto el **Diagrama Entidad-Relación (Conceptual / Negocio)** como el **Diagrama Relacional (Físico para PostgreSQL)** de la plataforma **Norvia**, con cardinalidades y tipos de datos normalizados en tercera forma normal (3FN).
 
+> [!TIP]
+> **Archivo `.drawio` nativo disponible:** Si deseas abrir y editar directamente los diagramas vectoriales sin tener que importar los bloques Mermaid uno a uno, dispones del archivo nativo [Diagramas.drawio](Diagramas.drawio) ubicado en esta misma carpeta, el cual incluye las dos páginas ya maquetadas: **Entidad-Relación** y **Relacional**.
+
 ---
 
 ## Cómo importar estos diagramas en Draw.io
