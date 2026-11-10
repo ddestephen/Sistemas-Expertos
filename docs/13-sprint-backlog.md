@@ -102,9 +102,9 @@ Para demostrar que EF Core, los filtros globales y las validaciones funcionan co
 | ID | Historia | Endpoint / Operación backend | Prioridad | Depende de |
 |---|---|---|---|---|
 | **HU-017** | Registrar mi empresa | `POST /api/empresas` (Transacción: empresa + `Persona` + primer `VinculoEmpresa` admin) | Must | HU-092, HU-096 |
-| **HU-018** | Iniciar y cerrar sesión | `POST /api/auth/login` (Correo/clave del vínculo; JWT con `VinculoEmpresaId` y `EmpresaId`) | Must | HU-094, HU-017 |
-| **HU-019** | Acceder a otra empresa | Sin endpoint de “cambiar empresa”: nuevo login con credenciales del otro vínculo | Must | HU-018 |
-| **HU-020** | Agregar vínculos | `POST /api/vinculos` (`Persona` + vínculo; correo institucional único) | Must | HU-018, HU-093 |
+| **HU-018** | Iniciar y cerrar sesión | `POST /api/auth/login/empresa` y `/plataforma`; `refresh`; `logout` (**Acceso** + **RefreshToken**; JWT sin persistir) | Must | HU-094, HU-017 |
+| **HU-019** | Acceder a otra empresa | Sin “cambiar empresa”: nuevo login con otro `IdEmpresa` cifrado (mismo **Acceso** si mismo correo) | Must | HU-018 |
+| **HU-020** | Agregar vínculos | `POST /api/vinculos` (`Persona` + **Acceso** + vínculo; correo único en **Acceso**) | Must | HU-018, HU-093 |
 | **HU-021** | Gestionar roles y vínculos | `PATCH /api/vinculos/{id}` (rol, estado, `HistorialEstadoVinculo`; `Permiso`/`RolPermiso`) | Must | HU-020, HU-095 |
 
 #### Módulo 2: Configuración Empresarial

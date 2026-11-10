@@ -2,7 +2,7 @@
 
 **Para qué sirve:** define todas las tablas de Norvia, sus columnas, relaciones, restricciones e índices. Es la base del diagrama entidad-relación (ERD) que exige el curso y de la implementación con EF Core.
 
-El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D24 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaOpcion, Persona, VinculoEmpresa, `StaffPlataforma`, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
+El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D25 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaOpcion, Persona, **Acceso**, `VinculoEmpresa`, `StaffPlataforma`, **RefreshToken**, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
 
 ### Nombres de persona (3FN)
 
@@ -56,7 +56,7 @@ Las columnas que terminan en `En`, como `CreadoEn` o `RegistradoEn`, toman la ho
 | Tipo de tabla | Tiene `EmpresaId` | Tablas |
 |---|---|---|
 | Raíz | Es la empresa | Empresa |
-| Global | No | Persona, Usuario, StaffPlataforma, RolStaffPlataforma, Rol, Permiso, RolPermiso, RolStaffPlataformaPermiso, Rubro, CategoriaRiesgo, PreguntaExploratoria, OpcionPregunta, Peligro, PlantillaTarea, PlantillaDocumento |
+| Global | No | Persona, Usuario, Acceso, RefreshToken, StaffPlataforma, RolStaffPlataforma, Rol, Permiso, RolPermiso, RolStaffPlataformaPermiso, Rubro, CategoriaRiesgo, PreguntaExploratoria, OpcionPregunta, Peligro, PlantillaTarea, PlantillaDocumento |
 | De empresa | Sí, obligatorio | Las demás tablas operativas (incluye VinculoEmpresa y historiales) |
 
 Reglas que cumplen todas las tablas de empresa:
@@ -81,6 +81,10 @@ Cardinalidades: `||` es exactamente uno, `o|` es cero o uno, `o{` es cero o much
 ```mermaid
 erDiagram
     Persona ||--o| Usuario : "registro Activo"
+    Acceso ||--o{ VinculoEmpresa : "autentica"
+    Acceso ||--o| StaffPlataforma : "autentica staff"
+    Acceso ||--o{ RefreshToken : "sesiones refresh"
+    VinculoEmpresa ||--o{ RefreshToken : "sesión empresa"
     Persona ||--o{ VinculoEmpresa : "tiene"
     Empresa ||--o{ VinculoEmpresa : "acoge"
     Empresa ||--o{ HistorialEstadoEmpresa : "audita estado"
@@ -209,17 +213,44 @@ Registro global de la persona en Norvia (D21). **No** guarda correo ni contrase�
 
 Quien solo existe como **Persona** (accidente, EPP) **no** tiene fila `Usuario` hasta que se le da un vínculo o se registra explícitamente.
 
-#### StaffPlataforma
+#### Acceso
 
-Cuenta de **staff / soporte Norvia** (D21, D23): correo corporativo del equipo, no de clientes. No es vínculo de empresa y **no** asigna `RolId` a terceros.
+Credenciales globales (D21, D25). Un correo, un hash de contraseña; varios **VinculoEmpresa** pueden compartir el mismo `AccesoId` si usan el mismo correo institucional.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
-| RolStaffPlataformaId | smallint | No | FK → RolStaffPlataforma | |
-| Email | varchar(254) | No | UQ | Índice único sobre `lower(Email)` |
+| Email | varchar(254) | No | UQ | Minúsculas; CHECK `Email = lower(Email)` |
 | PasswordHash | varchar(255) | No | | |
 | DebeCambiarPassword | boolean | No | | Por defecto `false` |
+| Verificado | boolean | No | | Por defecto `false`; RN-67 |
+| CreadoEn | timestamptz | No | | Lo fija el servidor |
+
+#### RefreshToken
+
+Persistencia de **refresh** únicamente (D25). El JWT de access **no** se guarda.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| AccesoId | uuid | No | FK → Acceso | |
+| VinculoEmpresaId | uuid | Sí | FK → VinculoEmpresa | Nulo en sesión solo plataforma |
+| TokenHash | varchar(64) | No | UQ | Hash del refresh (p. ej. SHA-256 en hex) |
+| TipoSesion | varchar(12) | No | | `empresa` o `plataforma` |
+| ExpiraEn | timestamptz | No | | |
+| CreadoEn | timestamptz | No | | Lo fija el servidor |
+
+**Comportamiento (App):** refresh válido elimina la fila anterior y crea otra; logout elimina la fila (RN-66).
+
+#### StaffPlataforma
+
+Fila de **staff / soporte Norvia** (D21, D23). Credenciales en **Acceso**; relación 1:1 opcional `Acceso` ↔ `StaffPlataforma`. No es vínculo de empresa y **no** asigna `RolId` a terceros.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| AccesoId | uuid | No | FK → Acceso, UQ | Un staff por **Acceso** |
+| RolStaffPlataformaId | smallint | No | FK → RolStaffPlataforma | |
 | Activo | boolean | No | | Por defecto `true` |
 | CreadoEn | timestamptz | No | | |
 
@@ -403,24 +434,22 @@ En todas: `Id uuid` es la PK, `EmpresaId uuid` es obligatorio y es FK hacia `Emp
 
 #### VinculoEmpresa
 
-Relación persona–empresa con rol y credenciales institucionales (D1, D21).
+Relación persona–empresa con rol y referencia a **Acceso** (D1, D21). El correo institucional del login es `Acceso.Email`.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | PersonaId | uuid | No | FK → Persona | |
+| AccesoId | uuid | No | FK → Acceso | |
 | RolId | smallint | No | FK → Rol | |
-| Email | varchar(254) | No | | Correo institucional y login de este vínculo |
-| PasswordHash | varchar(255) | No | | Clave solo de este vínculo |
-| DebeCambiarPassword | boolean | No | | Por defecto `false` |
 | Estado | varchar(12) | No | | `activo`, `suspendido`, `baja` — activo **en esta empresa** (distinto de `Usuario.Activo`) |
 | CreadoEn | timestamptz | No | | |
 
 **Restricciones:**
 
 - UQ `(EmpresaId, PersonaId)`: una persona, un vínculo por empresa.
-- UQ índice sobre `lower(Email)` (RN-57).
+- UQ `(EmpresaId, AccesoId)`: un mismo **Acceso** solo puede tener un vínculo por empresa (RN-57).
 - Destino de FK compuestas operativas (`ResponsableId`, etc.).
 - Al menos un vínculo `activo` con rol admin por empresa (RN-08): lo valida la aplicación.
 
@@ -1144,7 +1173,10 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 |---|---|---|
 | RN-01 | BD | UQ `Empresa.RTN` |
 | RN-02, RN-03 | BD | VinculoEmpresa con UQ `(EmpresaId, PersonaId)` y `RolId` |
-| RN-57 | BD | `VinculoEmpresa.Email` y `PasswordHash` |
+| RN-57 | BD y App | `Acceso.Email` / `PasswordHash`; login empresa con empresa cifrada; UQ `(EmpresaId, AccesoId)` en vínculo |
+| RN-65 | BD | `Acceso.Email` UQ |
+| RN-66 | App | Rotación y logout en **RefreshToken** |
+| RN-67 | BD y App | `Acceso.Verificado` |
 | RN-58, RN-59 | BD y App | `HistorialEstadoVinculo` y transacción con `Estado` |
 | RN-60 | BD | `Empresa.Estado` |
 | RN-61 | App | Cargo vs rol en permisos |

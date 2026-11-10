@@ -10,10 +10,83 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-09 | Jonathan | Tablas **`Acceso`** y **`RefreshToken`**; credenciales fuera de vínculo/staff (D21/D25, RN-57/65–67); alineado a `ProyectoFinal/backend` | [Ver cambio](#cambio-2026-11-09-acceso) |
 | 2026-11-09 | Jonathan | **`Permiso.Alcance`** (`empresa` \| `plataforma`) documentado y distinto de tabla **`StaffPlataforma`** (D24, RN-63/64) | [Ver cambio](#cambio-2026-11-09-permiso-alcance) |
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-09-acceso` {#cambio-2026-11-09-acceso}
+
+| | |
+|---|---|
+| **Quién documentó** | Jonathan |
+| **Fecha** | 9 de noviembre de 2026 |
+| **Alcance** | Modelo de acceso en `docs/` alineado a EF Core en `ProyectoFinal/backend` (migración `AccesoYRefresh`, auth en Application). |
+
+### El problema (por qué hubo que cambiar)
+
+1. Los `docs/` del 9-nov describían **correo y `PasswordHash` en cada `VinculoEmpresa`** (y en `StaffPlataforma`), con contraseña distinta por empresa en HU-019.
+2. El backend ya implementó **3FN de credenciales**: tabla global **`Acceso`**, vínculos y staff con **`AccesoId`**, sesiones en **`RefreshToken`** (solo hash; JWT de access no en BD).
+3. Sin actualizar la cadena 08→12, el ERD del curso y las HUs M1 no coincidían con el código ni con la regla “un correo, una contraseña” entre empresas que comparten correo institucional.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **D21** (ajuste) | Credenciales solo en **Acceso** | Una fila de hash por correo |
+| **D25** | **RefreshToken** + JWT efímero | HU-018/094 sin tabla de access tokens |
+| **RN-57** (ajuste) | Login empresa: **Acceso** + `IdEmpresa` cifrado + vínculo activo | Mantiene tenant aislado sin selector post-login |
+| **RN-65–67** | Correo UQ, rotación/borrado de refresh, `Verificado` | Paridad con `AuthServicio` y configs EF |
+
+### Cómo quedó el acceso (resumen)
+
+```text
+Acceso (Email UQ, PasswordHash, Verificado)
+    ├── VinculoEmpresa (EmpresaId, PersonaId, AccesoId, RolId, Estado)
+    └── StaffPlataforma (AccesoId 1:1, RolStaffPlataformaId, Activo)
+
+RefreshToken: TokenHash, AccesoId, VinculoEmpresaId?, TipoSesion, ExpiraEn
+```
+
+Login: `POST /api/auth/login/empresa` | `/plataforma` | `refresh` | `logout`.
+
+### Qué se actualizó en el repo de docs
+
+| Archivo | Cambio |
+|---------|--------|
+| `08-decisiones-bd.md` | D1, D21; **D25** |
+| `07-reglas-negocio.md` | RN-57; **RN-65, RN-66, RN-67** |
+| `09-entidades.md`, `12-modelo-datos.md` | **Acceso**, **RefreshToken**; vínculo/staff sin Email/PasswordHash; ERD §3.1; trazabilidad §9 |
+| `10-historias-usuario.md` | HU-014, 017–022, 094 (criterios) |
+| `11-glosario.md`, `00-guia-edicion-docs.md`, `04-modulos.md`, `13-sprint-backlog.md` | Términos y endpoints auth |
+| `README.md` | Rango D1–D25 |
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero GitHub | Código `ProyectoFinal/backend` |
+|----|-------------|----------------|--------------------------------|
+| 014, 017–022, 094 | [x] | [ ] | [x] auth slice + migración (pendiente `database update` en cada máquina) |
+
+#### HU-019 | Acceder a otra empresa
+
+| | |
+|---|---|
+| **Antes** | Cada empresa: correo y contraseña distintos por vínculo. |
+| **Ahora** | Mismo **Acceso** si mismo correo; sesiones separadas por `IdEmpresa` y refresh distinto. |
+| **Tablero** | [ ] |
+
+### Mapa rápido
+
+| Tema | Archivo |
+|------|---------|
+| D25, D21 | `08-decisiones-bd.md` |
+| Diccionario Acceso / RefreshToken | `12-modelo-datos.md` §4.1 |
+| Guía de edición | `00-guia-edicion-docs.md` |
+
+**Nota:** el bloque histórico [cambio 2026-11-09](#cambio-2026-11-09) aún menciona credenciales en vínculo; fue el diseño documental **antes** de este ajuste. La fuente vigente es este bloque y `12-modelo-datos.md`.
 
 ---
 

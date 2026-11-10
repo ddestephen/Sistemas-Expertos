@@ -44,12 +44,14 @@
 | Norvia | Plataforma SaaS de SST multiempresa; nombre oficial del producto (Normativa + Vía) |
 | SST360 | Nombre de trabajo anterior; usar **Norvia** en documentación nueva |
 | Persona | Identidad humana sin credenciales; nombres en cuatro columnas |
-| VinculoEmpresa | Relación persona–empresa: rol, correo institucional, contraseña y estado |
+| Acceso | Credenciales globales: correo único, hash de contraseña, `Verificado`, `DebeCambiarPassword` (D21, D25) |
+| RefreshToken | Sesión de refresh persistida solo como hash; opcional `VinculoEmpresaId` |
+| VinculoEmpresa | Relación persona–empresa: rol, `AccesoId`, estado del vínculo |
 | Operador (con vínculo) | Persona que inicia sesión en una empresa mediante su `VinculoEmpresa`; en HUs sustituye “usuario de la empresa” |
-| StaffPlataforma | Login del **equipo Norvia** (soporte, admin de catálogos) con **RolStaffPlataforma** |
+| StaffPlataforma | Fila del **equipo Norvia** (`AccesoId`, **RolStaffPlataforma**, `Activo`); credenciales en **Acceso** |
 | RolStaffPlataforma | Rol del staff (`admin_plataforma`, `soporte_plataforma`); distinto de **Rol** en vínculos |
 | CuentaPlataforma | Nombre anterior de **StaffPlataforma**; no usar en diseño nuevo |
-| Usuario | Registro global por **Persona** con `Activo` (sin correo/clave). Login y rol de empresa van en **VinculoEmpresa** |
+| Usuario | Registro global por **Persona** con `Activo` (sin correo/clave). Login en **Acceso**; rol de empresa en **VinculoEmpresa** |
 | Membresia | Nombre anterior de **VinculoEmpresa**; no usar en diseño nuevo |
 | Cargo (comisión) | Función en la Comisión Mixta (`presidente`, `secretario`, `miembro`); no es rol del sistema |
 | Rol (sistema) | Permisos en Norvia para un vínculo (`admin_empresa`, `responsable_sst`, `colaborador`) |

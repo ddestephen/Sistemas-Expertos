@@ -18,8 +18,10 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 |---|---|---|---|
 | Raíz | Empresa | Cada empresa cliente: razón social, RTN, dirección, actividad, rubro, trabajadores y estado del tenant | M1, M2 |
 | Global | Persona | Identidad humana (nombres y documento), sin correo ni contraseña | M1, M6, M8 |
-| Global | Usuario | Registro de persona en la plataforma: `Activo` (sin credenciales; login en vínculo o staff de plataforma) | M1 |
-| Global | StaffPlataforma | Login del staff Norvia (correo, clave, rol de plataforma); no opera empresas cliente | M1 |
+| Global | Usuario | Registro de persona en la plataforma: `Activo` (sin credenciales; login vía **Acceso**) | M1 |
+| Global | Acceso | Correo (único) y contraseña compartidos por vínculos y/o staff que usen ese correo | M1 |
+| Global | RefreshToken | Hash del refresh, tipo de sesión y vínculo opcional; el JWT de access no se guarda | M1 |
+| Global | StaffPlataforma | Fila de staff Norvia (`AccesoId`, rol de plataforma, `Activo`); credenciales en **Acceso** | M1 |
 | Global | RolStaffPlataforma | Rol del staff (p. ej. admin catálogos, soporte); no gestiona `Rol` de empresas | M1 |
 | Global | Rol | Rol **de empresa** asignado en cada `VinculoEmpresa` | M1 |
 | Global | Permiso | Catálogo de operaciones HTTP (`Codigo`, ruta, método) y **`Alcance`**: `empresa` (tenant) o `plataforma` (operación global vía **StaffPlataforma**; el alcance no se llama `staff`) | M1 |
@@ -32,7 +34,7 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Global | Peligro | Catálogo de peligros | M3, M4 |
 | Global | PlantillaTarea | Tareas modelo | M4, M5 |
 | Global | PlantillaDocumento | Políticas y procedimientos modelo | M9 |
-| Con `EmpresaId` | VinculoEmpresa | Persona en la empresa: rol, correo institucional, contraseña y estado | M1 |
+| Con `EmpresaId` | VinculoEmpresa | Persona en la empresa: rol, `AccesoId` y estado del vínculo (credenciales en **Acceso**) | M1 |
 | Con `EmpresaId` | HistorialEstadoVinculo | Cambios de estado del vínculo con motivo | M1 |
 | Con `EmpresaId` | HistorialEstadoEmpresa | Cambios de estado del tenant (p. ej. mora) | M1 |
 | Con `EmpresaId` | ConexionGoogle | Cuenta de Google conectada y sus credenciales cifradas | M1 |

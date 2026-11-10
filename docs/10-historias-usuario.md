@@ -125,9 +125,9 @@ Cada historia termina con estos datos:
 - Cada entidad tiene atributos, tipos, llaves primarias y foráneas.
 - Se indican los atributos obligatorios y opcionales.
 - Cada entidad se clasifica como raíz, global o con `EmpresaId`.
-- Acceso: `Persona`, `Usuario` (`Activo`), `VinculoEmpresa`, `StaffPlataforma`, `RolStaffPlataforma`; RBAC empresa/plataforma.
+- Acceso: `Persona`, `Usuario` (`Activo`), **`Acceso`**, `VinculoEmpresa`, `StaffPlataforma`, `RefreshToken`, `RolStaffPlataforma`; RBAC empresa/plataforma.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** D1 a D24
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** D1 a D25
 
 ### HU-009 | Definir el aislamiento multiempresa
 
@@ -136,7 +136,7 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Se listan las tablas con `EmpresaId` y las entidades globales.
-- Se documenta el patrón `VinculoEmpresa` (varias empresas = varios vínculos y credenciales separadas).
+- Se documenta el patrón `VinculoEmpresa` + **`Acceso`** (varias empresas = varios vínculos; sesiones separadas por JWT/refresh, no selector tras login).
 - Se define cómo el JWT fija una sola empresa por sesión (sin selector tras login).
 - Se documenta cómo se impiden las referencias entre empresas.
 
@@ -155,7 +155,7 @@ Cada historia termina con estos datos:
 - Cada tabla existe en el diccionario de datos.
 - El ERD incluye `Persona`, `Usuario`, `VinculoEmpresa`, `StaffPlataforma`, historiales, RBAC; no `Membresia`.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008, HU-009 · **Reglas:** D1 a D24
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008, HU-009 · **Reglas:** D1 a D25
 
 ### HU-011 | Definir restricciones e índices
 
@@ -202,7 +202,8 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Login con correo institucional y contraseña de `VinculoEmpresa`.
+- Login empresa: correo y contraseña de **Acceso** + identificador de empresa cifrado; login plataforma: **Acceso** + **StaffPlataforma**.
+- Refresh rotativo en **RefreshToken** (solo hash); access JWT no persiste (D25, RN-66).
 - Claims: `EmpresaId` cifrado, `VinculoEmpresaId`, `RolId`.
 - Catálogo **Permiso** con **`Alcance`**: `empresa` (vínculo) o `plataforma` (staff). Sin mezclar alcances en `RolPermiso` / `RolStaffPlataformaPermiso` (D24, RN-63).
 - Autorización: sesión empresa vía `Rol`/`RolPermiso` solo permisos `empresa`; sesión staff vía `RolStaffPlataforma`/`RolStaffPlataformaPermiso` solo permisos `plataforma` (D20, D23, RN-64).
@@ -211,7 +212,7 @@ Cada historia termina con estos datos:
 - Se identifican endpoints públicos y protegidos.
 - Se documentan las respuestas 401 y 403.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-009 · **Reglas:** RN-03, RN-05, RN-06, RN-57, RN-61, RN-63, RN-64, D1, D20, D21, D23, D24
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-009 · **Reglas:** RN-03, RN-05, RN-06, RN-57, RN-61, RN-63, RN-64, RN-65, RN-66, RN-67, D1, D20, D21, D23, D24, D25
 
 ### HU-015 | Redactar el pitch de 1 página
 
@@ -248,10 +249,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se crean la empresa, la persona, la fila `Usuario` (`Activo = true`) y el vínculo con correo institucional y contraseña en una sola operación.
+- Se crean la empresa, la persona, la fila `Usuario` (`Activo = true`), **Acceso** (correo + hash) y el **VinculoEmpresa** en una sola operación.
 - Quien registra queda como Administrador de empresa en ese vínculo.
 - Un RTN de empresa repetido se rechaza con un mensaje claro.
-- La contraseña del vínculo se guarda con hash, nunca en texto plano.
+- La contraseña se guarda con hash en **Acceso**, nunca en texto plano.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-091, HU-092 · **Reglas:** RN-01, D2
 
@@ -261,24 +262,26 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- El login usa correo institucional y contraseña del vínculo (`VinculoEmpresa`).
+- El login empresa usa correo y contraseña de **Acceso** y el identificador de empresa (cifrado); la API valida el **VinculoEmpresa** correspondiente.
+- Refresh y logout usan **RefreshToken** (solo hash en BD).
 - Si `Usuario.Activo` es falso, la empresa está suspendida o el vínculo no está `activo`, no hay acceso.
 - Las credenciales incorrectas reciben un mensaje que no revela qué dato falló.
 - El JWT incluye `EmpresaId` cifrado, `VinculoEmpresaId` y rol (HU-014).
 
-**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-017, HU-094 · **Reglas:** RN-57, RN-60, D1, D21
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-017, HU-094 · **Reglas:** RN-57, RN-60, RN-66, RN-67, D1, D21, D25
 
 ### HU-019 | Acceder a otra empresa
 
-**Como** persona con vínculos en varias empresas, **quiero** entrar con el correo de cada empresa, **para** que los accesos sigan separados.
+**Como** persona con vínculos en varias empresas, **quiero** iniciar sesión por empresa sin mezclar tenants, **para** que los accesos sigan separados.
 
 **Criterios de aceptación:**
 
-- No existe un selector de empresa tras un solo login: cada empresa usa su correo institucional y su contraseña.
-- Cerrar sesión en una empresa no afecta otra.
+- No hay selector de empresa tras un login: cada sesión empresa requiere su `IdEmpresa` (cifrado) y credenciales de **Acceso**.
+- Si varias empresas comparten el mismo correo institucional, comparten la misma contraseña (**Acceso**); aun así cada login/refresh es una sesión distinta por tenant (RN-65).
+- Cerrar sesión en una empresa (revocar su refresh) no invalida la sesión de otra empresa.
 - Pedir datos con token de otra empresa devuelve 403.
 
-**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** RN-02, RN-05, RN-58, D21
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** RN-02, RN-05, RN-58, RN-65, D1, D21
 
 ### HU-020 | Agregar vínculos
 
@@ -286,10 +289,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Creo o enlazo `Persona`, `Usuario` (`Activo` si es nueva en la app) y `VinculoEmpresa` con correo único en la plataforma.
+- Creo o enlazo `Persona`, `Usuario` (`Activo` si es nueva en la app), **Acceso** (nuevo o existente por correo) y `VinculoEmpresa`.
 - Asigno rol al crear el vínculo.
 - Una persona no puede tener dos vínculos en la misma empresa.
-- El correo institucional no se reutiliza en otro vínculo activo.
+- El correo es único en **Acceso**; un segundo vínculo en otra empresa puede reutilizar el mismo **Acceso** (misma contraseña).
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** RN-02, D5
 
@@ -308,14 +311,14 @@ Cada historia termina con estos datos:
 
 ### HU-022 | Cambiar mi contraseña
 
-**Como** operador con vínculo activo, **quiero** cambiar la contraseña de mi vínculo, **para** proteger el acceso a esa empresa.
+**Como** operador con vínculo activo, **quiero** cambiar la contraseña de mi **Acceso**, **para** proteger mis entradas al sistema.
 
 **Criterios de aceptación:**
 
-- Debo indicar la contraseña actual del vínculo.
+- Debo indicar la contraseña actual de **Acceso**.
 - La nueva cumple la política definida.
-- Debo cambiar el acceso temporal al entrar por primera vez.
-- No altera contraseñas de vínculos en otras empresas.
+- Debo cambiar el acceso temporal al entrar por primera vez (`DebeCambiarPassword`).
+- Si mi correo se usa en vínculos de varias empresas, el cambio aplica a todas (mismo **Acceso**, RN-65).
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Should · **Depende de:** HU-018 · **Reglas:** ninguna
 
@@ -1227,7 +1230,7 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - El token incluye `VinculoEmpresaId`, `EmpresaId` (cifrado según HU-014) y `RolId`.
-- El login previo valida correo institucional y contraseña del vínculo.
+- El login previo valida correo y contraseña de **Acceso** y el vínculo/empresa de la sesión.
 - Se validan firma, emisor, audiencia y expiración.
 - Un token inválido recibe 401.
 

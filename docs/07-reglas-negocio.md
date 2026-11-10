@@ -21,7 +21,10 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 
 | Código | Regla |
 |---|---|
-| RN-57 | El login de empresa usa el correo institucional y la contraseña del **VinculoEmpresa** |
+| RN-57 | El login de empresa usa correo y contraseña de **Acceso** más el identificador de empresa (cifrado en cliente); la API exige vínculo `activo` para ese `AccesoId` y `EmpresaId` |
+| RN-65 | El correo de login es único en **Acceso**; todos los **VinculoEmpresa** que lo comparten usan la misma contraseña |
+| RN-66 | El refresh token se guarda solo como hash; logout y rotación de refresh **borran** la fila en **RefreshToken** |
+| RN-67 | Sin `Acceso.Verificado = true` no hay login (cuando aplique verificación de correo) |
 | RN-58 | Suspender un vínculo no altera otros vínculos de la misma persona |
 | RN-59 | Todo cambio de estado de un vínculo registra historial con motivo y actualiza el estado actual en la misma transacción |
 | RN-60 | Si la empresa está suspendida, ningún vínculo de esa empresa puede iniciar sesión |

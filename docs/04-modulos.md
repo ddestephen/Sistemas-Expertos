@@ -8,8 +8,8 @@ Las historias detalladas de cada módulo están en [historias de usuario](10-his
 
 **Propósito:** dar a cada empresa un espacio aislado y controlar quién entra.
 
-- Registrar una empresa e iniciar sesión con el vínculo (correo institucional de esa empresa).
-- Agregar vínculos (`Persona` + rol + credenciales) y gestionar su estado.
+- Registrar una empresa e iniciar sesión con **Acceso** (correo institucional) y el vínculo de esa empresa.
+- Agregar vínculos (`Persona` + **Acceso** + rol) y gestionar su estado.
 - Trabajar en otra empresa: nuevo inicio de sesión con el vínculo de esa empresa (no hay “cambiar empresa” en la misma sesión).
 - Conectar la cuenta de Google de la empresa, que se usa para las encuestas y el calendario.
 - Administrar los contenidos comunes de la plataforma: rubros, categorías de riesgo, preguntas, peligros y plantillas.
