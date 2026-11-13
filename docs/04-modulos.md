@@ -11,7 +11,7 @@ Las historias detalladas de cada módulo están en [historias de usuario](10-his
 - Registrar una empresa e iniciar sesión con **Acceso** (correo institucional) y el vínculo de esa empresa.
 - Agregar vínculos (`Persona` + **Acceso** + rol) y gestionar su estado.
 - Trabajar en otra empresa: nuevo inicio de sesión con el vínculo de esa empresa (no hay “cambiar empresa” en la misma sesión).
-- Conectar la cuenta de Google de la empresa, que se usa para las encuestas y el calendario.
+- Conectar la cuenta de Google de la empresa para sincronizar el calendario.
 - Administrar los contenidos comunes de la plataforma: rubros, categorías de riesgo, preguntas, peligros y plantillas.
 
 **Se usa en:** web. Iniciar sesión también en teléfono (cada sesión = un vínculo / una empresa).
@@ -31,18 +31,19 @@ Las historias detalladas de cada módulo están en [historias de usuario](10-his
 
 **Propósito:** conocer el contexto de la organización a través de sus trabajadores, para identificar sus riesgos.
 
-Cada rubro tiene categorías de riesgo, como trabajo en alturas o alto voltaje, y cada categoría tiene preguntas exploratorias. Rubros, categorías y preguntas se guardan en la base de datos.
+Cada rubro tiene categorías de riesgo, como trabajo en alturas o alto voltaje, y cada categoría tiene preguntas exploratorias. Rubros, categorías y preguntas se guardan en la base de datos. Las categorías disponibles se filtran por el rubro de la empresa.
 
 1. El Responsable de SST elige las categorías que quiere explorar. Solo ve las de su rubro.
 2. Norvia reúne las preguntas de esas categorías y agrega una pregunta sobre el área en que trabaja cada persona.
-3. Norvia crea la encuesta en Google Forms, la publica y muestra el enlace para compartirlo con los trabajadores.
-4. Los trabajadores responden en Google Forms.
-5. Norvia importa las respuestas y muestra un resumen por pregunta y por área.
-6. Norvia sugiere peligros. Cada pregunta puede asociarse a un peligro y a la respuesta que indica exposición. Si al menos un trabajador da esa respuesta, el peligro se sugiere en su área, indicando cuántos trabajadores la dieron.
+3. Norvia crea una encuesta interna editable y la publica para los trabajadores con vínculo activo en la empresa.
+4. El formulario muestra cada pregunta según su tipo: respuesta breve como texto, selección única como una opción y selección múltiple como varias opciones.
+5. Los trabajadores inician sesión en Norvia, responden el cuestionario y envían sus respuestas a la plataforma.
+6. Norvia presenta las respuestas con gráficos y comparativas por pregunta, área y encuesta; quien creó la encuesta puede editarla y consultar sus resultados.
+7. Norvia sugiere peligros. Cada pregunta puede asociarse a un peligro y a la respuesta que indica exposición. Si al menos un trabajador da esa respuesta, el peligro se sugiere en su área, indicando cuántos trabajadores la dieron.
 
 Los peligros sugeridos pasan a la matriz de riesgos, donde el Responsable de SST los confirma. Corresponde a la idea de "contexto de la organización" de ISO 45001.
 
-**Se usa en:** web. Los trabajadores responden desde cualquier dispositivo.
+**Se usa en:** web. Los trabajadores responden desde cualquier dispositivo e inician sesión con su vínculo de empresa.
 
 ## M4. Matriz de riesgos
 

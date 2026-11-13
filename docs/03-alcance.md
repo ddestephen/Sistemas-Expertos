@@ -10,9 +10,9 @@ Norvia tiene 12 módulos, descritos en [módulos](04-modulos.md).
 
 | # | Módulo | En una frase |
 |---|---|---|
-| M1 | Empresas y acceso | Cada empresa tiene su espacio, sus vínculos operativos y su cuenta de Google conectada |
+| M1 | Empresas y acceso | Cada empresa tiene su espacio y sus vínculos operativos |
 | M2 | Perfil de empresa | Datos de la empresa, rubro y áreas |
-| M3 | Diagnóstico de contexto | Encuesta a los trabajadores en Google Forms que sugiere peligros |
+| M3 | Diagnóstico de contexto | Encuestas internas para trabajadores con cuenta, con resultados comparativos que sugieren peligros |
 | M4 | Matriz de riesgos | Identificar, evaluar y controlar riesgos |
 | M5 | Plan de trabajo | Tareas con responsable, fecha y evidencia |
 | M6 | Accidentes e incidentes | Registrar e investigar lo ocurrido |
@@ -54,7 +54,7 @@ Si falta tiempo, se recorta en este orden:
 2. Historias Should de E2.
 3. La app para teléfono, conservando esas funciones en la web adaptada a pantallas pequeñas.
 
-**Advertencia:** el alcance es grande: 12 módulos, dos aplicaciones y dos integraciones con Google. Si el total no cabe en el tiempo disponible, debe decidirse antes de comenzar E2, no al final. La [rúbrica](02-requisitos-curso.md) premia la calidad de la base técnica más que la cantidad de módulos.
+**Advertencia:** el alcance es grande: 12 módulos, dos aplicaciones y una integración externa con Google Calendar. Si el total no cabe en el tiempo disponible, debe decidirse antes de comenzar E2, no al final. La [rúbrica](02-requisitos-curso.md) premia la calidad de la base técnica más que la cantidad de módulos.
 
 ## Fuera de alcance
 
@@ -70,8 +70,7 @@ Si falta tiempo, se recorta en este orden:
 
 - Los clientes son empresas con 10 o más trabajadores permanentes.
 - Cada empresa corresponde a un solo rubro.
-- Cada empresa tiene una cuenta de Google para crear sus encuestas y su calendario.
-- Los trabajadores responden la encuesta desde un enlace, sin cuenta en Norvia.
+- Los trabajadores que responden las encuestas tienen un vínculo activo y una cuenta en Norvia.
 - Hay conexión a internet al registrar mantenimientos y reportar accidentes.
 - La firma electrónica es la de un operador autenticado con vínculo, no una firma avanzada certificada.
 - El contenido de las categorías, preguntas, peligros y plantillas lo redacta el equipo en cantidad reducida por rubro, y debe revisarlo alguien con conocimiento de SST.
@@ -80,6 +79,6 @@ Si falta tiempo, se recorta en este orden:
 
 - **Infraestructura gratuita:** el servicio gratuito de Render se suspende tras 15 minutos sin uso, tarda hasta un minuto en reactivarse y pierde los archivos que tenga guardados. Las fotos y evidencias necesitan un almacenamiento externo.
 - **Espacio de base de datos:** el plan gratuito de Neon ronda 1 GB por proyecto. Conviene confirmarlo antes de depender de esa cifra.
-- **Dependencia de Google:** las encuestas y los recordatorios dependen de las APIs de Google Forms y Google Calendar, de sus límites de uso y de que la empresa autorice el acceso a su cuenta.
+- **Dependencia de Google:** los recordatorios dependen de Google Calendar, sus límites de uso y de que la empresa autorice el acceso a su cuenta.
 - **ISO 45001 tiene derechos de autor:** se cita por número de cláusula y se redacta con palabras propias.
 - **Reglamento revisado:** versión reformada publicada en La Gaceta 30,523, del 19 de octubre de 2004. No se comprobó si tiene reformas posteriores.
