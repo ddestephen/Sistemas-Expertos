@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-13 | Equipo (redactado con Claude Code) | **Reducción de alcance:** encuestas dinámicas y anónimas sin Google Forms, cuentas de encuestados, sin áreas, M6 sin personas afectadas, notificaciones en Norvia y por correo; M7, M8 y M12 fuera (40 tablas, D26–D28, RN-68–79, HU-114–117) | [Ver cambio](#cambio-2026-11-13-reduccion-alcance) |
 | 2026-11-09 | Jesús | Archivo nativo editable **`docs/Diagramas.drawio`** (ERD Conceptual y Relacional Físico) y `.gitignore` | [Ver cambio](#cambio-2026-11-09-archivo-drawio) |
 | 2026-11-09 | Jesús | Diagramas ERD y Relacional con tipos PostgreSQL exportables a draw.io en Mermaid (53 tablas, D25) | [Ver cambio](#cambio-2026-11-09-diagramas-drawio) |
 | 2026-11-09 | Jonathan | Tablas **`Acceso`** y **`RefreshToken`**; credenciales fuera de vínculo/staff (D21/D25, RN-57/65–67); alineado a `ProyectoFinal/backend` | [Ver cambio](#cambio-2026-11-09-acceso) |
@@ -17,6 +18,196 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-13-reduccion-alcance` {#cambio-2026-11-13-reduccion-alcance}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 13 de noviembre de 2026 |
+| **Alcance** | Reducción del alcance del producto y rediseño de las encuestas. Toca decisiones, reglas, entidades, modelo de datos (53 → 40 tablas), historias, alcance, módulos, actores, marco normativo, backlog, glosario y diagramas Mermaid |
+
+### El problema (por qué hubo que cambiar)
+
+1. **El alcance era demasiado grande** para el tiempo disponible: 12 módulos, app para teléfono y dos integraciones con Google. El equipo acordó un flujo más corto, de 8 pasos:
+   1. definir la empresa;
+   2. generar encuestas según el rubro;
+   3. crear las cuentas de encuestados y encuestadores;
+   4. generar un reporte anónimo;
+   5. armar la matriz de riesgos;
+   6. imprimir la matriz;
+   7. definir controles, sugerencias y el plan de acción (gestión del riesgo);
+   8. notificar cada política nueva.
+2. **Pidieron no usar Google Forms:** los formularios deben generarse en Norvia, y el frontend debe cambiar el control según el tipo de pregunta.
+3. **Áreas:** trabajar por área agregaba tablas, FK y reglas a casi todos los módulos. Se decidió trabajar todo a nivel de empresa.
+4. **Accidentes (M6):** se conserva, pero sin registrar personas afectadas ni días de incapacidad.
+5. **Estructura de carpetas:** la documentación y el código se movieron a una carpeta padre (`proyecto-docs/`), con dos repositorios separados:
+   - `documentacion-proyecto-final/` (este repositorio);
+   - `Proyecto-Sistemas-Expertos-1900-III-PAC-2026/` (backend e infra).
+
+   Varias rutas de la guía (`docs/`, `ProyectoFinal/`) quedaron desactualizadas.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Conservar los códigos** | M1–M12, HU-001–113, D1–D25 y RN-01–67 no se renumeran. Lo recortado se marca "Fuera de alcance" (HU, RN, módulos) o "Sin efecto" (D) | Los enlaces, el tablero y la bitácora anterior siguen siendo válidos |
+| **Las tablas recortadas salen del modelo** | 16 tablas se eliminan del diccionario y de los diagramas. Se listan en `09-entidades.md` § Recortadas | El ERD que se entrega muestra solo lo que se construye |
+| **Encuesta propia (D8, D26)** | Cada pregunta tiene un tipo: `si_no`, `opcion_unica`, `opcion_multiple`, `escala`, `texto_corto`, `texto_largo` o `numero`. La configuración va en columnas (obligatoria, rango y etiquetas de escala, umbral de exposición, longitud máxima). Estados: `borrador` → `publicada` → `cerrada` | El front pinta cada control según el tipo, sin servicios externos, y la base valida cada configuración con CHECK |
+| **Encuestados con cuenta (D5, RN-74)** | Rol nuevo `encuestado`. El "encuestador" es el Responsable SST, que crea y publica la encuesta; no hay un rol aparte | Cada trabajador responde una sola vez, y la regla está en la base |
+| **Respuestas anónimas (D27, RN-71–73)** | `ParticipacionEncuesta` guarda quién participó; `RespuestaEncuesta` guarda qué se respondió, sin vínculo y solo con la fecha. No hay relación entre ambas. El reporte se muestra con al menos 3 respuestas | Es el "reporte anónimo" del diagrama: se controla la participación sin poder identificar respuestas |
+| **Sin áreas (D4)** | Se elimina `Area`. Los riesgos, accidentes y encuestas son de la empresa. `Accidente` usa `Lugar` en texto libre | Reduce FK, reglas e historias en todos los módulos |
+| **Accidentes sin afectados (D11)** | Se elimina `PersonaAfectada`; las estadísticas son conteos por tipo, gravedad y periodo | Recorta alcance y evita guardar datos de salud |
+| **Notificaciones (D28, RN-75, RN-77–79)** | Tabla `Notificacion` por vínculo destinatario: se ve en Norvia y se envía por correo, con reintentos (outbox). Se usa para las políticas publicadas y las tareas asignadas | Es la "notificación de nueva política" del diagrama, sin Google Calendar |
+| **Controles sugeridos (RN-76)** | Al definir controles, Norvia propone los de `PlantillaTarea` del peligro, y el Responsable SST los acepta o descarta | Es el paso "sugerencias" del diagrama, sin tablas nuevas |
+| **Sin Google ni app para teléfono** | D16 queda sin efecto; HU-025, HU-105, HU-112 y HU-113 quedan fuera de alcance | Menos dependencias externas; la web se adapta a pantallas pequeñas |
+| **2 entregas** | E1 = M1–M5 y la matriz impresa (HU-075). E2 = M6, M9 y M11. E3 queda vacía | El orden sigue el flujo acordado |
+
+### Cómo quedó (resumen)
+
+- **Módulos que se construyen:**
+  - M1, con las cuentas de encuestados;
+  - M2, sin áreas;
+  - M3, reescrito;
+  - M4, con controles sugeridos e impresión;
+  - M5;
+  - M6, reducido;
+  - M9;
+  - M10, solo la matriz en PDF;
+  - M11, en Norvia y por correo.
+- **Módulos fuera de alcance:** M7, M8 y M12.
+- **Modelo:** 40 tablas.
+  - **Salen (16):** ConexionGoogle, EventoCalendario, Informe, Area, PersonaAfectada, Comision, IntegranteComision, Reunion, Asistencia, Acta, FirmaActa, Equipo, Mantenimiento, ArticuloEPP, IngresoEPP y EntregaEPP.
+  - **Entran (3):** ParticipacionEncuesta, DetalleRespuestaOpcion y Notificacion.
+  - **Cambian:**
+    - PreguntaExploratoria y EncuestaPregunta: tipos y configuración.
+    - Encuesta: sin columnas de Google; con estados y fechas.
+    - EncuestaPregunta y EncuestaOpcion: sin la pregunta de área.
+    - RespuestaEncuesta: anónima.
+    - DetalleRespuesta: con `ValorNumerico`.
+    - RiesgoEmpresa: sin `AreaId`; con `AccidenteId`.
+    - Accidente: sin `AreaId`; con `Lugar`.
+    - Tarea: origen riesgo, accidente o manual.
+    - Archivo: dueño tarea o accidente.
+    - Rol: se agrega `encuestado`.
+- **Decisiones:**
+  - Nuevas: D26–D28.
+  - Modificadas: D3–D9 y D11.
+  - Sin efecto: D12, D16, D17 y D18.
+- **Reglas:**
+  - Nuevas: RN-68–RN-79.
+  - Modificadas: RN-10, RN-12, RN-13 y RN-23.
+  - Fuera de alcance: RN-17, RN-29, RN-30, RN-32–48, RN-53–56 y RN-61.
+- **Historias:** 117 en total.
+  - En alcance: 79 (66 Must y 13 Should).
+  - Fuera de alcance: 38.
+  - Por entrega: Diseño 16, E1 43 y E2 20.
+
+### Qué hizo el equipo en la práctica
+
+- Se actualizó la cadena de verdad en orden: `08` → `07` → `09` → `12` (diccionario, diagramas, relaciones, índices, normalización y trazabilidad §9) → `10` (historias y tabla Resumen) → `14` → `11`.
+- También se ajustaron `01`, `03`, `04`, `05`, `06`, `13`, `README.md` y `00-guia-edicion-docs.md` (rutas nuevas y regla de recortes).
+- Se regeneraron los bloques Mermaid de `15-diagramas-drawio.md` desde el diccionario de `12`.
+- **Pendiente:** `Diagramas.drawio` todavía muestra el modelo de 53 tablas. Hay que reimportar los bloques de `15`.
+- Se verificó con un script:
+  - que no hay dependencias hacia historias inexistentes ni recortadas;
+  - que ninguna historia depende de una entrega posterior;
+  - que no hay ciclos;
+  - que no se citan RN o D inexistentes ni recortadas en historias activas;
+  - que no hay enlaces `.md` rotos.
+- **Pendiente en el código** (`Proyecto-Sistemas-Expertos-1900-III-PAC-2026/backend`):
+  - quitar `Area` y `RiesgoEmpresa.AreaId`;
+  - actualizar el enum `TipoRespuestaPregunta`;
+  - crear las entidades de encuesta, `Notificacion`, `Acceso` y `RefreshToken`;
+  - generar una migración nueva.
+- **Por confirmar:** que cada encuestado tenga un correo para su **Acceso** (trabajadores de maquila sin correo).
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero |
+|----|-------------|---------|
+| HU-029–033 (M3 reescrito) | Sí | [ ] |
+| HU-035, HU-036, HU-038, HU-039 (M4 sin áreas, controles sugeridos) | Sí | [ ] |
+| HU-047, HU-051, HU-052 (M6 reducido) | Sí | [ ] |
+| HU-075 (matriz impresa, pasa a E1) | Sí | [ ] |
+| HU-081 (aviso de tarea asignada) | Sí | [ ] |
+| HU-114–117 (nuevas) | Sí | [ ] |
+| HU-025, 027, 028, 048, 053–069, 076–080, 082–090, 105, 112, 113 (fuera de alcance) | Sí | [ ] cerrar o archivar en el tablero |
+| HU-023, 024, 034, 041, 046, 070–074, 099 (de E3 a E2) | Sí | [ ] |
+
+#### HU-030 | Generar y publicar la encuesta
+
+| **Antes** | Se creaba en Google Forms, con una pregunta de área, y se compartía un enlace |
+| **Ahora** | Se genera en Norvia como borrador (vista previa dinámica, quitar o reordenar preguntas), se publica y se cierra. Sin Google ni pregunta de área |
+| **Tablero** | [ ] |
+
+#### HU-031 | Responder la encuesta (antes: Importar las respuestas)
+
+| **Antes** | El Responsable SST importaba las respuestas desde Google |
+| **Ahora** | El encuestado responde con su cuenta, en un formulario pintado según el tipo de cada pregunta. Responde una sola vez y de forma anónima |
+| **Tablero** | [ ] |
+
+#### HU-032 | Ver el reporte anónimo (antes: Ver el resumen de respuestas)
+
+| **Antes** | Resumen por pregunta y por área |
+| **Ahora** | Resumen de la empresa por pregunta (conteos, promedios y textos sin autor), visible solo con al menos 3 respuestas |
+| **Tablero** | [ ] |
+
+#### HU-033 | Obtener peligros sugeridos
+
+| **Antes** | La sugerencia era por área, desde la opción de exposición |
+| **Ahora** | La sugerencia es de la empresa, desde una opción de exposición o un valor de escala igual o mayor que el umbral |
+| **Tablero** | [ ] |
+
+#### HU-035, HU-036, HU-038 | Matriz sin áreas
+
+| **Antes** | Cada riesgo tenía un área; la matriz se filtraba por área |
+| **Ahora** | Los riesgos son de la empresa; la matriz se filtra por peligro, clasificación, nivel y estado. HU-036 depende de HU-026 en vez de HU-027 |
+| **Tablero** | [ ] |
+
+#### HU-039 | Definir controles
+
+| **Antes** | Los controles se escribían a mano |
+| **Ahora** | Norvia sugiere controles desde las plantillas del peligro; el Responsable SST los acepta, edita o descarta (RN-76) |
+| **Tablero** | [ ] |
+
+#### HU-047, HU-051, HU-052 | Accidentes
+
+| **Antes** | Con área, personas afectadas (HU-048), incapacidad y ausentismo; app para teléfono |
+| **Ahora** | Lugar en texto libre, sin afectados, estadísticas por tipo, gravedad y periodo; solo web. Un riesgo nuevo puede quedar enlazado al accidente |
+| **Tablero** | [ ] |
+
+#### HU-075 | Generar la matriz de riesgos en PDF
+
+| **Antes** | E3, riesgos por área, se guardaba en Informe |
+| **Ahora** | E1, riesgos de la empresa, imprimible y descargable, se genera al pedirla sin guardarla |
+| **Tablero** | [ ] |
+
+#### HU-081 | Notificar tareas asignadas (antes: Llevar las tareas al calendario)
+
+| **Antes** | Evento en Google Calendar |
+| **Ahora** | Notificación en Norvia y por correo, con reintento |
+| **Tablero** | [ ] |
+
+#### HU-114 a HU-117 | Historias nuevas
+
+| **Antes** | — |
+| **Ahora** | HU-114: crear cuentas de encuestados (también en lote). HU-115: notificar una política nueva. HU-116: ver mis notificaciones. HU-117: configurar el envío de correo |
+| **Tablero** | [ ] |
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Decisiones D3–D28 | [08-decisiones-bd.md](08-decisiones-bd.md) |
+| Reglas RN-68–79 y recortes | [07-reglas-negocio.md](07-reglas-negocio.md) |
+| Entidades y tablas recortadas | [09-entidades.md](09-entidades.md) |
+| Diccionario de 40 tablas | [12-modelo-datos.md](12-modelo-datos.md) |
+| Historias y Resumen | [10-historias-usuario.md](10-historias-usuario.md) |
+| Alcance y entregas | [03-alcance.md](03-alcance.md) |
+| Diagramas Mermaid | [15-diagramas-drawio.md](15-diagramas-drawio.md) |
 
 ---
 

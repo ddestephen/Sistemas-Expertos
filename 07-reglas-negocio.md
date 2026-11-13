@@ -28,7 +28,7 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-58 | Suspender un vínculo no altera otros vínculos de la misma persona |
 | RN-59 | Todo cambio de estado de un vínculo registra historial con motivo y actualiza el estado actual en la misma transacción |
 | RN-60 | Si la empresa está suspendida, ningún vínculo de esa empresa puede iniciar sesión |
-| RN-61 | El cargo en la comisión no sustituye ni amplía los permisos del rol en el vínculo |
+| RN-61 | **Fuera de alcance (recorte 13-11-2026).** El cargo en la comisión no sustituye ni amplía los permisos del rol en el vínculo |
 | RN-62 | El nombre completo de una persona se obtiene de sus columnas de nombre; no se guarda como texto concatenado |
 
 ## Autorización (RBAC)
@@ -43,10 +43,10 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | Código | Regla |
 |---|---|
 | RN-09 | Cada empresa pertenece a un solo rubro |
-| RN-10 | Sin rubro, sin al menos un área y sin cuenta de Google conectada no se puede generar una encuesta |
+| RN-10 | Sin rubro y sin al menos una categoría elegida no se puede generar una encuesta |
 | RN-11 | Las categorías de riesgo disponibles dependen del rubro, y las preguntas de la encuesta dependen de las categorías elegidas |
-| RN-12 | Las preguntas de una encuesta generada quedan registradas tal como se enviaron; para cambiarlas se genera una encuesta nueva |
-| RN-13 | Un peligro se sugiere cuando al menos un trabajador da la respuesta que indica exposición. La sugerencia indica el área y cuántos trabajadores la dieron |
+| RN-12 | Las preguntas y opciones de una encuesta quedan copiadas al generarla. En `borrador` se pueden quitar o reordenar; una vez publicada no cambian, y para cambiarlas se genera una encuesta nueva |
+| RN-13 | Un peligro se sugiere cuando al menos una respuesta indica exposición: una opción marcada como exposición (en `si_no`, `opcion_unica` u `opcion_multiple`) o un valor de `escala` igual o mayor que el umbral de la pregunta. La sugerencia indica cuántas respuestas lo respaldan |
 | RN-14 | Las mismas respuestas siempre producen las mismas sugerencias |
 
 ## Riesgos
@@ -55,9 +55,10 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 |---|---|
 | RN-15 | El nivel de riesgo es probabilidad por severidad, cada una en escala de 1 a 5 |
 | RN-16 | El resultado se clasifica en: 1–4 bajo, 5–9 medio, 10–14 alto, 15–25 crítico. Esta clasificación es una propuesta por validar |
-| RN-17 | Cada riesgo pertenece a un área |
+| RN-17 | **Fuera de alcance (recorte 13-11-2026).** Cada riesgo pertenece a un área. Ahora los riesgos son de la empresa (D4) |
 | RN-18 | Un peligro sugerido no forma parte de la matriz hasta que el Responsable SST lo confirme |
 | RN-19 | Un riesgo alto o crítico exige al menos un control |
+| RN-76 | Al definir controles, Norvia sugiere los de las plantillas del peligro del riesgo. El Responsable SST acepta, edita o descarta cada sugerencia; ninguna se guarda sin su confirmación |
 | RN-20 | Cada evaluación se conserva; una nueva no reemplaza a la anterior |
 | RN-21 | Cada control indica su tipo: eliminación, sustitución, ingeniería, administrativo o equipo de protección personal |
 
@@ -66,7 +67,7 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | Código | Regla |
 |---|---|
 | RN-22 | Una tarea necesita responsable activo en la empresa y fecha límite para iniciarse |
-| RN-23 | Cada tarea conserva su origen: riesgo, mantenimiento, accidente, acuerdo de reunión o manual |
+| RN-23 | Cada tarea conserva su origen: riesgo, accidente o manual |
 | RN-24 | Solo el responsable de la tarea o el Responsable SST pueden actualizarla |
 | RN-25 | Si la tarea exige evidencia, no se puede completar sin ella |
 
@@ -77,11 +78,13 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-26 | Cada evento se clasifica como accidente, incidente o enfermedad profesional. Una enfermedad profesional se marca como sospechosa o diagnosticada |
 | RN-27 | Cualquier vínculo activo de la empresa puede reportar un evento |
 | RN-28 | Un evento no se cierra sin causas y medidas correctivas registradas (art. 46.1.a) |
-| RN-29 | Un accidente grave genera una convocatoria a reunión extraordinaria (art. 32) |
-| RN-30 | Los datos de las personas afectadas solo son visibles para el Responsable SST y la comisión |
+| RN-29 | **Fuera de alcance (recorte 13-11-2026).** Un accidente grave genera una convocatoria a reunión extraordinaria (art. 32). Depende de M7 |
+| RN-30 | **Fuera de alcance (recorte 13-11-2026).** Los datos de las personas afectadas solo son visibles para el Responsable SST y la comisión. Ya no se registran personas afectadas (D11) |
 | RN-31 | La fecha de registro la fija el servidor; la fecha del evento la indica quien reporta |
 
 ## Comisión y actas
+
+**Fuera de alcance (recorte 13-11-2026).** Las reglas de esta sección se conservan solo para no reutilizar sus códigos.
 
 | Código | Regla |
 |---|---|
@@ -97,6 +100,8 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-41 | Cada firma guarda vínculo, fecha y hash del contenido, una huella que permite detectar cambios |
 
 ## Gestión del riesgo
+
+**Fuera de alcance (recorte 13-11-2026).** Las reglas de esta sección se conservan solo para no reutilizar sus códigos.
 
 | Código | Regla |
 |---|---|
@@ -119,9 +124,32 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 
 ## Integración con Google
 
+**Fuera de alcance (recorte 13-11-2026).** Las reglas de esta sección se conservan solo para no reutilizar sus códigos.
+
 | Código | Regla |
 |---|---|
 | RN-53 | Cada empresa tiene como máximo una cuenta de Google conectada, y sus credenciales nunca se muestran |
 | RN-54 | Las fechas de tareas, reuniones, mantenimientos, informes y vencimiento de la comisión se crean como eventos en el Google Calendar de la empresa |
 | RN-55 | Si una fecha cambia, su evento se actualiza; si se cancela, el evento se elimina |
 | RN-56 | Si Google no responde, la operación se guarda igual en Norvia y el evento se vuelve a intentar |
+
+## Encuestas dinámicas y anonimato
+
+| Código | Regla |
+|---|---|
+| RN-68 | El tipo de cada pregunta define el control que muestra el formulario y la validación de la respuesta: `si_no` y `opcion_unica` aceptan una opción; `opcion_multiple`, una o más; `escala`, un entero dentro de su rango; `numero`, un valor numérico; `texto_corto` y `texto_largo`, texto hasta su longitud máxima. Se valida igual en el formulario y en el servidor |
+| RN-69 | Una pregunta obligatoria sin respuesta impide enviar la encuesta |
+| RN-70 | Solo se puede responder una encuesta en estado `publicada`. En `borrador` se prepara y en `cerrada` ya no recibe respuestas |
+| RN-71 | Cada vínculo responde una misma encuesta una sola vez |
+| RN-72 | La respuesta es anónima: no guarda el vínculo de quien respondió ni la hora, solo la fecha. La participación se guarda aparte, sin relación con la respuesta |
+| RN-73 | El reporte de una encuesta solo se muestra cuando tiene al menos 3 respuestas, para que no se pueda deducir quién respondió qué |
+| RN-74 | El rol `encuestado` solo puede responder encuestas, ver sus notificaciones y consultar las políticas vigentes |
+
+## Notificaciones
+
+| Código | Regla |
+|---|---|
+| RN-75 | Publicar una versión vigente de una política crea una notificación para cada vínculo activo de la empresa, visible en Norvia y enviada por correo |
+| RN-77 | Asignar una tarea notifica a su responsable en Norvia y por correo |
+| RN-78 | Si el correo falla, la notificación sigue visible en Norvia y el envío se reintenta hasta un máximo de intentos |
+| RN-79 | Cada operador con vínculo solo ve y marca como leídas sus propias notificaciones |

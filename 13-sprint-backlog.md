@@ -27,7 +27,7 @@ graph TD
 
     subgraph Fase2_Func["Fase 2: Slices Funcionales Transaccionales"]
         F2_6["M1: Empresas y Acceso (Onboarding, Login, Roles)"]
-        F2_7["M2: Configuración (Áreas con Tenant)"]
+        F2_7["M2: Perfil de empresa (rubro, con Tenant)"]
         F2_8["M4: Riesgos (Creación y Consulta con Tenant)"]
     end
 
@@ -91,7 +91,7 @@ Este sprint construye el motor del sistema. Para obtener la máxima nota en la r
 | **HU-094** | Implementar autenticación JWT | Login por vínculo; token con `VinculoEmpresaId` y `EmpresaId` cifrado | Must | HU-014, HU-091 |
 | **HU-095** | Implementar autorización por roles | `Permiso.Alcance` (`empresa` \| `plataforma`); `RolPermiso` vs `RolStaffPlataformaPermiso` (D24) | Must | HU-094 |
 | **HU-096** | Validar con FluentValidation | Pipeline de validación semántica con middleware global que captura excepciones y retorna Problem Details (RFC 7807) | Must | HU-012, HU-091 |
-| **HU-097** | Cargar los catálogos iniciales | Script de migración / seed data con rubros, categorías, peligros base y roles | Must | HU-092 |
+| **HU-097** | Cargar los catálogos iniciales | Seed data con rubros, categorías, preguntas de distintos tipos (D26), peligros, plantillas y roles (incluido `encuestado`) | Must | HU-092 |
 | **HU-098** | Probar el aislamiento entre empresas | Pruebas de integración automatizadas que verifiquen la imposibilidad de fuga de datos entre empresas | Must | HU-093, HU-094 |
 
 ### Bloque B: Slices funcionales transaccionales (Endpoints que dan vida al backend)
@@ -111,12 +111,13 @@ Para demostrar que EF Core, los filtros globales y las validaciones funcionan co
 | ID | Historia | Endpoint / Operación backend | Prioridad | Depende de |
 |---|---|---|---|---|
 | **HU-026** | Completar el perfil | `PUT /api/empresas/perfil` (Actualización de razón social, rubro, número de trabajadores) | Must | HU-018, HU-093 |
-| **HU-027** | Registrar áreas | `POST/GET/PUT/DELETE /api/areas` (CRUD transaccional clave para evidenciar el aislamiento por `EmpresaId`) | Must | HU-026, HU-093 |
+
+> **Recorte del 13-11-2026:** HU-027 (CRUD de áreas) salió del alcance porque ya no hay áreas. La evidencia de aislamiento por `EmpresaId` la dan los riesgos, evaluaciones y controles de M4, además de los vínculos de M1.
 
 #### Módulo 4: Matriz de Riesgos (Núcleo funcional SST)
 | ID | Historia | Endpoint / Operación backend | Prioridad | Depende de |
 |---|---|---|---|---|
-| **HU-036** | Agregar riesgos | `POST /api/riesgos` (Crea riesgo asociado a un peligro del catálogo y a un área de la empresa) | Must | HU-027, HU-097 |
+| **HU-036** | Agregar riesgos | `POST /api/riesgos` (Crea riesgo de la empresa asociado a un peligro del catálogo) | Must | HU-026, HU-097 |
 | **HU-037** | Evaluar un riesgo | `POST /api/riesgos/{id}/evaluaciones` (Cálculo transaccional de probabilidad × severidad = nivel de riesgo) | Must | HU-036 |
 | **HU-038** | Ver la matriz de riesgos | `GET /api/riesgos/matriz` (Consulta agrupada con filtro automático por tenant) | Must | HU-037, HU-093 |
 
@@ -127,7 +128,7 @@ Para demostrar que EF Core, los filtros globales y las validaciones funcionan co
 Para considerar una historia como completada en el tablero Kanban de GitHub Projects durante esta entrega:
 
 ### Para historias de la Fase 1:
-- [ ] El artefacto está documentado en Markdown en la carpeta `docs/` o como PDF de pitch.
+- [ ] El artefacto está documentado en Markdown en el repositorio de documentación (`documentacion-proyecto-final/`) o como PDF de pitch.
 - [ ] Cumple con la tercera forma normal (3FN) y contiene `EmpresaId` en todas las tablas transaccionales.
 - [ ] Cuenta con la aprobación del equipo.
 - [ ] La issue asociada en GitHub Projects se encuentra en la columna **Done**.
@@ -163,7 +164,7 @@ Paso 3: Slices Funcionales (Fase 2 - Casos de Uso Transaccionales)
   ├── 3.1 Registro empresa + Persona + vínculo admin (HU-017)
   ├── 3.2 Login por vínculo y JWT (HU-018)
   ├── 3.3 Alta y gestión de vínculos / roles (HU-020, HU-021)
-  ├── 3.4 CRUD de Áreas de la empresa (HU-026, HU-027)
+  ├── 3.4 Perfil y rubro de la empresa (HU-026)
   └── 3.5 Creación y Evaluación de Riesgos (HU-036, HU-037, HU-038)
 
 Paso 4: Verificación de Aislamiento y Preparación de Defensa (Fase 2 - Calidad)

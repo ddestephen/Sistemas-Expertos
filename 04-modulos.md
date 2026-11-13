@@ -4,17 +4,19 @@
 
 Las historias detalladas de cada módulo están en [historias de usuario](10-historias-usuario.md).
 
+**Alcance reducido (13-11-2026):** se construyen M1 a M6, M9, la impresión de la matriz (parte de M10) y M11 como notificaciones internas y por correo. M7, M8 y M12 quedan fuera. No hay áreas: todo se trabaja a nivel de empresa. No hay integración con Google ni app para teléfono.
+
 ## M1. Empresas y acceso
 
 **Propósito:** dar a cada empresa un espacio aislado y controlar quién entra.
 
 - Registrar una empresa e iniciar sesión con **Acceso** (correo institucional) y el vínculo de esa empresa.
 - Agregar vínculos (`Persona` + **Acceso** + rol) y gestionar su estado.
+- Crear las cuentas de los **encuestados**, una a una o en lote: vínculos con el rol `encuestado`, que solo responden encuestas, ven sus notificaciones y consultan las políticas vigentes.
 - Trabajar en otra empresa: nuevo inicio de sesión con el vínculo de esa empresa (no hay “cambiar empresa” en la misma sesión).
-- Conectar la cuenta de Google de la empresa, que se usa para las encuestas y el calendario.
-- Administrar los contenidos comunes de la plataforma: rubros, categorías de riesgo, preguntas, peligros y plantillas.
+- Administrar los contenidos comunes de la plataforma: rubros, categorías de riesgo, preguntas (con su tipo), peligros y plantillas.
 
-**Se usa en:** web. Iniciar sesión también en teléfono (cada sesión = un vínculo / una empresa).
+**Se usa en:** web.
 
 ## M2. Perfil de empresa
 
@@ -22,8 +24,8 @@ Las historias detalladas de cada módulo están en [historias de usuario](10-his
 
 - Registrar razón social, RTN, dirección, actividad económica y número de trabajadores permanentes.
 - Elegir el rubro: oficina administrativa, comercio o tienda, maquila o fábrica, o construcción.
-- Registrar las áreas de la empresa.
-- Calcular cuántos representantes necesita la Comisión Mixta.
+
+La empresa es la única unidad organizativa: no se registran áreas. El cálculo de la composición de la Comisión Mixta quedó fuera de alcance junto con M7.
 
 **Se usa en:** web.
 
@@ -31,18 +33,19 @@ Las historias detalladas de cada módulo están en [historias de usuario](10-his
 
 **Propósito:** conocer el contexto de la organización a través de sus trabajadores, para identificar sus riesgos.
 
-Cada rubro tiene categorías de riesgo, como trabajo en alturas o alto voltaje, y cada categoría tiene preguntas exploratorias. Rubros, categorías y preguntas se guardan en la base de datos.
+Cada rubro tiene categorías de riesgo, como trabajo en alturas o alto voltaje, y cada categoría tiene preguntas exploratorias. Rubros, categorías y preguntas se guardan en la base de datos. Cada pregunta tiene un **tipo** que decide cómo se muestra y se valida: sí/no, opción única, opción múltiple, escala (por ejemplo, de 1 a 5 con etiquetas), texto corto, texto largo o número.
 
 1. El Responsable de SST elige las categorías que quiere explorar. Solo ve las de su rubro.
-2. Norvia reúne las preguntas de esas categorías y agrega una pregunta sobre el área en que trabaja cada persona.
-3. Norvia crea la encuesta en Google Forms, la publica y muestra el enlace para compartirlo con los trabajadores.
-4. Los trabajadores responden en Google Forms.
-5. Norvia importa las respuestas y muestra un resumen por pregunta y por área.
-6. Norvia sugiere peligros. Cada pregunta puede asociarse a un peligro y a la respuesta que indica exposición. Si al menos un trabajador da esa respuesta, el peligro se sugiere en su área, indicando cuántos trabajadores la dieron.
+2. Norvia genera la encuesta como borrador con las preguntas de esas categorías. El Responsable de SST puede quitar o reordenar preguntas y ver la vista previa.
+3. El Responsable de SST la publica. Desde ese momento sus preguntas no cambian.
+4. Los **encuestados** entran con su cuenta y responden un **formulario dinámico**: Norvia pinta cada pregunta con el control de su tipo y valida la respuesta igual en el formulario y en el servidor. Cada encuestado responde una sola vez.
+5. Las respuestas son **anónimas**: Norvia guarda que la persona participó, pero no qué respondió.
+6. Norvia muestra un **reporte anónimo** de la empresa, por pregunta, cuando hay al menos 3 respuestas.
+7. Norvia sugiere peligros. Cada pregunta puede asociarse a un peligro y a la respuesta que indica exposición: una opción o, en una escala, un valor desde un umbral. Si al menos una respuesta indica exposición, el peligro se sugiere, indicando cuántas respuestas lo respaldan.
 
 Los peligros sugeridos pasan a la matriz de riesgos, donde el Responsable de SST los confirma. Corresponde a la idea de "contexto de la organización" de ISO 45001.
 
-**Se usa en:** web. Los trabajadores responden desde cualquier dispositivo.
+**Se usa en:** web, también desde el navegador del teléfono.
 
 ## M4. Matriz de riesgos
 
@@ -50,38 +53,42 @@ Los peligros sugeridos pasan a la matriz de riesgos, donde el Responsable de SST
 
 - Revisar los peligros sugeridos por la encuesta y agregar otros.
 - Evaluar cada riesgo por probabilidad y severidad para obtener su nivel.
-- Definir controles, de mayor a menor efectividad: eliminar, sustituir, controles de ingeniería, controles administrativos y equipo de protección personal.
+- Definir controles, de mayor a menor efectividad: eliminar, sustituir, controles de ingeniería, controles administrativos y equipo de protección personal. Norvia **sugiere controles** a partir de las plantillas del peligro, y el Responsable SST los acepta, edita o descarta.
 - Volver a evaluar con los controles aplicados, lo que da el riesgo residual.
 - Ver la matriz completa y su historial.
+- **Imprimir la matriz** o descargarla en PDF (historia HU-075, del módulo M10).
 
-Un peligro es lo que puede causar daño, como una escalera en mal estado. El riesgo combina qué tan probable es el daño y qué tan grave sería.
+Un peligro es lo que puede causar daño, como una escalera en mal estado. El riesgo combina qué tan probable es el daño y qué tan grave sería. Los riesgos son de toda la empresa, sin áreas.
 
 **Se usa en:** web.
 
 ## M5. Plan de trabajo
 
-**Propósito:** convertir lo detectado en acciones con dueño y fecha.
+**Propósito:** convertir lo detectado en acciones con dueño y fecha (plan de acción).
 
-- Generar tareas desde los riesgos y sus controles. Otras tareas llegan de mantenimientos, accidentes y acuerdos de reunión.
-- Asignar responsable y fecha.
+- Generar tareas desde los riesgos y sus controles. Otras tareas llegan de las medidas correctivas de accidentes o se crean a mano.
+- Asignar responsable y fecha; el responsable recibe una notificación.
 - Atender tareas y adjuntar evidencia.
 - Filtrar y ver lo vencido.
 
-**Se usa en:** web. Atender tareas y adjuntar evidencia también en teléfono.
+**Se usa en:** web.
 
 ## M6. Accidentes e incidentes
 
 **Propósito:** registrar lo ocurrido, entender por qué pasó y evitar que se repita.
 
-- Reportar accidentes, incidentes (lo que estuvo a punto de causar daño) y enfermedades profesionales, sospechosas o diagnosticadas.
-- Registrar a las personas afectadas y sus días de incapacidad.
-- Investigar causas y definir medidas correctivas.
+- Reportar accidentes, incidentes (lo que estuvo a punto de causar daño) y enfermedades profesionales, sospechosas o diagnosticadas, con su lugar en texto libre.
+- Investigar causas y definir medidas correctivas, que se convierten en tareas.
 - Revisar la matriz de riesgos a partir de lo aprendido.
-- Consultar estadísticas de siniestralidad y ausentismo.
+- Consultar estadísticas de eventos por tipo, gravedad y periodo.
 
-**Se usa en:** teléfono y web para reportar. Web para investigar y consultar.
+No se registran personas afectadas ni días de incapacidad (recorte del 13-11-2026).
+
+**Se usa en:** web.
 
 ## M7. Comisión y actas
+
+> **Fuera de alcance (recorte del 13-11-2026).** Se conserva la descripción para no reutilizar el código del módulo; no se construye.
 
 **Propósito:** gestionar lo que la ley exige a la Comisión Mixta de Higiene y Seguridad.
 
@@ -94,6 +101,8 @@ Un peligro es lo que puede causar daño, como una escalera en mal estado. El rie
 **Se usa en:** web. Firmar actas también en teléfono.
 
 ## M8. Gestión del riesgo
+
+> **Fuera de alcance (recorte del 13-11-2026).** Se conserva la descripción para no reutilizar el código del módulo; no se construye.
 
 **Propósito:** mantener en buen estado los equipos de la empresa y controlar el equipo de protección personal (EPP).
 
@@ -123,15 +132,19 @@ Un peligro es lo que puede causar daño, como una escalera en mal estado. El rie
 - Editar el borrador, aprobarlo y publicarlo.
 - Crear versiones nuevas y conservar las anteriores.
 
-**Se usa en:** web. Consultar los documentos vigentes también en teléfono.
+Cuando se aprueba una versión nueva de una política, Norvia avisa a todos los vínculos activos de la empresa, dentro de Norvia y por correo (M11).
+
+**Se usa en:** web.
 
 ## M10. Reportes
+
+> **Alcance reducido (13-11-2026).** Solo se construye la **matriz de riesgos** para imprimir o descargar en PDF; pasa a E1 junto con M4. Los demás reportes, incluido el informe anual, quedan fuera de alcance.
 
 **Propósito:** generar documentos con los datos ya capturados.
 
 | Reporte | Contenido |
 |---|---|
-| Matriz de riesgos | Riesgos por área, evaluación inicial y residual, y controles |
+| Matriz de riesgos | Riesgos de la empresa, evaluación inicial y residual, y controles |
 | Políticas | Políticas y procedimientos vigentes |
 | Informe semestral | Actividades del semestre para las autoridades de trabajo |
 | Informe anual | Informe para la Secretaría de Trabajo, con copia al Instituto Hondureño de Seguridad Social (IHSS) |
@@ -153,22 +166,22 @@ Un peligro es lo que puede causar daño, como una escalera en mal estado. El rie
 
 ## M11. Notificaciones
 
-**Propósito:** que nadie olvide una fecha importante.
+**Propósito:** que nadie se pierda un aviso importante.
 
-Norvia usa Google Calendar con la cuenta conectada por la empresa. Crea un evento, e invita a las personas que corresponde, para:
+Norvia guarda cada notificación para su destinatario y además la envía por correo. Notifica:
 
-- La fecha límite de cada tarea.
-- Cada reunión de la comisión.
-- Cada mantenimiento programado.
-- Los informes semestral y anual.
-- El vencimiento del periodo de la comisión.
-- La reunión extraordinaria después de un accidente grave.
+- La publicación de una versión nueva de una política, a todos los vínculos activos de la empresa.
+- La asignación de una tarea, a su responsable.
 
-Si una fecha cambia, el evento se actualiza; si se cancela, se elimina. Los recordatorios los envía Google Calendar, también en el teléfono.
+Cada persona ve sus notificaciones dentro de Norvia, con las no leídas destacadas, y puede abrir la política o la tarea. Si el correo falla, la notificación sigue visible y el envío se reintenta.
 
-**Se usa en:** web y teléfono, a través de Google Calendar.
+La integración con Google Calendar quedó fuera de alcance (recorte del 13-11-2026).
+
+**Se usa en:** web.
 
 ## M12. Panel de avance
+
+> **Fuera de alcance (recorte del 13-11-2026).** Se conserva la descripción para no reutilizar el código del módulo; no se construye.
 
 **Propósito:** mostrar de un vistazo cómo va la empresa.
 

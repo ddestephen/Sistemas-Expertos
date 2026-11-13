@@ -6,7 +6,7 @@
 
 Seguir este orden al cambiar el modelo o las reglas:
 
-1. [08-decisiones-bd.md](08-decisiones-bd.md) — decisiones D1–D25  
+1. [08-decisiones-bd.md](08-decisiones-bd.md) — decisiones D1–D28  
 2. [07-reglas-negocio.md](07-reglas-negocio.md) — reglas RN  
 3. [09-entidades.md](09-entidades.md) — lista de entidades  
 4. [12-modelo-datos.md](12-modelo-datos.md) — diccionario, relaciones, trazabilidad §9  
@@ -16,13 +16,14 @@ Seguir este orden al cambiar el modelo o las reglas:
 
 ## Reglas obligatorias
 
-1. **Búsqueda global:** antes de renombrar un término (p. ej. Membresia → VinculoEmpresa), buscar en `Sistemas-Expertos/docs/` y actualizar todas las apariciones o documentar el alias una vez en el glosario.
+1. **Búsqueda global:** antes de renombrar un término (p. ej. Membresia → VinculoEmpresa), buscar en `documentacion-proyecto-final/` y actualizar todas las apariciones o documentar el alias una vez en el glosario.
 2. **Cada cambio citable:** indicar sección, qué cambió y motivo (D# o RN-#).
 3. **3FN:** `Persona` sin login; **`Usuario`** solo `Activo` (+ `PersonaId`); credenciales en **`Acceso`**; `VinculoEmpresa` y `StaffPlataforma` llevan `AccesoId`.
 4. **Trazabilidad:** al añadir reglas, actualizar la tabla RN ↔ implementación en [12-modelo-datos.md](12-modelo-datos.md) §9.
-5. **Checklist de cierre:** glosario actualizado; HUs M1 (HU-017–022) coherentes con vínculos; diagramas sin `Membresia`; FK operativas apuntan a `VinculoEmpresa`.
+5. **Checklist de cierre:** glosario actualizado; HUs M1 (HU-017–022 y HU-114) coherentes con vínculos; diagramas sin `Membresia`; FK operativas apuntan a `VinculoEmpresa`.
 6. **Bitácora:** al terminar, añadir entrada en **Últimos cambios** y el bloque de detalle en [14-cambios-realizados.md](14-cambios-realizados.md) (plantilla al final del archivo).
 7. **Tablero:** si actualizan la issue en GitHub Projects, marcar `[x]` en la tabla de HUs del cambio correspondiente en el `14`.
+8. **Recortes:** lo que sale del alcance conserva su código (M#, HU, D, RN) y se marca "Fuera de alcance" o "Sin efecto"; las tablas recortadas salen del modelo y se listan en [09-entidades.md](09-entidades.md).
 
 ## Términos clave (resumen)
 
@@ -41,11 +42,12 @@ Seguir este orden al cambiar el modelo o las reglas:
 
 ## Revisión de coherencia (checklist)
 
-Tras un cambio de acceso o modelo, buscar en `docs/`:
+Tras un cambio de acceso o modelo, buscar en `documentacion-proyecto-final/`:
 
 - `Membresia`, `cambiar-empresa`, `/api/usuarios`, “empresa activa” (como selector), “usuario de la empresa” (usar **operador con vínculo**).
 - Endpoints M1 en `13-sprint-backlog.md` alineados a vínculos.
 - `Usuario.Activo` vs `VinculoEmpresa.Estado`; credenciales solo en **Acceso**; `Acceso.Verificado`.
 - `Permiso.Alcance = plataforma` vs tabla `StaffPlataforma` (alcance = tipo de operación; tabla = login del staff).
+- Restos del alcance anterior: `Google`, `Area`/“por área”, `PersonaAfectada`, `EventoCalendario`, `Informe`. Solo pueden quedar en el glosario histórico, la bitácora o entradas marcadas como fuera de alcance.
 
-**Fuera de `docs/`:** `HUs.txt` y código en `ProyectoFinal/` pueden quedar desfasados hasta que el equipo los actualice.
+**Fuera de la documentación:** el código en `../Proyecto-Sistemas-Expertos-1900-III-PAC-2026/` (otro repositorio) puede quedar desfasado hasta que el equipo lo actualice.

@@ -7,6 +7,8 @@ Norvia se apoya en dos fuentes:
 - **ISO 45001:** norma internacional voluntaria para gestionar la seguridad y salud en el trabajo. Una empresa puede certificarse con un organismo externo.
 - **Reglamento General de Medidas Preventivas de Accidentes de Trabajo y Enfermedades Profesionales:** norma hondureña obligatoria, conocida por su acuerdo STSS-053-04. Aquí se le llama "el reglamento".
 
+**Alcance reducido (13-11-2026):** M7 (comisión), M8 (equipos y EPP), M12 y los informes de M10 no se construyen. Los artículos que solo cubrían esos módulos se marcan como **fuera de alcance**: Norvia no los cubre en el MVP.
+
 ## ISO 45001
 
 La norma tiene derechos de autor, por lo que Norvia no debe copiar su texto. Esta tabla es una referencia de orientación por número de cláusula. El equipo no tuvo acceso al texto oficial, así que debe confirmarla alguien con conocimiento de la norma.
@@ -16,7 +18,7 @@ La norma tiene derechos de autor, por lo que Norvia no debe copiar su texto. Est
 | 4 | Contexto de la organización | M2, M3 |
 | 5.2 | Política de SST | M9 |
 | 6.1 | Identificación de peligros y evaluación de riesgos | M3, M4 |
-| 7.5 | Información documentada | M9, M10 |
+| 7.5 | Información documentada | M9, M10 (matriz impresa) |
 | 10.2 | Incidentes y acciones correctivas | M6, M5 |
 
 ## Reglamento hondureño
@@ -27,7 +29,7 @@ Fuente: texto reformado, publicado en La Gaceta 30,523 del 19 de octubre de 2004
 
 | Art. | Qué exige | Módulo |
 |---|---|---|
-| 9.f | Suministrar gratuitamente a los trabajadores el equipo de protección personal necesario | M8 |
+| 9.f | Suministrar gratuitamente a los trabajadores el equipo de protección personal necesario | M8 (fuera de alcance) |
 | 9.j | Llevar un registro de accidentes de trabajo y enfermedades profesionales | M6 |
 | 44 | Facilitar un programa de seguridad y salud en el trabajo | M4, M5 |
 | 46.1.a | Investigar accidentes y enfermedades, determinar su origen y aplicar medidas correctivas | M6 |
@@ -35,12 +37,14 @@ Fuente: texto reformado, publicado en La Gaceta 30,523 del 19 de octubre de 2004
 | 46.1.d | Mantener un registro de los accidentes ocurridos | M6 |
 | 46.1.e | Disponer de un plan para eliminar, corregir y controlar los riesgos detectados | M4, M5 |
 | 47.b | Mantener actualizada la evaluación de riesgos y sus sistemas de control | M4 |
-| 47.d | Registrar el equipo de protección personal, su tipo, marca y tiempo de suministro a cada trabajador | M8 |
+| 47.d | Registrar el equipo de protección personal, su tipo, marca y tiempo de suministro a cada trabajador | M8 (fuera de alcance) |
 | 47.e | Mantener estadísticas de accidentes y enfermedades | M6 |
-| 47.f | Registrar el ausentismo por accidentes y enfermedades | M6 |
+| 47.f | Registrar el ausentismo por accidentes y enfermedades | Fuera de alcance: no se registran días de incapacidad |
 | 47.g | Mantener los resultados de las inspecciones internas | No cubierto en el MVP |
 
 ### Comisión Mixta de Higiene y Seguridad
+
+**Fuera de alcance (recorte del 13-11-2026):** M7 no se construye. Esta tabla se conserva como referencia legal y para las reglas RN-32 a RN-41, que también quedaron fuera.
 
 | Art. | Qué exige | Módulo |
 |---|---|---|
@@ -57,10 +61,10 @@ Fuente: texto reformado, publicado en La Gaceta 30,523 del 19 de octubre de 2004
 | 24 | Reunión al menos una vez al mes; extraordinaria a solicitud de la mayoría | M7 |
 | 25.b | Visita mensual a las instalaciones; dos miembros por sector | No cubierto en el MVP |
 | 25.d | Investigar las causas de accidentes y enfermedades, y proponer medidas de prevención | M6 |
-| 25.f | Informe semestral de actividades a las autoridades de trabajo | M10 |
-| 25.o | Informe anual a la Secretaría en la última quincena de noviembre, con copia al IHSS | M10 |
+| 25.f | Informe semestral de actividades a las autoridades de trabajo | Fuera de alcance |
+| 25.o | Informe anual a la Secretaría en la última quincena de noviembre, con copia al IHSS | Fuera de alcance |
 | 27.a | El secretario convoca por escrito | M7 |
 | 27.c | El secretario elabora el acta y la somete a aprobación de la comisión | M7 |
 | 27.e | El secretario lleva el libro de actas | M7 |
-| 32 | Accidente grave o riesgo inminente: reunión extraordinaria con el encargado del área | M6, M7 |
+| 32 | Accidente grave o riesgo inminente: reunión extraordinaria con el encargado del área | Fuera de alcance (depende de M7) |
 | 33 | El acta recoge conclusiones de visitas, resultados de investigaciones, actividades educativas y otros temas, y debe estar disponible para la autoridad | M7 |

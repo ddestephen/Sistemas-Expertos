@@ -3,6 +3,8 @@
 **Para qué sirve:** este documento proporciona las especificaciones completas en sintaxis **Mermaid** para generar e importar directamente en **draw.io** tanto el **Diagrama Entidad-Relación (Conceptual / Negocio)** como el **Diagrama Relacional (Físico para PostgreSQL)** de la plataforma **Norvia**, con cardinalidades y tipos de datos normalizados en tercera forma normal (3FN).
 
 > [!TIP]
+> **Archivo `.drawio` nativo:** todavía muestra el modelo anterior a la reducción de alcance del 13-11-2026 (53 tablas). Hay que reimportar en él los bloques de este archivo.
+>
 > **Archivo `.drawio` nativo disponible:** Si deseas abrir y editar directamente los diagramas vectoriales sin tener que importar los bloques Mermaid uno a uno, dispones del archivo nativo [Diagramas.drawio](Diagramas.drawio) ubicado en esta misma carpeta, el cual incluye las dos páginas ya maquetadas: **Entidad-Relación** y **Relacional**.
 
 ---
@@ -26,7 +28,7 @@ Draw.io admite código Mermaid de forma nativa:
 > **¿Cómo se interpreta la cardinalidad en cada diagrama?**
 > 
 > - **En el Diagrama Entidad-Relación (Conceptual):** Representa las relaciones a nivel de negocio (semánticas). Admite cardinalidades **1 a 1 (1:1)**, **1 a Muchos (1:N)** y **Muchos a Muchos (N:M)** directamente. Por ejemplo, un `Rol` tiene muchos `Permiso` y un `Permiso` pertenece a muchos `Rol` (N:M directa).
-> - **En el Diagrama Relacional (Físico PostgreSQL):** Representa la implementación física en tablas relacionales. **Todas las relaciones N:M se descomponen obligatoriamente en tablas asociativas/puente** (`RolPermiso`, `VinculoEmpresa`, `EncuestaCategoria`, `DetalleRespuesta`), por lo que todas las relaciones físicas son pares de **1:N**.
+> - **En el Diagrama Relacional (Físico PostgreSQL):** Representa la implementación física en tablas relacionales. **Todas las relaciones N:M se descomponen obligatoriamente en tablas asociativas/puente** (`RolPermiso`, `VinculoEmpresa`, `EncuestaCategoria`, `ParticipacionEncuesta`, `DetalleRespuestaOpcion`), por lo que todas las relaciones físicas son pares de **1:N**.
 > 
 > **Simbología de cardinalidad Crow's Foot utilizada:**
 > - `||` : Exactamente uno (obligatorio, `NOT NULL`).
@@ -38,216 +40,92 @@ Draw.io admite código Mermaid de forma nativa:
 
 # PARTE 1: Diagramas Entidad-Relación (Conceptuales / Negocio)
 
-Estos diagramas muestran las entidades del negocio, sus atributos descriptivos clave y las relaciones directas con sus verbos y cardinalidades.
+Estos diagramas muestran las entidades y sus relaciones con verbos y cardinalidades. Son los mismos de la sección 3 de [modelo de datos](12-modelo-datos.md), que es la fuente de verdad. Modelo vigente: **40 tablas**, sin áreas, sin Google, sin comisión, sin equipos ni EPP, sin personas afectadas y sin informes (recorte del 13-11-2026).
 
-## 1.1 Dominio 1: Identidad, Gobierno Multi-tenant y RBAC
+## 1.1 Acceso, empresa y catálogos
 
 ```mermaid
 erDiagram
-    PERSONA ||--o| USUARIO : "se habilita globalmente como"
-    ACCESO ||--o{ VINCULO_EMPRESA : "autentica credenciales en"
-    ACCESO ||--o| STAFF_PLATAFORMA : "autentica staff de"
-    ACCESO ||--o{ REFRESH_TOKEN : "mantiene sesiones refresh de"
-    VINCULO_EMPRESA ||--o{ REFRESH_TOKEN : "sesion de tenant"
-    PERSONA ||--o{ VINCULO_EMPRESA : "tiene contratos laborales en"
-    EMPRESA ||--o{ VINCULO_EMPRESA : "acoge a colaboradores en"
-    EMPRESA ||--o{ HISTORIAL_ESTADO_EMPRESA : "registra cambios de estado en"
-    VINCULO_EMPRESA ||--o{ HISTORIAL_ESTADO_VINCULO : "registra suspensiones en"
-    STAFF_PLATAFORMA ||--o{ HISTORIAL_ESTADO_EMPRESA : "aplica suspensiones SaaS en"
-    ROL_STAFF_PLATAFORMA ||--o{ STAFF_PLATAFORMA : "clasifica credencial de"
-    ROL_STAFF_PLATAFORMA }o--o{ PERMISO : "concede permisos globales a"
-    ROL ||--o{ VINCULO_EMPRESA : "asigna perfil de seguridad a"
-    ROL }o--o{ PERMISO : "concede permisos de tenant a"
-    VINCULO_EMPRESA ||--o{ REGISTRO_AUDITORIA : "ejecuta transacciones en"
-    STAFF_PLATAFORMA ||--o{ REGISTRO_AUDITORIA : "ejecuta acciones globales en"
-    EMPRESA ||--o| CONEXION_GOOGLE : "autoriza integracion con"
-    RUBRO ||--o{ EMPRESA : "clasifica sector de"
-
-    ACCESO {
-        uuid Id PK
-        string Email UK "Correo unico global"
-        string PasswordHash "Hash seguro"
-        boolean Verificado "RN-67"
-    }
-    REFRESH_TOKEN {
-        uuid Id PK
-        string TokenHash UK
-        string TipoSesion "empresa, plataforma"
-        datetime ExpiraEn
-    }
-    PERSONA {
-        uuid Id PK
-        string Nombres "Primer y segundo nombre"
-        string Apellidos "Primer y segundo apellido"
-        string DocumentoIdentidad "DNI o Pasaporte"
-        string Telefono
-    }
-    USUARIO {
-        uuid PersonaId PK, FK
-        boolean Activo "Estado de acceso global"
-    }
-    STAFF_PLATAFORMA {
-        uuid Id PK
-        uuid AccesoId FK "UK, 1 a 1"
-        boolean Activo
-    }
-    EMPRESA {
-        uuid Id PK
-        string RazonSocial
-        string RTN UK
-        string ActividadEconomica
-        int TrabajadoresPermanentes
-        string EstadoTenant "activa, suspendida"
-    }
-    VINCULO_EMPRESA {
-        uuid Id PK
-        uuid AccesoId FK "Credencial global"
-        string Estado "activo, suspendido, baja"
-    }
+    Persona ||--o| Usuario : "registro Activo"
+    Acceso ||--o{ VinculoEmpresa : "autentica"
+    Acceso ||--o| StaffPlataforma : "autentica staff"
+    Acceso ||--o{ RefreshToken : "sesiones refresh"
+    VinculoEmpresa ||--o{ RefreshToken : "sesión empresa"
+    Persona ||--o{ VinculoEmpresa : "tiene"
+    Empresa ||--o{ VinculoEmpresa : "acoge"
+    Empresa ||--o{ HistorialEstadoEmpresa : "audita estado"
+    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "audita estado"
+    StaffPlataforma ||--o{ HistorialEstadoEmpresa : "registra suspensión SaaS"
+    RolStaffPlataforma ||--o{ StaffPlataforma : "autoriza"
+    RolStaffPlataforma ||--o{ RolStaffPlataformaPermiso : "tiene"
+    Rol ||--o{ VinculoEmpresa : "define permisos de"
+    Rol ||--o{ RolPermiso : "tiene"
+    Permiso ||--o{ RolPermiso : "concede empresa"
+    Permiso ||--o{ RolStaffPlataformaPermiso : "concede plataforma"
+    StaffPlataforma ||--o{ RegistroAuditoria : "acciones plataforma"
+    VinculoEmpresa ||--o{ RegistroAuditoria : "acciones en empresa"
+    Rubro ||--o{ Empresa : "clasifica"
+    Rubro ||--o{ CategoriaRiesgo : "agrupa"
+    CategoriaRiesgo ||--o{ PreguntaExploratoria : "contiene"
+    PreguntaExploratoria ||--o{ OpcionPregunta : "ofrece"
+    Peligro |o--o{ PreguntaExploratoria : "detecta"
+    Peligro |o--o{ PlantillaTarea : "sugiere"
+    Rubro |o--o{ PlantillaDocumento : "aplica a"
 ```
 
 ---
 
-## 1.2 Dominio 2: Catálogos Globales de Seguridad y Salud (SST)
+## 1.2 Encuestas dinámicas
 
 ```mermaid
 erDiagram
-    RUBRO ||--o{ CATEGORIA_RIESGO : "agrupa familias de peligro de"
-    RUBRO |o--o{ PLANTILLA_DOCUMENTO : "provee modelos de politica a"
-    CATEGORIA_RIESGO ||--o{ PREGUNTA_EXPLORATORIA : "contiene preguntas diagnosticas en"
-    PREGUNTA_EXPLORATORIA ||--o{ OPCION_PREGUNTA : "ofrece respuestas posibles en"
-    PELIGRO |o--o{ PREGUNTA_EXPLORATORIA : "es detectado mediante"
-    PELIGRO |o--o{ PLANTILLA_TAREA : "dispone de medidas preventivas tipo en"
-
-    RUBRO {
-        smallint Id PK
-        string Codigo UK
-        string Nombre
-    }
-    CATEGORIA_RIESGO {
-        uuid Id PK
-        string Nombre
-        string Descripcion
-    }
-    PELIGRO {
-        uuid Id PK
-        string Codigo UK
-        string Nombre
-        string Clasificacion "fisico, quimico, biologico, etc."
-    }
-    PREGUNTA_EXPLORATORIA {
-        uuid Id PK
-        string TextoPregunta
-        string TipoRespuesta
-    }
-    PLANTILLA_TAREA {
-        uuid Id PK
-        string Titulo
-        string TipoControl "eliminacion, ingenieria, etc."
-    }
+    Encuesta ||--|{ EncuestaCategoria : "explora"
+    CategoriaRiesgo ||--o{ EncuestaCategoria : "elegida en"
+    Encuesta ||--|{ EncuestaPregunta : "copia"
+    PreguntaExploratoria ||--o{ EncuestaPregunta : "copiada en"
+    EncuestaPregunta ||--o{ EncuestaOpcion : "ofrece"
+    Encuesta ||--o{ ParticipacionEncuesta : "registra quién participó"
+    VinculoEmpresa ||--o{ ParticipacionEncuesta : "participa"
+    Encuesta ||--o{ RespuestaEncuesta : "recibe (anónima)"
+    RespuestaEncuesta ||--|{ DetalleRespuesta : "contiene"
+    EncuestaPregunta ||--o{ DetalleRespuesta : "respondida en"
+    EncuestaOpcion |o--o{ DetalleRespuesta : "elegida en"
+    DetalleRespuesta ||--o{ DetalleRespuestaOpcion : "elige varias"
+    EncuestaOpcion ||--o{ DetalleRespuestaOpcion : "elegida en"
 ```
 
 ---
 
-## 1.3 Dominio 3: Diagnóstico, Encuestas y Matriz de Riesgos IPERC
+## 1.3 Riesgos, plan de trabajo y accidentes
 
 ```mermaid
 erDiagram
-    EMPRESA ||--o{ AREA : "se estructura fisicamente en"
-    ENCUESTA }o--|{ CATEGORIA_RIESGO : "evalua exposicion a"
-    ENCUESTA ||--o{ RESPUESTA_ENCUESTA : "recibe envios de"
-    ENCUESTA |o--o{ RIESGO_EMPRESA : "sugiere hallazgos para"
-    PELIGRO ||--o{ RIESGO_EMPRESA : "es clasificado como"
-    AREA ||--o{ RIESGO_EMPRESA : "ocurre en el entorno de"
-    RIESGO_EMPRESA ||--o{ EVALUACION_RIESGO : "se valora periodicamente en"
-    RIESGO_EMPRESA ||--o{ CONTROL : "se mitiga mediante"
-    CONTROL |o--o{ TAREA : "se implementa operativamente con"
-    RIESGO_EMPRESA |o--o{ TAREA : "origina acciones en el plan de"
-
-    AREA {
-        uuid Id PK
-        string Nombre "Taller, Bodega, etc."
-    }
-    ENCUESTA {
-        uuid Id PK
-        string Titulo
-        string Estado "borrador, activa, cerrada"
-    }
-    RIESGO_EMPRESA {
-        uuid Id PK
-        string Descripcion
-        string Estado "sugerido, confirmado, descartado"
-    }
-    EVALUACION_RIESGO {
-        uuid Id PK
-        string Tipo "inicial, residual"
-        int Probabilidad "Escala 1 a 5"
-        int Severidad "Escala 1 a 5"
-    }
-    CONTROL {
-        uuid Id PK
-        string Tipo "eliminacion, sustitucion, ingenieria, admin, epp"
-        string Descripcion
-    }
+    Encuesta |o--o{ RiesgoEmpresa : "sugiere"
+    Accidente |o--o{ RiesgoEmpresa : "revela"
+    Peligro |o--o{ RiesgoEmpresa : "origina"
+    RiesgoEmpresa ||--o{ EvaluacionRiesgo : "se evalúa en"
+    RiesgoEmpresa ||--o{ Control : "se controla con"
+    RiesgoEmpresa |o--o{ Tarea : "genera"
+    Control |o--o{ Tarea : "se implementa con"
+    PlantillaTarea |o--o{ Tarea : "modela"
+    Accidente ||--o| InvestigacionAccidente : "se investiga en"
+    Accidente |o--o{ Tarea : "genera medidas"
+    VinculoEmpresa ||--o{ Accidente : "reporta"
+    Tarea |o--o{ Archivo : "tiene evidencia"
+    Accidente |o--o{ Archivo : "tiene fotos"
 ```
 
 ---
 
-## 1.4 Dominio 4: Plan de Trabajo, Comisión Mixta, Incidentes y Recursos
+## 1.4 Documentos y notificaciones
 
 ```mermaid
 erDiagram
-    EMPRESA ||--o{ TAREA : "gestiona plan de trabajo en"
-    EMPRESA ||--o{ COMISION : "constituye legalmente a"
-    COMISION ||--|{ INTEGRANTE_COMISION : "se conforma por"
-    VINCULO_EMPRESA ||--o{ INTEGRANTE_COMISION : "desempena funcion en"
-    COMISION ||--o{ REUNION : "celebra sesiones mensuales en"
-    REUNION ||--o{ ACTA : "formaliza acuerdos en"
-    ACTA }o--|{ INTEGRANTE_COMISION : "es firmada por"
-    ACTA |o--o{ TAREA : "convierte acuerdos en"
-    AREA ||--o{ ACCIDENTE : "es escenario de"
-    ACCIDENTE ||--o{ PERSONA_AFECTADA : "involucra a"
-    ACCIDENTE ||--o| INVESTIGACION_ACCIDENTE : "se analiza en"
-    ACCIDENTE |o--o{ TAREA : "genera medidas correctivas en"
-    AREA ||--o{ EQUIPO : "contiene maquinaria en"
-    EQUIPO ||--o{ MANTENIMIENTO : "recibe intervenciones en"
-    EQUIPO |o--o{ TAREA : "genera ordenes de reparacion en"
-    ARTICULO_EPP ||--o{ INGRESO_EPP : "registra compras en"
-    ARTICULO_EPP ||--o{ ENTREGA_EPP : "se suministra mediante"
-    AREA |o--o{ ENTREGA_EPP : "destina equipo de proteccion a"
-    TAREA |o--o{ ARCHIVO : "adjunta evidencia documental en"
-    ACCIDENTE |o--o{ ARCHIVO : "adjunta fotografias en"
-    MANTENIMIENTO |o--o{ ARCHIVO : "adjunta fotografias tecnicas en"
-    DOCUMENTO ||--|{ VERSION_DOCUMENTO : "mantiene historial de revisiones en"
-    INFORME ||--o| ARCHIVO : "almacena PDF oficial de"
-
-    ACCIDENTE {
-        uuid Id PK
-        string Tipo "accidente, incidente, enfermedad"
-        boolean EsGrave
-        datetime FechaHoraEvento
-    }
-    COMISION {
-        uuid Id PK
-        string NumeroRegistroSTSS
-        date FechaConstitucion
-    }
-    ACTA {
-        uuid Id PK
-        string Estado "borrador, aprobada, firmada"
-        string HashContenido "Integridad"
-    }
-    EQUIPO {
-        uuid Id PK
-        string Identificador UK
-        string Nombre
-        date ProximoMantenimiento
-    }
-    ARTICULO_EPP {
-        uuid Id PK
-        string Nombre
-        string Tipo
-    }
+    PlantillaDocumento |o--o{ Documento : "modela"
+    Documento ||--|{ VersionDocumento : "tiene"
+    VersionDocumento |o--o{ Notificacion : "avisa política"
+    Tarea |o--o{ Notificacion : "avisa asignación"
+    VinculoEmpresa ||--o{ Notificacion : "recibe"
 ```
 
 ---
@@ -256,130 +134,96 @@ erDiagram
 
 ```mermaid
 erDiagram
-    RUBRO ||--o{ EMPRESA : "clasifica"
-    RUBRO ||--o{ CATEGORIA_RIESGO : "agrupa"
-    RUBRO |o--o{ PLANTILLA_DOCUMENTO : "modela"
-    EMPRESA ||--o{ AREA : "se divide en"
-    EMPRESA ||--o{ VINCULO_EMPRESA : "acoge"
-    EMPRESA ||--o{ HISTORIAL_ESTADO_EMPRESA : "audita tenant"
-    EMPRESA ||--o| CONEXION_GOOGLE : "conecta"
-    EMPRESA ||--o{ TAREA : "planifica"
-    EMPRESA ||--o{ COMISION : "constituye"
-    EMPRESA ||--o{ DOCUMENTO : "formaliza"
-    EMPRESA ||--o{ INFORME : "genera"
-    EMPRESA ||--o{ ARTICULO_EPP : "inventaria"
-    PERSONA ||--o| USUARIO : "habilita"
-    ACCESO ||--o{ VINCULO_EMPRESA : "autentica credenciales en"
-    ACCESO ||--o| STAFF_PLATAFORMA : "autentica staff de"
-    ACCESO ||--o{ REFRESH_TOKEN : "mantiene sesiones refresh de"
-    VINCULO_EMPRESA ||--o{ REFRESH_TOKEN : "sesion de tenant"
-    PERSONA ||--o{ VINCULO_EMPRESA : "presta servicios"
-    PERSONA ||--o{ PERSONA_AFECTADA : "sufre dano"
-    STAFF_PLATAFORMA ||--o{ HISTORIAL_ESTADO_EMPRESA : "suspende"
-    ROL_STAFF_PLATAFORMA ||--o{ STAFF_PLATAFORMA : "autoriza"
-    ROL_STAFF_PLATAFORMA }o--o{ PERMISO : "otorga"
-    ROL ||--o{ VINCULO_EMPRESA : "define perfil"
-    ROL }o--o{ PERMISO : "otorga"
-    VINCULO_EMPRESA ||--o{ HISTORIAL_ESTADO_VINCULO : "audita"
-    VINCULO_EMPRESA ||--o{ INTEGRANTE_COMISION : "integra"
-    VINCULO_EMPRESA ||--o{ REGISTRO_AUDITORIA : "registra"
-    STAFF_PLATAFORMA ||--o{ REGISTRO_AUDITORIA : "registra"
-    CATEGORIA_RIESGO ||--o{ PREGUNTA_EXPLORATORIA : "contiene"
-    PREGUNTA_EXPLORATORIA ||--o{ OPCION_PREGUNTA : "ofrece"
-    PELIGRO |o--o{ PREGUNTA_EXPLORATORIA : "detecta"
-    PELIGRO |o--o{ PLANTILLA_TAREA : "sugiere"
-    PELIGRO ||--o{ RIESGO_EMPRESA : "origina"
-    AREA ||--o{ RIESGO_EMPRESA : "localiza"
-    AREA ||--o{ ACCIDENTE : "escenario"
-    AREA ||--o{ EQUIPO : "ubica"
-    AREA |o--o{ ENTREGA_EPP : "recibe"
-    ENCUESTA }o--|{ CATEGORIA_RIESGO : "evalua"
-    ENCUESTA ||--o{ RESPUESTA_ENCUESTA : "recibe"
-    ENCUESTA |o--o{ RIESGO_EMPRESA : "sugiere"
-    RIESGO_EMPRESA ||--o{ EVALUACION_RIESGO : "evalua"
-    RIESGO_EMPRESA ||--o{ CONTROL : "mitiga"
-    RIESGO_EMPRESA |o--o{ TAREA : "genera"
-    CONTROL |o--o{ TAREA : "ejecuta"
-    PLANTILLA_TAREA |o--o{ TAREA : "modela"
-    ACCIDENTE ||--o{ PERSONA_AFECTADA : "afecta"
-    ACCIDENTE ||--o| INVESTIGACION_ACCIDENTE : "investiga"
-    ACCIDENTE |o--o{ TAREA : "medidas"
-    ACCIDENTE |o--o{ REUNION : "convoca"
-    COMISION ||--|{ INTEGRANTE_COMISION : "conforma"
-    COMISION ||--o{ REUNION : "sesiona"
-    REUNION ||--o{ ACTA : "redacta"
-    REUNION ||--o{ ASISTENCIA : "controla"
-    INTEGRANTE_COMISION ||--o{ ASISTENCIA : "asiste"
-    INTEGRANTE_COMISION ||--o{ FIRMA_ACTA : "firma"
-    ACTA ||--o{ FIRMA_ACTA : "formaliza"
-    ACTA |o--o{ TAREA : "acuerdos"
-    EQUIPO ||--o{ MANTENIMIENTO : "recibe"
-    EQUIPO |o--o{ TAREA : "reparaciones"
-    ARTICULO_EPP ||--o{ INGRESO_EPP : "abastece"
-    ARTICULO_EPP ||--o{ ENTREGA_EPP : "suministra"
-    PLANTILLA_DOCUMENTO |o--o{ DOCUMENTO : "basa"
-    DOCUMENTO ||--|{ VERSION_DOCUMENTO : "versiona"
-    TAREA |o--o{ ARCHIVO : "evidencia"
-    ACCIDENTE |o--o{ ARCHIVO : "fotos"
-    MANTENIMIENTO |o--o{ ARCHIVO : "fotos"
-    COMISION |o--o{ ARCHIVO : "acta STSS"
-    INFORME ||--o| ARCHIVO : "PDF"
-    ACTA |o--o{ INFORME : "incluye"
-    TAREA |o--o| EVENTO_CALENDARIO : "sincroniza"
-    REUNION |o--o| EVENTO_CALENDARIO : "sincroniza"
-    EQUIPO |o--o| EVENTO_CALENDARIO : "sincroniza"
-    COMISION |o--o| EVENTO_CALENDARIO : "sincroniza"
+    Persona ||--o| Usuario : "registro Activo"
+    Acceso ||--o{ VinculoEmpresa : "autentica"
+    Acceso ||--o| StaffPlataforma : "autentica staff"
+    Acceso ||--o{ RefreshToken : "sesiones refresh"
+    VinculoEmpresa ||--o{ RefreshToken : "sesión empresa"
+    Persona ||--o{ VinculoEmpresa : "tiene"
+    Empresa ||--o{ VinculoEmpresa : "acoge"
+    Empresa ||--o{ HistorialEstadoEmpresa : "audita estado"
+    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "audita estado"
+    StaffPlataforma ||--o{ HistorialEstadoEmpresa : "registra suspensión SaaS"
+    RolStaffPlataforma ||--o{ StaffPlataforma : "autoriza"
+    RolStaffPlataforma ||--o{ RolStaffPlataformaPermiso : "tiene"
+    Rol ||--o{ VinculoEmpresa : "define permisos de"
+    Rol ||--o{ RolPermiso : "tiene"
+    Permiso ||--o{ RolPermiso : "concede empresa"
+    Permiso ||--o{ RolStaffPlataformaPermiso : "concede plataforma"
+    StaffPlataforma ||--o{ RegistroAuditoria : "acciones plataforma"
+    VinculoEmpresa ||--o{ RegistroAuditoria : "acciones en empresa"
+    Rubro ||--o{ Empresa : "clasifica"
+    Rubro ||--o{ CategoriaRiesgo : "agrupa"
+    CategoriaRiesgo ||--o{ PreguntaExploratoria : "contiene"
+    PreguntaExploratoria ||--o{ OpcionPregunta : "ofrece"
+    Peligro |o--o{ PreguntaExploratoria : "detecta"
+    Peligro |o--o{ PlantillaTarea : "sugiere"
+    Rubro |o--o{ PlantillaDocumento : "aplica a"
+    Encuesta ||--|{ EncuestaCategoria : "explora"
+    CategoriaRiesgo ||--o{ EncuestaCategoria : "elegida en"
+    Encuesta ||--|{ EncuestaPregunta : "copia"
+    PreguntaExploratoria ||--o{ EncuestaPregunta : "copiada en"
+    EncuestaPregunta ||--o{ EncuestaOpcion : "ofrece"
+    Encuesta ||--o{ ParticipacionEncuesta : "registra quién participó"
+    VinculoEmpresa ||--o{ ParticipacionEncuesta : "participa"
+    Encuesta ||--o{ RespuestaEncuesta : "recibe (anónima)"
+    RespuestaEncuesta ||--|{ DetalleRespuesta : "contiene"
+    EncuestaPregunta ||--o{ DetalleRespuesta : "respondida en"
+    EncuestaOpcion |o--o{ DetalleRespuesta : "elegida en"
+    DetalleRespuesta ||--o{ DetalleRespuestaOpcion : "elige varias"
+    EncuestaOpcion ||--o{ DetalleRespuestaOpcion : "elegida en"
+    Encuesta |o--o{ RiesgoEmpresa : "sugiere"
+    Accidente |o--o{ RiesgoEmpresa : "revela"
+    Peligro |o--o{ RiesgoEmpresa : "origina"
+    RiesgoEmpresa ||--o{ EvaluacionRiesgo : "se evalúa en"
+    RiesgoEmpresa ||--o{ Control : "se controla con"
+    RiesgoEmpresa |o--o{ Tarea : "genera"
+    Control |o--o{ Tarea : "se implementa con"
+    PlantillaTarea |o--o{ Tarea : "modela"
+    Accidente ||--o| InvestigacionAccidente : "se investiga en"
+    Accidente |o--o{ Tarea : "genera medidas"
+    VinculoEmpresa ||--o{ Accidente : "reporta"
+    Tarea |o--o{ Archivo : "tiene evidencia"
+    Accidente |o--o{ Archivo : "tiene fotos"
+    PlantillaDocumento |o--o{ Documento : "modela"
+    Documento ||--|{ VersionDocumento : "tiene"
+    VersionDocumento |o--o{ Notificacion : "avisa política"
+    Tarea |o--o{ Notificacion : "avisa asignación"
+    VinculoEmpresa ||--o{ Notificacion : "recibe"
 ```
 
 ---
 
 # PARTE 2: Diagramas Relacionales (Físicos para PostgreSQL)
 
-Estos diagramas representan las **tablas exactas con tipos de datos de PostgreSQL**, columnas obligatorias (`NOT NULL`), claves primarias (`PK`), claves foráneas simples y compuestas (`FK`), restricciones de unicidad (`UK`) y notación *Crow's Foot*.
+Estos diagramas se generan a partir del diccionario de datos de [modelo de datos](12-modelo-datos.md) §4 y muestran las **tablas con tipos de PostgreSQL**, columnas obligatorias (`NOT NULL`), claves primarias (`PK`), claves foráneas simples y compuestas (`FK`), unicidad (`UK`) y notación *Crow's Foot*. Las restricciones compuestas y los CHECK detallados están en el diccionario.
 
-## 2.1 Dominio 1: Identidad, Multi-tenant, Acceso y RBAC (16 Tablas)
+## 2.1 Dominio 1: Identidad, Multi-tenant, Acceso y RBAC (15 Tablas)
 
 ```mermaid
 erDiagram
     Persona ||--o| Usuario : "PersonaId"
-    Acceso ||--o{ VinculoEmpresa : "AccesoId"
-    Acceso ||--o| StaffPlataforma : "AccesoId"
     Acceso ||--o{ RefreshToken : "AccesoId"
-    VinculoEmpresa ||--o{ RefreshToken : "VinculoEmpresaId"
-    Persona ||--o{ VinculoEmpresa : "PersonaId"
-    Empresa ||--o{ VinculoEmpresa : "EmpresaId"
-    Empresa ||--o{ HistorialEstadoEmpresa : "EmpresaId"
-    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "VinculoEmpresaId"
-    StaffPlataforma ||--o{ HistorialEstadoEmpresa : "RegistradoPorId"
+    VinculoEmpresa |o--o{ RefreshToken : "VinculoEmpresaId"
+    Acceso ||--o| StaffPlataforma : "AccesoId"
     RolStaffPlataforma ||--o{ StaffPlataforma : "RolStaffPlataformaId"
-    RolStaffPlataforma ||--o{ RolStaffPlataformaPermiso : "RolStaffPlataformaId"
-    Permiso ||--o{ RolStaffPlataformaPermiso : "PermisoId"
-    Rol ||--o{ VinculoEmpresa : "RolId"
     Rol ||--o{ RolPermiso : "RolId"
     Permiso ||--o{ RolPermiso : "PermisoId"
-    Empresa ||--o| ConexionGoogle : "EmpresaId"
-    VinculoEmpresa ||--o{ RegistroAuditoria : "VinculoEmpresaId"
-    StaffPlataforma ||--o{ RegistroAuditoria : "StaffPlataformaId"
-    Rubro ||--o{ Empresa : "RubroId"
-
-    Acceso {
-        uuid Id PK
-        varchar_254 Email "UK lower, NOT NULL"
-        varchar_255 PasswordHash "NOT NULL"
-        boolean DebeCambiarPassword "NOT NULL, DEFAULT false"
-        boolean Verificado "NOT NULL, DEFAULT false"
-        timestamptz CreadoEn "NOT NULL"
-    }
-
-    RefreshToken {
-        uuid Id PK
-        uuid AccesoId FK "NOT NULL"
-        uuid VinculoEmpresaId FK "Opcional en plataforma"
-        varchar_64 TokenHash "UK, NOT NULL"
-        varchar_12 TipoSesion "NOT NULL, CHECK: empresa, plataforma"
-        timestamptz ExpiraEn "NOT NULL"
-        timestamptz CreadoEn "NOT NULL"
-    }
+    RolStaffPlataforma ||--o{ RolStaffPlataformaPermiso : "RolStaffPlataformaId"
+    Permiso ||--o{ RolStaffPlataformaPermiso : "PermisoId"
+    Rubro |o--o{ Empresa : "RubroId"
+    Empresa ||--o{ VinculoEmpresa : "EmpresaId"
+    Persona ||--o{ VinculoEmpresa : "PersonaId"
+    Acceso ||--o{ VinculoEmpresa : "AccesoId"
+    Rol ||--o{ VinculoEmpresa : "RolId"
+    Empresa ||--o{ HistorialEstadoVinculo : "EmpresaId"
+    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "EmpresaId + VinculoEmpresaId"
+    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "EmpresaId + RegistradoPorId"
+    Empresa ||--o{ HistorialEstadoEmpresa : "EmpresaId"
+    StaffPlataforma |o--o{ HistorialEstadoEmpresa : "RegistradoPorId"
+    Empresa ||--o{ RegistroAuditoria : "EmpresaId"
+    VinculoEmpresa |o--o{ RegistroAuditoria : "EmpresaId + VinculoEmpresaId"
+    StaffPlataforma |o--o{ RegistroAuditoria : "StaffPlataformaId"
 
     Persona {
         uuid Id PK
@@ -387,1251 +231,1023 @@ erDiagram
         varchar_80 SegundoNombre
         varchar_80 PrimerApellido "NOT NULL"
         varchar_80 SegundoApellido
-        varchar_15 TipoDocumento "CHECK: dni, pasaporte, otro"
-        varchar_50 NumeroDocumento "UK con TipoDocumento"
+        varchar_15 TipoDocumento "valores: dni, pasaporte, otro"
+        varchar_50 NumeroDocumento
         varchar_30 Telefono
         timestamptz CreadoEn "NOT NULL"
     }
 
     Usuario {
         uuid Id PK
-        uuid PersonaId FK "UK, NOT NULL"
-        boolean Activo "NOT NULL, DEFAULT true"
+        uuid PersonaId FK, UK "NOT NULL; → Persona"
+        boolean Activo "NOT NULL"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    Acceso {
+        uuid Id PK
+        varchar_254 Email UK "NOT NULL"
+        varchar_255 PasswordHash "NOT NULL"
+        boolean DebeCambiarPassword "NOT NULL"
+        boolean Verificado "NOT NULL"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    RefreshToken {
+        uuid Id PK
+        uuid AccesoId FK "NOT NULL; → Acceso"
+        uuid VinculoEmpresaId FK "→ VinculoEmpresa"
+        varchar_64 TokenHash UK "NOT NULL"
+        varchar_12 TipoSesion "NOT NULL; valores: empresa, plataforma"
+        timestamptz ExpiraEn "NOT NULL"
         timestamptz CreadoEn "NOT NULL"
     }
 
     StaffPlataforma {
         uuid Id PK
-        uuid AccesoId FK "UK, 1 a 1, NOT NULL"
-        smallint RolStaffPlataformaId FK "NOT NULL"
-        boolean Activo "NOT NULL, DEFAULT true"
+        uuid AccesoId FK, UK "NOT NULL; → Acceso"
+        smallint RolStaffPlataformaId FK "NOT NULL; → RolStaffPlataforma"
+        boolean Activo "NOT NULL"
         timestamptz CreadoEn "NOT NULL"
     }
 
     RolStaffPlataforma {
         smallint Id PK
-        varchar_30 Codigo "UK, NOT NULL"
-        varchar_80 Nombre "NOT NULL"
+        varchar_30 Codigo UK "NOT NULL; valores: admin_plataforma, soporte_plataforma"
+        varchar_60 Nombre "NOT NULL"
     }
 
     Rol {
         smallint Id PK
-        varchar_30 Codigo "UK, NOT NULL"
-        varchar_80 Nombre "NOT NULL"
+        varchar_30 Codigo UK "NOT NULL; valores: admin_empresa, responsable_sst, colaborador, encuestado"
+        varchar_60 Nombre "NOT NULL"
     }
 
     Permiso {
+        Significado Valor de `Alcance`
+        Operación dentro de un tenant _`EmpresaId` del token `empresa`
+        Operación global _catálogos_ listado de tenants_ suspensión SaaS_ sin datos SST de clientes `plataforma`
         smallint Id PK
-        varchar_60 Codigo "UK, NOT NULL"
+        varchar_60 Codigo UK "NOT NULL"
         varchar_120 Nombre "NOT NULL"
-        varchar_10 Alcance "NOT NULL, CHECK: empresa, plataforma"
-        varchar_10 MetodoHttp "NOT NULL, GET, POST, etc."
+        varchar_10 Alcance "NOT NULL; valores: empresa, plataforma"
+        varchar_10 MetodoHttp "NOT NULL"
         varchar_200 RutaPatron "NOT NULL"
-        boolean Activo "NOT NULL, DEFAULT true"
+        boolean Activo "NOT NULL"
     }
 
     RolPermiso {
-        smallint RolId PK, FK
-        smallint PermisoId PK, FK
+        smallint RolId PK, FK "→ Rol"
+        smallint PermisoId PK, FK "→ Permiso"
     }
 
     RolStaffPlataformaPermiso {
-        smallint RolStaffPlataformaId PK, FK
-        smallint PermisoId PK, FK
+        smallint RolStaffPlataformaId PK, FK "→ RolStaffPlataforma"
+        smallint PermisoId PK, FK "→ Permiso"
     }
 
     Empresa {
         uuid Id PK
         varchar_200 RazonSocial "NOT NULL"
-        varchar_14 RTN "UK, NOT NULL"
-        text Direccion
-        varchar_150 ActividadEconomica "NOT NULL"
-        smallint RubroId FK "NOT NULL"
-        integer TrabajadoresPermanentes "NOT NULL, CHECK >= 1"
+        char_14 RTN UK "NOT NULL"
+        varchar_300 Direccion
+        varchar_150 ActividadEconomica
+        smallint RubroId FK "→ Rubro"
+        integer TrabajadoresPermanentes
         date FechaInicioOperaciones
-        varchar_20 Estado "NOT NULL, CHECK: activa, suspendida"
+        varchar_12 Estado "NOT NULL; valores: activa, suspendida, inactiva"
         timestamptz CreadaEn "NOT NULL"
     }
 
     VinculoEmpresa {
         uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid PersonaId FK "NOT NULL"
-        uuid AccesoId FK "NOT NULL"
-        smallint RolId FK "NOT NULL"
-        varchar_20 Estado "NOT NULL, CHECK: activo, suspendido, baja"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid PersonaId FK "NOT NULL; → Persona"
+        uuid AccesoId FK "NOT NULL; → Acceso"
+        smallint RolId FK "NOT NULL; → Rol"
+        varchar_12 Estado "NOT NULL; valores: activo, suspendido, baja"
         timestamptz CreadoEn "NOT NULL"
     }
 
     HistorialEstadoVinculo {
         uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid VinculoEmpresaId FK "NOT NULL"
-        varchar_20 EstadoAnterior "NOT NULL"
-        varchar_20 EstadoNuevo "NOT NULL"
-        varchar_30 MotivoCodigo "NOT NULL"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid VinculoEmpresaId FK "NOT NULL; FK comp → VinculoEmpresa"
+        varchar_12 EstadoAnterior
+        varchar_12 EstadoNuevo "NOT NULL"
+        varchar_30 MotivoCodigo "NOT NULL; valores: decision_admin, baja_laboral, falta_pago_empresa, otro"
         text MotivoDetalle
-        uuid RegistradoPorId FK "NOT NULL"
+        uuid RegistradoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
         timestamptz RegistradoEn "NOT NULL"
     }
 
     HistorialEstadoEmpresa {
         uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        varchar_20 EstadoAnterior "NOT NULL"
-        varchar_20 EstadoNuevo "NOT NULL"
-        varchar_30 MotivoCodigo "NOT NULL"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_12 EstadoAnterior
+        varchar_12 EstadoNuevo "NOT NULL"
+        varchar_30 MotivoCodigo "NOT NULL; valores: falta_pago_plataforma, reactivacion, otro"
         text MotivoDetalle
-        uuid RegistradoPorId FK "NOT NULL"
+        uuid RegistradoPorId FK "→ StaffPlataforma"
         timestamptz RegistradoEn "NOT NULL"
-    }
-
-    ConexionGoogle {
-        uuid Id PK
-        uuid EmpresaId FK "UK, NOT NULL"
-        varchar_254 CuentaGoogle "NOT NULL"
-        bytea RefreshTokenCifrado "NOT NULL"
-        text Alcances "NOT NULL"
-        uuid ConectadaPorId FK "NOT NULL"
-        timestamptz ConectadaEn "NOT NULL"
-        boolean Activa "NOT NULL, DEFAULT true"
     }
 
     RegistroAuditoria {
         uuid Id PK
-        uuid EmpresaId FK
-        uuid VinculoEmpresaId FK
-        uuid StaffPlataformaId FK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid VinculoEmpresaId FK "FK comp → VinculoEmpresa"
+        uuid StaffPlataformaId FK "→ StaffPlataforma"
         varchar_50 Accion "NOT NULL"
-        varchar_50 Entidad "NOT NULL"
-        uuid EntidadId
+        varchar_60 Entidad "NOT NULL"
+        uuid EntidadId "NOT NULL"
         timestamptz Fecha "NOT NULL"
-        jsonb Detalle "NOT NULL"
+        jsonb Detalle
     }
 ```
 
 ---
 
-## 2.2 Dominio 2: Catálogos Globales de Seguridad y Salud (7 Tablas)
+## 2.2 Dominio 2: Catálogos Globales de Seguridad y Salud (SST) (7 Tablas)
 
 ```mermaid
 erDiagram
     Rubro ||--o{ CategoriaRiesgo : "RubroId"
-    Rubro |o--o{ PlantillaDocumento : "RubroId"
     CategoriaRiesgo ||--o{ PreguntaExploratoria : "CategoriaRiesgoId"
-    PreguntaExploratoria ||--o{ OpcionPregunta : "PreguntaExploratoriaId"
     Peligro |o--o{ PreguntaExploratoria : "PeligroId"
+    PreguntaExploratoria ||--o{ OpcionPregunta : "PreguntaExploratoriaId"
     Peligro |o--o{ PlantillaTarea : "PeligroId"
+    Rubro |o--o{ PlantillaDocumento : "RubroId"
 
     Rubro {
         smallint Id PK
-        varchar_30 Codigo "UK, NOT NULL"
-        varchar_80 Nombre "NOT NULL"
-        boolean Activo "NOT NULL, DEFAULT true"
+        varchar_30 Codigo UK "NOT NULL; valores: oficina, comercio, maquila_fabrica, construccion"
+        varchar_80 Nombre UK "NOT NULL"
+        boolean Activo "NOT NULL"
     }
 
     CategoriaRiesgo {
         uuid Id PK
-        smallint RubroId FK "NOT NULL"
-        varchar_100 Nombre "NOT NULL"
-        text Descripcion
-        boolean Activa "NOT NULL, DEFAULT true"
-    }
-
-    Peligro {
-        uuid Id PK
-        varchar_30 Codigo "UK, NOT NULL"
-        varchar_150 Nombre "NOT NULL"
-        text Descripcion
-        varchar_30 Clasificacion "NOT NULL, fisico, quimico, etc."
-        boolean Activo "NOT NULL, DEFAULT true"
-    }
-
-    PreguntaExploratoria {
-        uuid Id PK
-        uuid CategoriaRiesgoId FK "NOT NULL"
-        text Texto "NOT NULL"
-        varchar_20 TipoRespuesta "NOT NULL, si_no, seleccion, etc."
-        smallint Orden "NOT NULL"
-        uuid PeligroId FK
-        boolean Activa "NOT NULL, DEFAULT true"
-    }
-
-    OpcionPregunta {
-        uuid Id PK
-        uuid PreguntaExploratoriaId FK "NOT NULL"
-        varchar_200 Texto "NOT NULL"
-        smallint Orden "NOT NULL"
-        boolean IndicaExposicion "NOT NULL, DEFAULT false"
-    }
-
-    PlantillaTarea {
-        uuid Id PK
-        uuid PeligroId FK "NOT NULL"
-        varchar_15 TipoControl "NOT NULL, eliminacion, ingenieria, etc."
-        varchar_200 Titulo "NOT NULL"
-        text Descripcion
-        smallint PrioridadSugerida "NOT NULL, CHECK 1 a 3"
-        boolean RequiereEvidencia "NOT NULL, DEFAULT false"
-        boolean Activa "NOT NULL, DEFAULT true"
-    }
-
-    PlantillaDocumento {
-        uuid Id PK
-        varchar_30 Codigo "UK, NOT NULL"
-        varchar_200 Titulo "NOT NULL"
-        varchar_15 TipoDocumento "NOT NULL, politica, procedimiento"
-        smallint RubroId FK
-        text Contenido "NOT NULL"
-        boolean Activa "NOT NULL, DEFAULT true"
-    }
-```
-
----
-
-## 2.3 Dominio 3: Diagnóstico, Encuestas y Matriz de Riesgos IPERC (10 Tablas)
-
-```mermaid
-erDiagram
-    Empresa ||--o{ Area : "EmpresaId"
-    Empresa ||--o{ Encuesta : "EmpresaId"
-    Empresa ||--o{ RiesgoEmpresa : "EmpresaId"
-    Area ||--o{ RiesgoEmpresa : "EmpresaId + AreaId"
-    Area |o--o{ EncuestaOpcion : "EmpresaId + AreaId"
-    Peligro ||--o{ RiesgoEmpresa : "PeligroId"
-    Encuesta ||--|{ EncuestaCategoria : "EncuestaId"
-    CategoriaRiesgo ||--o{ EncuestaCategoria : "CategoriaRiesgoId"
-    Encuesta ||--|{ EncuestaPregunta : "EncuestaId"
-    EncuestaPregunta ||--o{ EncuestaOpcion : "EncuestaPreguntaId"
-    Encuesta ||--o{ RespuestaEncuesta : "EncuestaId"
-    RespuestaEncuesta ||--|{ DetalleRespuesta : "RespuestaEncuestaId"
-    EncuestaPregunta ||--o{ DetalleRespuesta : "EncuestaPreguntaId"
-    EncuestaOpcion |o--o{ DetalleRespuesta : "EncuestaOpcionId"
-    Encuesta |o--o{ RiesgoEmpresa : "EncuestaId"
-    RiesgoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + RiesgoEmpresaId"
-    RiesgoEmpresa ||--o{ Control : "EmpresaId + RiesgoEmpresaId"
-    VinculoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + EvaluadoPorId"
-
-    Area {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_100 Nombre "NOT NULL, UK con EmpresaId"
-        text Descripcion
-        uuid EncargadoId FK
-        boolean Activa "NOT NULL, DEFAULT true"
-    }
-
-    Encuesta {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_200 Titulo "NOT NULL"
-        varchar_100 GoogleFormId
-        varchar_500 UrlRespuesta
-        varchar_15 Estado "NOT NULL, CHECK: borrador, activa, cerrada"
-        uuid CreadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-        timestamptz UltimaImportacionEn
-    }
-
-    EncuestaCategoria {
-        uuid EncuestaId PK, FK
-        uuid CategoriaRiesgoId PK, FK
-        uuid EmpresaId FK "NOT NULL"
-    }
-
-    EncuestaPregunta {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid EncuestaId FK "NOT NULL"
-        uuid PreguntaExploratoriaId FK
-        boolean EsPreguntaArea "NOT NULL, DEFAULT false"
-        text Texto "NOT NULL"
-        varchar_20 TipoRespuesta "NOT NULL"
-        uuid PeligroId FK
-        smallint Orden "NOT NULL"
-        varchar_100 GoogleQuestionId
-    }
-
-    EncuestaOpcion {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid EncuestaPreguntaId FK "NOT NULL"
-        varchar_200 Texto "NOT NULL"
-        smallint Orden "NOT NULL"
-        boolean IndicaExposicion "NOT NULL"
-        uuid AreaId FK
-    }
-
-    RespuestaEncuesta {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid EncuestaId FK "NOT NULL"
-        varchar_100 GoogleResponseId "UK con EncuestaId, NOT NULL"
-        timestamptz RespondidaEn "NOT NULL"
-        timestamptz ImportadaEn "NOT NULL"
-    }
-
-    DetalleRespuesta {
-        uuid RespuestaEncuestaId PK, FK
-        uuid EncuestaPreguntaId PK, FK
-        uuid EmpresaId FK "NOT NULL"
-        uuid EncuestaOpcionId FK
-        text TextoLibre
-    }
-
-    RiesgoEmpresa {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid PeligroId FK "NOT NULL"
-        text DescripcionPeligro "NOT NULL"
-        uuid AreaId FK "NOT NULL"
-        text Actividad "NOT NULL"
-        varchar_15 Estado "NOT NULL, CHECK: sugerido, confirmado, descartado"
-        uuid EncuestaId FK
-        timestamptz CreadoEn "NOT NULL"
-        uuid RevisadoPorId FK
-        timestamptz RevisadoEn
-    }
-
-    EvaluacionRiesgo {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid RiesgoEmpresaId FK "NOT NULL"
-        varchar_10 Tipo "NOT NULL, CHECK: inicial, residual"
-        smallint Probabilidad "NOT NULL, CHECK 1 a 5"
-        smallint Severidad "NOT NULL, CHECK 1 a 5"
-        uuid EvaluadoPorId FK "NOT NULL"
-        timestamptz EvaluadoEn "NOT NULL"
-    }
-
-    Control {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid RiesgoEmpresaId FK "UK comp, NOT NULL"
-        varchar_15 Tipo "NOT NULL, CHECK: eliminacion, ingenieria, etc."
-        text Descripcion "NOT NULL"
-        varchar_15 Estado "NOT NULL, CHECK: propuesto, implementado"
-        timestamptz CreadoEn "NOT NULL"
-    }
-```
-
----
-
-## 2.4 Dominio 4: Plan de Trabajo, Comisión Mixta, Incidentes y Recursos (20 Tablas)
-
-```mermaid
-erDiagram
-    Empresa ||--o{ Tarea : "EmpresaId"
-    Empresa ||--o{ Accidente : "EmpresaId"
-    Empresa ||--o{ Comision : "EmpresaId"
-    Empresa ||--o{ Equipo : "EmpresaId"
-    Empresa ||--o{ ArticuloEPP : "EmpresaId"
-    Empresa ||--o{ Documento : "EmpresaId"
-    Empresa ||--o{ Informe : "EmpresaId"
-    Empresa ||--o{ EventoCalendario : "EmpresaId"
-    RiesgoEmpresa |o--o{ Tarea : "RiesgoEmpresaId"
-    Control |o--o{ Tarea : "ControlId"
-    PlantillaTarea |o--o{ Tarea : "PlantillaTareaId"
-    VinculoEmpresa ||--o{ Tarea : "ResponsableId"
-    Tarea |o--o{ Archivo : "TareaId"
-    Area ||--o{ Accidente : "AreaId"
-    Accidente ||--o{ PersonaAfectada : "AccidenteId"
-    Persona |o--o{ PersonaAfectada : "PersonaId"
-    Accidente ||--o| InvestigacionAccidente : "AccidenteId"
-    Accidente |o--o{ Tarea : "AccidenteId"
-    Accidente |o--o{ Archivo : "AccidenteId"
-    Accidente |o--o{ Reunion : "AccidenteId"
-    Comision ||--|{ IntegranteComision : "ComisionId"
-    VinculoEmpresa ||--o{ IntegranteComision : "VinculoEmpresaId"
-    IntegranteComision |o--o| IntegranteComision : "SuplenteDeId"
-    Comision ||--o{ Reunion : "ComisionId"
-    Reunion ||--o{ Asistencia : "ReunionId"
-    IntegranteComision ||--o{ Asistencia : "IntegranteComisionId"
-    Reunion ||--o{ Acta : "ReunionId"
-    Acta |o--o{ Acta : "CorrigeActaId"
-    Acta ||--o{ FirmaActa : "ActaId"
-    IntegranteComision ||--o{ FirmaActa : "IntegranteComisionId"
-    Acta |o--o{ Tarea : "ActaId"
-    Comision |o--o{ Archivo : "ComisionId"
-    Area ||--o{ Equipo : "AreaId"
-    Equipo ||--o{ Mantenimiento : "EquipoId"
-    Mantenimiento |o--o{ Archivo : "MantenimientoId"
-    Equipo |o--o{ Tarea : "EquipoId"
-    ArticuloEPP ||--o{ IngresoEPP : "ArticuloEPPId"
-    ArticuloEPP ||--o{ EntregaEPP : "ArticuloEPPId"
-    Area |o--o{ EntregaEPP : "AreaId"
-    PlantillaDocumento |o--o{ Documento : "PlantillaDocumentoId"
-    Documento ||--|{ VersionDocumento : "DocumentoId"
-    Acta |o--o{ Informe : "ActaId"
-    Archivo ||--o| Informe : "ArchivoId"
-    Tarea |o--o| EventoCalendario : "TareaId"
-    Reunion |o--o| EventoCalendario : "ReunionId"
-    Equipo |o--o| EventoCalendario : "EquipoId"
-    Comision |o--o| EventoCalendario : "ComisionId"
-
-    Tarea {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        varchar_200 Titulo "NOT NULL"
-        text Descripcion
-        varchar_12 Estado "NOT NULL, CHECK: pendiente, en_progreso, etc."
-        smallint Prioridad "NOT NULL, CHECK 1 a 3"
-        uuid ResponsableId FK
-        date FechaLimite
-        boolean RequiereEvidencia "NOT NULL, DEFAULT false"
-        uuid PlantillaTareaId FK
-        uuid RiesgoEmpresaId FK
-        uuid ControlId FK
-        uuid EquipoId FK
-        uuid AccidenteId FK
-        uuid ActaId FK
-        uuid CreadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-        timestamptz CompletadaEn
-    }
-
-    Archivo {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_255 NombreOriginal "NOT NULL"
-        varchar_100 TipoContenido "NOT NULL"
-        bigint TamanoBytes "NOT NULL, CHECK > 0"
-        varchar_500 ClaveAlmacenamiento "UK, NOT NULL"
-        uuid SubidoPorId FK "NOT NULL"
-        timestamptz SubidoEn "NOT NULL"
-        uuid TareaId FK
-        uuid AccidenteId FK
-        uuid MantenimientoId FK
-        uuid ComisionId FK
-    }
-
-    Accidente {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_25 Tipo "NOT NULL, CHECK: accidente, incidente, enfermedad"
-        varchar_15 EstadoEnfermedad "CHECK: sospechosa, diagnosticada"
-        boolean EsGrave "NOT NULL, DEFAULT false"
-        timestamptz FechaHoraEvento "NOT NULL"
-        uuid AreaId FK "NOT NULL"
-        text Descripcion "NOT NULL"
-        uuid ReportadoPorId FK "NOT NULL"
-        timestamptz RegistradoEn "NOT NULL"
-        varchar_16 Estado "NOT NULL, CHECK: abierto, en_investigacion, cerrado"
-        timestamptz CerradoEn
-    }
-
-    PersonaAfectada {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid AccidenteId FK "NOT NULL"
-        uuid PersonaId FK
-        varchar_150 NombreParaRegistro "NOT NULL"
-        varchar_100 Puesto "NOT NULL"
-        varchar_100 TipoLesion "NOT NULL"
-        integer DiasIncapacidad "NOT NULL, DEFAULT 0"
-    }
-
-    InvestigacionAccidente {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid AccidenteId FK "UK, NOT NULL"
-        text CausasInmediatas "NOT NULL"
-        text CausasBasicas "NOT NULL"
-        text Conclusiones "NOT NULL"
-        uuid InvestigadaPorId FK "NOT NULL"
-        date FechaInvestigacion "NOT NULL"
-    }
-
-    Comision {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        date FechaConstitucion "NOT NULL"
-        varchar_50 NumeroRegistroSTSS
-        date FechaRegistroSTSS
-        boolean Activa "NOT NULL, DEFAULT true"
-        timestamptz CreadaEn "NOT NULL"
-    }
-
-    IntegranteComision {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid ComisionId FK "NOT NULL"
-        uuid VinculoEmpresaId FK "NOT NULL"
-        varchar_15 Parte "NOT NULL, CHECK: empleador, trabajadores"
-        varchar_15 Condicion "NOT NULL, CHECK: propietario, suplente"
-        varchar_15 Cargo "NOT NULL, CHECK: presidente, secretario, vocal"
-        uuid SuplenteDeId FK
-        date FechaInicio "NOT NULL"
-        date FechaBaja
-    }
-
-    Reunion {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid ComisionId FK "NOT NULL"
-        varchar_15 Tipo "NOT NULL, CHECK: ordinaria, extraordinaria"
-        timestamptz FechaHora "NOT NULL"
-        varchar_150 Lugar "NOT NULL"
-        text Temas "NOT NULL"
-        text Motivo
-        uuid AccidenteId FK
-        varchar_15 Estado "NOT NULL, CHECK: convocada, celebrada, cancelada"
-        uuid ConvocadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-    }
-
-    Asistencia {
-        uuid ReunionId PK, FK
-        uuid IntegranteComisionId PK, FK
-        uuid EmpresaId FK "NOT NULL"
-        boolean Asistio "NOT NULL, DEFAULT false"
-    }
-
-    Acta {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid ReunionId FK "UK, NOT NULL"
-        varchar_15 Estado "NOT NULL, CHECK: borrador, aprobada, firmada"
-        text ConclusionesVisitas
-        text ResultadosInvestigaciones
-        text ActividadesEducativas
-        text OtrosTemas
-        uuid RedactadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-        timestamptz AprobadaEn
-        timestamptz FirmadaEn
-        varchar_64 HashContenido
-        uuid CorrigeActaId FK
-    }
-
-    FirmaActa {
-        uuid ActaId PK, FK
-        uuid IntegranteComisionId PK, FK
-        uuid EmpresaId FK "NOT NULL"
-        timestamptz FirmadaEn "NOT NULL"
-        varchar_64 HashFirmado "NOT NULL"
-    }
-
-    Equipo {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_50 Identificador "UK con EmpresaId, NOT NULL"
-        varchar_150 Nombre "NOT NULL"
-        varchar_80 Tipo "NOT NULL"
-        uuid AreaId FK "NOT NULL"
-        uuid ResponsableMantenimientoId FK "NOT NULL"
-        boolean EsEquipoEmergencia "NOT NULL, DEFAULT false"
-        date ProximoMantenimiento
-        boolean Activo "NOT NULL, DEFAULT true"
-    }
-
-    Mantenimiento {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid EquipoId FK "NOT NULL"
-        varchar_15 Tipo "NOT NULL, CHECK: preventivo, correctivo"
-        text Descripcion "NOT NULL"
-        uuid ResponsableId FK "NOT NULL"
-        varchar_15 Estado "NOT NULL, CHECK: en_proceso, realizado"
-        timestamptz RealizadoEn
-        timestamptz RegistradoEn "NOT NULL"
-    }
-
-    ArticuloEPP {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_120 Nombre "NOT NULL"
-        varchar_60 Tipo "NOT NULL"
-        varchar_80 Marca
-        boolean Activo "NOT NULL, DEFAULT true"
-    }
-
-    IngresoEPP {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid ArticuloEPPId FK "NOT NULL"
-        integer Cantidad "NOT NULL, CHECK > 0"
-        date Fecha "NOT NULL"
-        uuid RegistradoPorId FK "NOT NULL"
-        timestamptz RegistradoEn "NOT NULL"
-    }
-
-    EntregaEPP {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid ArticuloEPPId FK "NOT NULL"
-        varchar_150 NombreTrabajador "NOT NULL"
-        uuid AreaId FK
-        varchar_100 Puesto
-        integer Cantidad "NOT NULL, CHECK > 0"
-        date Fecha "NOT NULL"
-        uuid RegistradoPorId FK "NOT NULL"
-        timestamptz RegistradoEn "NOT NULL"
-    }
-
-    Documento {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid PlantillaDocumentoId FK
-        varchar_200 Titulo "NOT NULL"
-        varchar_15 TipoDocumento "NOT NULL, CHECK: politica, procedimiento"
-        uuid CreadoPorId FK "NOT NULL"
-        timestamptz CreadoEn "NOT NULL"
-    }
-
-    VersionDocumento {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid DocumentoId FK "NOT NULL"
-        integer NumeroVersion "NOT NULL, CHECK >= 1"
-        text Contenido "NOT NULL"
-        varchar_15 Estado "NOT NULL, CHECK: borrador, vigente, reemplazada"
-        uuid CreadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-        uuid AprobadaPorId FK
-        timestamptz AprobadaEn
-    }
-
-    Informe {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        varchar_20 Tipo "NOT NULL, CHECK: matriz_riesgos, semestral, anual, acta, etc."
-        date PeriodoInicio
-        date PeriodoFin
-        uuid ActaId FK
-        text RetosSiguientePeriodo
-        uuid ArchivoId FK "UK, NOT NULL"
-        uuid GeneradoPorId FK "NOT NULL"
-        timestamptz GeneradoEn "NOT NULL"
-    }
-
-    EventoCalendario {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        varchar_25 Tipo "NOT NULL, CHECK: tarea, reunion, mantenimiento, etc."
-        uuid TareaId FK
-        uuid ReunionId FK
-        uuid EquipoId FK
-        uuid ComisionId FK
-        date FechaInforme
-        varchar_200 GoogleEventId
-        varchar_15 EstadoSincronizacion "NOT NULL, CHECK: pendiente, sincronizado, error, etc."
-        smallint Intentos "NOT NULL, DEFAULT 0"
-        text UltimoError
-        timestamptz ActualizadoEn "NOT NULL"
-    }
-```
-
----
-
-## 2.5 Diagrama Relacional Físico Maestro Completo (53 Tablas)
-
-*(Copia el bloque siguiente si deseas importar la totalidad de las 53 tablas de Norvia con todas sus relaciones foráneas en un solo lienzo de draw.io).*
-
-```mermaid
-erDiagram
-    Persona ||--o| Usuario : "PersonaId"
-    Acceso ||--o{ VinculoEmpresa : "AccesoId"
-    Acceso ||--o| StaffPlataforma : "AccesoId"
-    Acceso ||--o{ RefreshToken : "AccesoId"
-    VinculoEmpresa ||--o{ RefreshToken : "VinculoEmpresaId"
-    Persona ||--o{ VinculoEmpresa : "PersonaId"
-    Empresa ||--o{ VinculoEmpresa : "EmpresaId"
-    Empresa ||--o{ HistorialEstadoEmpresa : "EmpresaId"
-    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "VinculoEmpresaId"
-    StaffPlataforma ||--o{ HistorialEstadoEmpresa : "RegistradoPorId"
-    RolStaffPlataforma ||--o{ StaffPlataforma : "RolStaffPlataformaId"
-    RolStaffPlataforma ||--o{ RolStaffPlataformaPermiso : "RolStaffPlataformaId"
-    Permiso ||--o{ RolStaffPlataformaPermiso : "PermisoId"
-    Rol ||--o{ VinculoEmpresa : "RolId"
-    Rol ||--o{ RolPermiso : "RolId"
-    Permiso ||--o{ RolPermiso : "PermisoId"
-    Empresa ||--o| ConexionGoogle : "EmpresaId"
-    VinculoEmpresa ||--o{ RegistroAuditoria : "VinculoEmpresaId"
-    StaffPlataforma ||--o{ RegistroAuditoria : "StaffPlataformaId"
-    Rubro ||--o{ Empresa : "RubroId"
-    Rubro ||--o{ CategoriaRiesgo : "RubroId"
-    Rubro |o--o{ PlantillaDocumento : "RubroId"
-    CategoriaRiesgo ||--o{ PreguntaExploratoria : "CategoriaRiesgoId"
-    PreguntaExploratoria ||--o{ OpcionPregunta : "PreguntaExploratoriaId"
-    Peligro |o--o{ PreguntaExploratoria : "PeligroId"
-    Peligro |o--o{ PlantillaTarea : "PeligroId"
-    Empresa ||--o{ Area : "EmpresaId"
-    Empresa ||--o{ Encuesta : "EmpresaId"
-    Empresa ||--o{ RiesgoEmpresa : "EmpresaId"
-    Area ||--o{ RiesgoEmpresa : "EmpresaId + AreaId"
-    Area |o--o{ EncuestaOpcion : "EmpresaId + AreaId"
-    Peligro ||--o{ RiesgoEmpresa : "PeligroId"
-    Encuesta ||--|{ EncuestaCategoria : "EncuestaId"
-    CategoriaRiesgo ||--o{ EncuestaCategoria : "CategoriaRiesgoId"
-    Encuesta ||--|{ EncuestaPregunta : "EncuestaId"
-    EncuestaPregunta ||--o{ EncuestaOpcion : "EncuestaPreguntaId"
-    Encuesta ||--o{ RespuestaEncuesta : "EncuestaId"
-    RespuestaEncuesta ||--|{ DetalleRespuesta : "RespuestaEncuestaId"
-    EncuestaPregunta ||--o{ DetalleRespuesta : "EncuestaPreguntaId"
-    EncuestaOpcion |o--o{ DetalleRespuesta : "EncuestaOpcionId"
-    Encuesta |o--o{ RiesgoEmpresa : "EncuestaId"
-    RiesgoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + RiesgoEmpresaId"
-    RiesgoEmpresa ||--o{ Control : "EmpresaId + RiesgoEmpresaId"
-    VinculoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + EvaluadoPorId"
-    Empresa ||--o{ Tarea : "EmpresaId"
-    Empresa ||--o{ Accidente : "EmpresaId"
-    Empresa ||--o{ Comision : "EmpresaId"
-    Empresa ||--o{ Equipo : "EmpresaId"
-    Empresa ||--o{ ArticuloEPP : "EmpresaId"
-    Empresa ||--o{ Documento : "EmpresaId"
-    Empresa ||--o{ Informe : "EmpresaId"
-    Empresa ||--o{ EventoCalendario : "EmpresaId"
-    RiesgoEmpresa |o--o{ Tarea : "RiesgoEmpresaId"
-    Control |o--o{ Tarea : "ControlId"
-    PlantillaTarea |o--o{ Tarea : "PlantillaTareaId"
-    VinculoEmpresa ||--o{ Tarea : "ResponsableId"
-    Tarea |o--o{ Archivo : "TareaId"
-    Area ||--o{ Accidente : "AreaId"
-    Accidente ||--o{ PersonaAfectada : "AccidenteId"
-    Persona |o--o{ PersonaAfectada : "PersonaId"
-    Accidente ||--o| InvestigacionAccidente : "AccidenteId"
-    Accidente |o--o{ Tarea : "AccidenteId"
-    Accidente |o--o{ Archivo : "AccidenteId"
-    Accidente |o--o{ Reunion : "AccidenteId"
-    Comision ||--|{ IntegranteComision : "ComisionId"
-    VinculoEmpresa ||--o{ IntegranteComision : "VinculoEmpresaId"
-    IntegranteComision |o--o| IntegranteComision : "SuplenteDeId"
-    Comision ||--o{ Reunion : "ComisionId"
-    Reunion ||--o{ Asistencia : "ReunionId"
-    IntegranteComision ||--o{ Asistencia : "IntegranteComisionId"
-    Reunion ||--o{ Acta : "ReunionId"
-    Acta |o--o{ Acta : "CorrigeActaId"
-    Acta ||--o{ FirmaActa : "ActaId"
-    IntegranteComision ||--o{ FirmaActa : "IntegranteComisionId"
-    Acta |o--o{ Tarea : "ActaId"
-    Comision |o--o{ Archivo : "ComisionId"
-    Area ||--o{ Equipo : "AreaId"
-    Equipo ||--o{ Mantenimiento : "EquipoId"
-    Mantenimiento |o--o{ Archivo : "MantenimientoId"
-    Equipo |o--o{ Tarea : "EquipoId"
-    ArticuloEPP ||--o{ IngresoEPP : "ArticuloEPPId"
-    ArticuloEPP ||--o{ EntregaEPP : "ArticuloEPPId"
-    Area |o--o{ EntregaEPP : "AreaId"
-    PlantillaDocumento |o--o{ Documento : "PlantillaDocumentoId"
-    Documento ||--|{ VersionDocumento : "DocumentoId"
-    Acta |o--o{ Informe : "ActaId"
-    Archivo ||--o| Informe : "ArchivoId"
-    Tarea |o--o| EventoCalendario : "TareaId"
-    Reunion |o--o| EventoCalendario : "ReunionId"
-    Equipo |o--o| EventoCalendario : "EquipoId"
-    Comision |o--o| EventoCalendario : "ComisionId"
-
-    Acceso {
-        uuid Id PK
-        varchar_254 Email "UK lower, NOT NULL"
-        varchar_255 PasswordHash "NOT NULL"
-        boolean DebeCambiarPassword "NOT NULL, DEFAULT false"
-        boolean Verificado "NOT NULL, DEFAULT false"
-        timestamptz CreadoEn "NOT NULL"
-    }
-    RefreshToken {
-        uuid Id PK
-        uuid AccesoId FK "NOT NULL"
-        uuid VinculoEmpresaId FK "Opcional en plataforma"
-        varchar_64 TokenHash "UK, NOT NULL"
-        varchar_12 TipoSesion "NOT NULL, CHECK: empresa, plataforma"
-        timestamptz ExpiraEn "NOT NULL"
-        timestamptz CreadoEn "NOT NULL"
-    }
-    Persona {
-        uuid Id PK
-        varchar_80 PrimerNombre "NOT NULL"
-        varchar_80 SegundoNombre
-        varchar_80 PrimerApellido "NOT NULL"
-        varchar_80 SegundoApellido
-        varchar_15 TipoDocumento
-        varchar_50 NumeroDocumento
-        varchar_30 Telefono
-        timestamptz CreadoEn "NOT NULL"
-    }
-    Usuario {
-        uuid Id PK
-        uuid PersonaId FK "UK, NOT NULL"
-        boolean Activo "NOT NULL"
-        timestamptz CreadoEn "NOT NULL"
-    }
-    StaffPlataforma {
-        uuid Id PK
-        uuid AccesoId FK "UK, 1 a 1, NOT NULL"
-        smallint RolStaffPlataformaId FK "NOT NULL"
-        boolean Activo "NOT NULL"
-        timestamptz CreadoEn "NOT NULL"
-    }
-    RolStaffPlataforma {
-        smallint Id PK
-        varchar_30 Codigo "UK, NOT NULL"
-        varchar_80 Nombre "NOT NULL"
-    }
-    Rol {
-        smallint Id PK
-        varchar_30 Codigo "UK, NOT NULL"
-        varchar_80 Nombre "NOT NULL"
-    }
-    Permiso {
-        smallint Id PK
-        varchar_60 Codigo "UK, NOT NULL"
-        varchar_120 Nombre "NOT NULL"
-        varchar_10 Alcance "NOT NULL"
-        varchar_10 MetodoHttp "NOT NULL"
-        varchar_200 RutaPatron "NOT NULL"
-        boolean Activo "NOT NULL"
-    }
-    RolPermiso {
-        smallint RolId PK, FK
-        smallint PermisoId PK, FK
-    }
-    RolStaffPlataformaPermiso {
-        smallint RolStaffPlataformaId PK, FK
-        smallint PermisoId PK, FK
-    }
-    Rubro {
-        smallint Id PK
-        varchar_30 Codigo "UK, NOT NULL"
-        varchar_80 Nombre "NOT NULL"
-        boolean Activo "NOT NULL"
-    }
-    CategoriaRiesgo {
-        uuid Id PK
-        smallint RubroId FK "NOT NULL"
+        smallint RubroId FK "NOT NULL; → Rubro"
         varchar_100 Nombre "NOT NULL"
         text Descripcion
         boolean Activa "NOT NULL"
     }
+
     Peligro {
         uuid Id PK
-        varchar_30 Codigo "UK, NOT NULL"
+        varchar_20 Codigo UK "NOT NULL"
         varchar_150 Nombre "NOT NULL"
         text Descripcion
-        varchar_30 Clasificacion "NOT NULL"
+        varchar_15 Clasificacion "NOT NULL; valores: fisico, mecanico, electrico, quimico, biologico, ergonomico, psicosocial, locativo, otro"
         boolean Activo "NOT NULL"
     }
+
     PreguntaExploratoria {
         uuid Id PK
-        uuid CategoriaRiesgoId FK "NOT NULL"
-        text Texto "NOT NULL"
-        varchar_20 TipoRespuesta "NOT NULL"
+        uuid CategoriaRiesgoId FK "NOT NULL; → CategoriaRiesgo"
+        varchar_500 Texto "NOT NULL"
+        varchar_300 Ayuda
+        varchar_16 TipoRespuesta "NOT NULL; valores: si_no, opcion_unica, opcion_multiple, escala, texto_corto, texto_largo, numero"
+        boolean Obligatoria "NOT NULL"
+        smallint EscalaMin
+        smallint EscalaMax
+        varchar_50 EtiquetaMin
+        varchar_50 EtiquetaMax
+        smallint UmbralExposicion
+        smallint LongitudMax
         smallint Orden "NOT NULL"
-        uuid PeligroId FK
+        uuid PeligroId FK "→ Peligro"
         boolean Activa "NOT NULL"
     }
+
     OpcionPregunta {
         uuid Id PK
-        uuid PreguntaExploratoriaId FK "NOT NULL"
+        uuid PreguntaExploratoriaId FK "NOT NULL; → PreguntaExploratoria"
         varchar_200 Texto "NOT NULL"
         smallint Orden "NOT NULL"
         boolean IndicaExposicion "NOT NULL"
     }
+
     PlantillaTarea {
         uuid Id PK
-        uuid PeligroId FK "NOT NULL"
-        varchar_15 TipoControl "NOT NULL"
+        uuid PeligroId FK "→ Peligro"
+        varchar_15 TipoControl
         varchar_200 Titulo "NOT NULL"
         text Descripcion
         smallint PrioridadSugerida "NOT NULL"
         boolean RequiereEvidencia "NOT NULL"
         boolean Activa "NOT NULL"
     }
+
     PlantillaDocumento {
         uuid Id PK
-        varchar_30 Codigo "UK, NOT NULL"
+        varchar_30 Codigo UK "NOT NULL"
         varchar_200 Titulo "NOT NULL"
-        varchar_15 TipoDocumento "NOT NULL"
-        smallint RubroId FK
+        varchar_15 TipoDocumento "NOT NULL; valores: politica, procedimiento"
+        smallint RubroId FK "→ Rubro"
         text Contenido "NOT NULL"
         boolean Activa "NOT NULL"
-    }
-    Empresa {
-        uuid Id PK
-        varchar_200 RazonSocial "NOT NULL"
-        varchar_14 RTN "UK, NOT NULL"
-        text Direccion
-        varchar_150 ActividadEconomica "NOT NULL"
-        smallint RubroId FK "NOT NULL"
-        integer TrabajadoresPermanentes "NOT NULL"
-        date FechaInicioOperaciones
-        varchar_20 Estado "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-    }
-    VinculoEmpresa {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid PersonaId FK "NOT NULL"
-        uuid AccesoId FK "NOT NULL"
-        smallint RolId FK "NOT NULL"
-        varchar_20 Estado "NOT NULL, CHECK: activo, suspendido, baja"
-        timestamptz CreadoEn "NOT NULL"
-    }
-    HistorialEstadoVinculo {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid VinculoEmpresaId FK "NOT NULL"
-        varchar_20 EstadoAnterior "NOT NULL"
-        varchar_20 EstadoNuevo "NOT NULL"
-        varchar_30 MotivoCodigo "NOT NULL"
-        text MotivoDetalle
-        uuid RegistradoPorId FK "NOT NULL"
-        timestamptz RegistradoEn "NOT NULL"
-    }
-    HistorialEstadoEmpresa {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        varchar_20 EstadoAnterior "NOT NULL"
-        varchar_20 EstadoNuevo "NOT NULL"
-        varchar_30 MotivoCodigo "NOT NULL"
-        text MotivoDetalle
-        uuid RegistradoPorId FK "NOT NULL"
-        timestamptz RegistradoEn "NOT NULL"
-    }
-    ConexionGoogle {
-        uuid Id PK
-        uuid EmpresaId FK "UK, NOT NULL"
-        varchar_254 CuentaGoogle "NOT NULL"
-        bytea RefreshTokenCifrado "NOT NULL"
-        text Alcances "NOT NULL"
-        uuid ConectadaPorId FK "NOT NULL"
-        timestamptz ConectadaEn "NOT NULL"
-        boolean Activa "NOT NULL"
-    }
-    RegistroAuditoria {
-        uuid Id PK
-        uuid EmpresaId FK
-        uuid VinculoEmpresaId FK
-        uuid StaffPlataformaId FK
-        varchar_50 Accion "NOT NULL"
-        varchar_50 Entidad "NOT NULL"
-        uuid EntidadId
-        timestamptz Fecha "NOT NULL"
-        jsonb Detalle "NOT NULL"
-    }
-    Area {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_100 Nombre "NOT NULL"
-        text Descripcion
-        uuid EncargadoId FK
-        boolean Activa "NOT NULL"
-    }
-    Encuesta {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_200 Titulo "NOT NULL"
-        varchar_100 GoogleFormId
-        varchar_500 UrlRespuesta
-        varchar_15 Estado "NOT NULL"
-        uuid CreadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-        timestamptz UltimaImportacionEn
-    }
-    EncuestaCategoria {
-        uuid EncuestaId PK, FK
-        uuid CategoriaRiesgoId PK, FK
-        uuid EmpresaId FK "NOT NULL"
-    }
-    EncuestaPregunta {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid EncuestaId FK "NOT NULL"
-        uuid PreguntaExploratoriaId FK
-        boolean EsPreguntaArea "NOT NULL"
-        text Texto "NOT NULL"
-        varchar_20 TipoRespuesta "NOT NULL"
-        uuid PeligroId FK
-        smallint Orden "NOT NULL"
-        varchar_100 GoogleQuestionId
-    }
-    EncuestaOpcion {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid EncuestaPreguntaId FK "NOT NULL"
-        varchar_200 Texto "NOT NULL"
-        smallint Orden "NOT NULL"
-        boolean IndicaExposicion "NOT NULL"
-        uuid AreaId FK
-    }
-    RespuestaEncuesta {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid EncuestaId FK "NOT NULL"
-        varchar_100 GoogleResponseId "NOT NULL"
-        timestamptz RespondidaEn "NOT NULL"
-        timestamptz ImportadaEn "NOT NULL"
-    }
-    DetalleRespuesta {
-        uuid RespuestaEncuestaId PK, FK
-        uuid EncuestaPreguntaId PK, FK
-        uuid EmpresaId FK "NOT NULL"
-        uuid EncuestaOpcionId FK
-        text TextoLibre
-    }
-    RiesgoEmpresa {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid PeligroId FK "NOT NULL"
-        text DescripcionPeligro "NOT NULL"
-        uuid AreaId FK "NOT NULL"
-        text Actividad "NOT NULL"
-        varchar_15 Estado "NOT NULL"
-        uuid EncuestaId FK
-        timestamptz CreadoEn "NOT NULL"
-        uuid RevisadoPorId FK
-        timestamptz RevisadoEn
-    }
-    EvaluacionRiesgo {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid RiesgoEmpresaId FK "NOT NULL"
-        varchar_10 Tipo "NOT NULL"
-        smallint Probabilidad "NOT NULL"
-        smallint Severidad "NOT NULL"
-        uuid EvaluadoPorId FK "NOT NULL"
-        timestamptz EvaluadoEn "NOT NULL"
-    }
-    Control {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid RiesgoEmpresaId FK "UK comp, NOT NULL"
-        varchar_15 Tipo "NOT NULL"
-        text Descripcion "NOT NULL"
-        varchar_15 Estado "NOT NULL"
-        timestamptz CreadoEn "NOT NULL"
-    }
-    Tarea {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        varchar_200 Titulo "NOT NULL"
-        text Descripcion
-        varchar_12 Estado "NOT NULL"
-        smallint Prioridad "NOT NULL"
-        uuid ResponsableId FK
-        date FechaLimite
-        boolean RequiereEvidencia "NOT NULL"
-        uuid PlantillaTareaId FK
-        uuid RiesgoEmpresaId FK
-        uuid ControlId FK
-        uuid EquipoId FK
-        uuid AccidenteId FK
-        uuid ActaId FK
-        uuid CreadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-        timestamptz CompletadaEn
-    }
-    Archivo {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_255 NombreOriginal "NOT NULL"
-        varchar_100 TipoContenido "NOT NULL"
-        bigint TamanoBytes "NOT NULL"
-        varchar_500 ClaveAlmacenamiento "UK, NOT NULL"
-        uuid SubidoPorId FK "NOT NULL"
-        timestamptz SubidoEn "NOT NULL"
-        uuid TareaId FK
-        uuid AccidenteId FK
-        uuid MantenimientoId FK
-        uuid ComisionId FK
-    }
-    Accidente {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_25 Tipo "NOT NULL"
-        varchar_15 EstadoEnfermedad
-        boolean EsGrave "NOT NULL"
-        timestamptz FechaHoraEvento "NOT NULL"
-        uuid AreaId FK "NOT NULL"
-        text Descripcion "NOT NULL"
-        uuid ReportadoPorId FK "NOT NULL"
-        timestamptz RegistradoEn "NOT NULL"
-        varchar_16 Estado "NOT NULL"
-        timestamptz CerradoEn
-    }
-    PersonaAfectada {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid AccidenteId FK "NOT NULL"
-        uuid PersonaId FK
-        varchar_150 NombreParaRegistro "NOT NULL"
-        varchar_100 Puesto "NOT NULL"
-        varchar_100 TipoLesion "NOT NULL"
-        integer DiasIncapacidad "NOT NULL"
-    }
-    InvestigacionAccidente {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid AccidenteId FK "UK, NOT NULL"
-        text CausasInmediatas "NOT NULL"
-        text CausasBasicas "NOT NULL"
-        text Conclusiones "NOT NULL"
-        uuid InvestigadaPorId FK "NOT NULL"
-        date FechaInvestigacion "NOT NULL"
-    }
-    Comision {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        date FechaConstitucion "NOT NULL"
-        varchar_50 NumeroRegistroSTSS
-        date FechaRegistroSTSS
-        boolean Activa "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-    }
-    IntegranteComision {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid ComisionId FK "NOT NULL"
-        uuid VinculoEmpresaId FK "NOT NULL"
-        varchar_15 Parte "NOT NULL"
-        varchar_15 Condicion "NOT NULL"
-        varchar_15 Cargo "NOT NULL"
-        uuid SuplenteDeId FK
-        date FechaInicio "NOT NULL"
-        date FechaBaja
-    }
-    Reunion {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid ComisionId FK "NOT NULL"
-        varchar_15 Tipo "NOT NULL"
-        timestamptz FechaHora "NOT NULL"
-        varchar_150 Lugar "NOT NULL"
-        text Temas "NOT NULL"
-        text Motivo
-        uuid AccidenteId FK
-        varchar_15 Estado "NOT NULL"
-        uuid ConvocadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-    }
-    Asistencia {
-        uuid ReunionId PK, FK
-        uuid IntegranteComisionId PK, FK
-        uuid EmpresaId FK "NOT NULL"
-        boolean Asistio "NOT NULL"
-    }
-    Acta {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid ReunionId FK "UK, NOT NULL"
-        varchar_15 Estado "NOT NULL"
-        text ConclusionesVisitas
-        text ResultadosInvestigaciones
-        text ActividadesEducativas
-        text OtrosTemas
-        uuid RedactadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-        timestamptz AprobadaEn
-        timestamptz FirmadaEn
-        varchar_64 HashContenido
-        uuid CorrigeActaId FK
-    }
-    FirmaActa {
-        uuid ActaId PK, FK
-        uuid IntegranteComisionId PK, FK
-        uuid EmpresaId FK "NOT NULL"
-        timestamptz FirmadaEn "NOT NULL"
-        varchar_64 HashFirmado "NOT NULL"
-    }
-    Equipo {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_50 Identificador "NOT NULL"
-        varchar_150 Nombre "NOT NULL"
-        varchar_80 Tipo "NOT NULL"
-        uuid AreaId FK "NOT NULL"
-        uuid ResponsableMantenimientoId FK "NOT NULL"
-        boolean EsEquipoEmergencia "NOT NULL"
-        date ProximoMantenimiento
-        boolean Activo "NOT NULL"
-    }
-    Mantenimiento {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid EquipoId FK "NOT NULL"
-        varchar_15 Tipo "NOT NULL"
-        text Descripcion "NOT NULL"
-        uuid ResponsableId FK "NOT NULL"
-        varchar_15 Estado "NOT NULL"
-        timestamptz RealizadoEn
-        timestamptz RegistradoEn "NOT NULL"
-    }
-    ArticuloEPP {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        varchar_120 Nombre "NOT NULL"
-        varchar_60 Tipo "NOT NULL"
-        varchar_80 Marca
-        boolean Activo "NOT NULL"
-    }
-    IngresoEPP {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid ArticuloEPPId FK "NOT NULL"
-        integer Cantidad "NOT NULL"
-        date Fecha "NOT NULL"
-        uuid RegistradoPorId FK "NOT NULL"
-        timestamptz RegistradoEn "NOT NULL"
-    }
-    EntregaEPP {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid ArticuloEPPId FK "NOT NULL"
-        varchar_150 NombreTrabajador "NOT NULL"
-        uuid AreaId FK
-        varchar_100 Puesto
-        integer Cantidad "NOT NULL"
-        date Fecha "NOT NULL"
-        uuid RegistradoPorId FK "NOT NULL"
-        timestamptz RegistradoEn "NOT NULL"
-    }
-    Documento {
-        uuid Id PK
-        uuid EmpresaId FK "UK comp, NOT NULL"
-        uuid PlantillaDocumentoId FK
-        varchar_200 Titulo "NOT NULL"
-        varchar_15 TipoDocumento "NOT NULL"
-        uuid CreadoPorId FK "NOT NULL"
-        timestamptz CreadoEn "NOT NULL"
-    }
-    VersionDocumento {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        uuid DocumentoId FK "NOT NULL"
-        integer NumeroVersion "NOT NULL"
-        text Contenido "NOT NULL"
-        varchar_15 Estado "NOT NULL"
-        uuid CreadaPorId FK "NOT NULL"
-        timestamptz CreadaEn "NOT NULL"
-        uuid AprobadaPorId FK
-        timestamptz AprobadaEn
-    }
-    Informe {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        varchar_20 Tipo "NOT NULL"
-        date PeriodoInicio
-        date PeriodoFin
-        uuid ActaId FK
-        text RetosSiguientePeriodo
-        uuid ArchivoId FK "UK, NOT NULL"
-        uuid GeneradoPorId FK "NOT NULL"
-        timestamptz GeneradoEn "NOT NULL"
-    }
-    EventoCalendario {
-        uuid Id PK
-        uuid EmpresaId FK "NOT NULL"
-        varchar_25 Tipo "NOT NULL"
-        uuid TareaId FK
-        uuid ReunionId FK
-        uuid EquipoId FK
-        uuid ComisionId FK
-        date FechaInforme
-        varchar_200 GoogleEventId
-        varchar_15 EstadoSincronizacion "NOT NULL"
-        smallint Intentos "NOT NULL"
-        text UltimoError
-        timestamptz ActualizadoEn "NOT NULL"
     }
 ```
 
+---
+
+## 2.3 Dominio 3: Encuestas Dinámicas y Matriz de Riesgos (11 Tablas)
+
+```mermaid
+erDiagram
+    Empresa ||--o{ Encuesta : "EmpresaId"
+    VinculoEmpresa ||--o{ Encuesta : "EmpresaId + CreadaPorId"
+    Encuesta ||--o{ EncuestaCategoria : "EmpresaId + EncuestaId"
+    CategoriaRiesgo ||--o{ EncuestaCategoria : "CategoriaRiesgoId"
+    Empresa ||--o{ EncuestaCategoria : "EmpresaId"
+    Empresa ||--o{ EncuestaPregunta : "EmpresaId"
+    Encuesta ||--o{ EncuestaPregunta : "EmpresaId + EncuestaId"
+    PreguntaExploratoria ||--o{ EncuestaPregunta : "PreguntaExploratoriaId"
+    Peligro |o--o{ EncuestaPregunta : "PeligroId"
+    Empresa ||--o{ EncuestaOpcion : "EmpresaId"
+    EncuestaPregunta ||--o{ EncuestaOpcion : "EmpresaId + EncuestaPreguntaId"
+    Encuesta ||--o{ ParticipacionEncuesta : "EmpresaId + EncuestaId"
+    VinculoEmpresa ||--o{ ParticipacionEncuesta : "EmpresaId + VinculoEmpresaId"
+    Empresa ||--o{ ParticipacionEncuesta : "EmpresaId"
+    Empresa ||--o{ RespuestaEncuesta : "EmpresaId"
+    Encuesta ||--o{ RespuestaEncuesta : "EmpresaId + EncuestaId"
+    RespuestaEncuesta ||--o{ DetalleRespuesta : "EmpresaId + RespuestaEncuestaId"
+    EncuestaPregunta ||--o{ DetalleRespuesta : "EmpresaId + EncuestaPreguntaId"
+    Empresa ||--o{ DetalleRespuesta : "EmpresaId"
+    Empresa ||--o{ DetalleRespuestaOpcion : "EmpresaId"
+    Empresa ||--o{ RiesgoEmpresa : "EmpresaId"
+    Peligro |o--o{ RiesgoEmpresa : "PeligroId"
+    Encuesta |o--o{ RiesgoEmpresa : "EmpresaId + EncuestaId"
+    Accidente |o--o{ RiesgoEmpresa : "EmpresaId + AccidenteId"
+    VinculoEmpresa |o--o{ RiesgoEmpresa : "EmpresaId + RevisadoPorId"
+    Empresa ||--o{ EvaluacionRiesgo : "EmpresaId"
+    RiesgoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + RiesgoEmpresaId"
+    VinculoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + EvaluadoPorId"
+    Empresa ||--o{ Control : "EmpresaId"
+    RiesgoEmpresa ||--o{ Control : "EmpresaId + RiesgoEmpresaId"
+    EncuestaOpcion |o--o{ DetalleRespuesta : "EncuestaPreguntaId + EncuestaOpcionId"
+    DetalleRespuesta ||--o{ DetalleRespuestaOpcion : "EmpresaId + RespuestaEncuestaId + EncuestaPreguntaId"
+    EncuestaOpcion ||--o{ DetalleRespuestaOpcion : "EncuestaPreguntaId + EncuestaOpcionId"
+
+    Encuesta {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_200 Titulo "NOT NULL"
+        text Instrucciones
+        varchar_10 Estado "NOT NULL; valores: borrador, publicada, cerrada"
+        uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadaEn "NOT NULL"
+        timestamptz PublicadaEn
+        timestamptz CerradaEn
+    }
+
+    EncuestaCategoria {
+        uuid EncuestaId PK, FK "FK comp → Encuesta"
+        uuid CategoriaRiesgoId PK, FK "→ CategoriaRiesgo"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+    }
+
+    EncuestaPregunta {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
+        uuid PreguntaExploratoriaId FK "NOT NULL; → PreguntaExploratoria"
+        varchar_500 Texto "NOT NULL"
+        varchar_300 Ayuda
+        varchar_16 TipoRespuesta "NOT NULL"
+        boolean Obligatoria "NOT NULL"
+        smallint EscalaMin
+        smallint EscalaMax
+        varchar_50 EtiquetaMin
+        varchar_50 EtiquetaMax
+        smallint UmbralExposicion
+        smallint LongitudMax
+        uuid PeligroId FK "→ Peligro"
+        smallint Orden "NOT NULL"
+    }
+
+    EncuestaOpcion {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaPreguntaId FK "NOT NULL; FK comp → EncuestaPregunta"
+        varchar_200 Texto "NOT NULL"
+        smallint Orden "NOT NULL"
+        boolean IndicaExposicion "NOT NULL"
+    }
+
+    ParticipacionEncuesta {
+        uuid EncuestaId PK, FK "FK comp → Encuesta"
+        uuid VinculoEmpresaId PK, FK "FK comp → VinculoEmpresa"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        timestamptz ParticipoEn "NOT NULL"
+    }
+
+    RespuestaEncuesta {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
+        date FechaRespuesta "NOT NULL"
+    }
+
+    DetalleRespuesta {
+        uuid RespuestaEncuestaId PK, FK "FK comp → RespuestaEncuesta"
+        uuid EncuestaPreguntaId PK, FK "FK comp → EncuestaPregunta"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaOpcionId
+        numeric_12_2 ValorNumerico
+        text TextoLibre
+    }
+
+    DetalleRespuestaOpcion {
+        uuid RespuestaEncuestaId PK
+        uuid EncuestaPreguntaId PK
+        uuid EncuestaOpcionId PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+    }
+
+    RiesgoEmpresa {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid PeligroId FK "→ Peligro"
+        varchar_300 DescripcionPeligro
+        varchar_200 Actividad
+        varchar_12 Estado "NOT NULL; valores: sugerido, confirmado, descartado"
+        uuid EncuestaId FK "FK comp → Encuesta"
+        uuid AccidenteId FK "FK comp → Accidente"
+        timestamptz CreadoEn "NOT NULL"
+        uuid RevisadoPorId FK "FK comp → VinculoEmpresa"
+        timestamptz RevisadoEn
+    }
+
+    EvaluacionRiesgo {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid RiesgoEmpresaId FK "NOT NULL; FK comp → RiesgoEmpresa"
+        varchar_10 Tipo "NOT NULL; valores: inicial, residual"
+        smallint Probabilidad "NOT NULL"
+        smallint Severidad "NOT NULL"
+        uuid EvaluadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz EvaluadoEn "NOT NULL"
+    }
+
+    Control {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid RiesgoEmpresaId FK "NOT NULL; FK comp → RiesgoEmpresa"
+        varchar_15 Tipo "NOT NULL; valores: eliminacion, sustitucion, ingenieria, administrativo, epp"
+        text Descripcion "NOT NULL"
+        varchar_12 Estado "NOT NULL; valores: propuesto, implementado"
+        timestamptz CreadoEn "NOT NULL"
+    }
+```
+
+---
+
+## 2.4 Dominio 4: Plan de Trabajo, Accidentes, Documentos y Notificaciones (7 Tablas)
+
+```mermaid
+erDiagram
+    Empresa ||--o{ Tarea : "EmpresaId"
+    VinculoEmpresa |o--o{ Tarea : "EmpresaId + ResponsableId"
+    PlantillaTarea |o--o{ Tarea : "PlantillaTareaId"
+    RiesgoEmpresa |o--o{ Tarea : "EmpresaId + RiesgoEmpresaId"
+    Accidente |o--o{ Tarea : "EmpresaId + AccidenteId"
+    VinculoEmpresa ||--o{ Tarea : "EmpresaId + CreadaPorId"
+    Empresa ||--o{ Archivo : "EmpresaId"
+    VinculoEmpresa ||--o{ Archivo : "EmpresaId + SubidoPorId"
+    Tarea |o--o{ Archivo : "EmpresaId + TareaId"
+    Accidente |o--o{ Archivo : "EmpresaId + AccidenteId"
+    Empresa ||--o{ Accidente : "EmpresaId"
+    VinculoEmpresa ||--o{ Accidente : "EmpresaId + ReportadoPorId"
+    Empresa ||--o{ InvestigacionAccidente : "EmpresaId"
+    Accidente ||--o| InvestigacionAccidente : "EmpresaId + AccidenteId"
+    VinculoEmpresa ||--o{ InvestigacionAccidente : "EmpresaId + InvestigadaPorId"
+    Empresa ||--o{ Documento : "EmpresaId"
+    PlantillaDocumento |o--o{ Documento : "PlantillaDocumentoId"
+    VinculoEmpresa ||--o{ Documento : "EmpresaId + CreadoPorId"
+    Empresa ||--o{ VersionDocumento : "EmpresaId"
+    Documento ||--o{ VersionDocumento : "EmpresaId + DocumentoId"
+    VinculoEmpresa ||--o{ VersionDocumento : "EmpresaId + CreadaPorId"
+    VinculoEmpresa |o--o{ VersionDocumento : "EmpresaId + AprobadaPorId"
+    Empresa ||--o{ Notificacion : "EmpresaId"
+    VinculoEmpresa ||--o{ Notificacion : "EmpresaId + DestinatarioId"
+    VersionDocumento |o--o{ Notificacion : "EmpresaId + VersionDocumentoId"
+    Tarea |o--o{ Notificacion : "EmpresaId + TareaId"
+    Control |o--o{ Tarea : "RiesgoEmpresaId + ControlId"
+
+    Tarea {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_200 Titulo "NOT NULL"
+        text Descripcion
+        varchar_12 Estado "NOT NULL; valores: pendiente, en_progreso, completada, cancelada"
+        smallint Prioridad "NOT NULL"
+        uuid ResponsableId FK "FK comp → VinculoEmpresa"
+        date FechaLimite
+        boolean RequiereEvidencia "NOT NULL"
+        uuid PlantillaTareaId FK "→ PlantillaTarea"
+        uuid RiesgoEmpresaId FK "FK comp → RiesgoEmpresa"
+        uuid ControlId
+        uuid AccidenteId FK "FK comp → Accidente"
+        uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadaEn "NOT NULL"
+        timestamptz CompletadaEn
+    }
+
+    Archivo {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_255 NombreOriginal "NOT NULL"
+        varchar_100 TipoContenido "NOT NULL"
+        bigint TamanoBytes "NOT NULL"
+        varchar_500 ClaveAlmacenamiento UK "NOT NULL"
+        uuid SubidoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz SubidoEn "NOT NULL"
+        uuid TareaId FK "FK comp → Tarea"
+        uuid AccidenteId FK "FK comp → Accidente"
+    }
+
+    Accidente {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_25 Tipo "NOT NULL; valores: accidente, incidente, enfermedad_profesional"
+        varchar_15 EstadoEnfermedad "valores: sospechosa, diagnosticada"
+        boolean EsGrave "NOT NULL"
+        timestamptz FechaHoraEvento "NOT NULL"
+        varchar_200 Lugar
+        text Descripcion "NOT NULL"
+        uuid ReportadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz RegistradoEn "NOT NULL"
+        varchar_16 Estado "NOT NULL; valores: abierto, en_investigacion, cerrado"
+        timestamptz CerradoEn
+    }
+
+    InvestigacionAccidente {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid AccidenteId FK, UK "NOT NULL; FK comp → Accidente"
+        text CausasInmediatas "NOT NULL"
+        text CausasBasicas "NOT NULL"
+        text Conclusiones
+        uuid InvestigadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        date FechaInvestigacion "NOT NULL"
+    }
+
+    Documento {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid PlantillaDocumentoId FK "→ PlantillaDocumento"
+        varchar_200 Titulo "NOT NULL"
+        varchar_15 TipoDocumento "NOT NULL; valores: politica, procedimiento"
+        uuid CreadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    VersionDocumento {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid DocumentoId FK "NOT NULL; FK comp → Documento"
+        integer NumeroVersion "NOT NULL"
+        text Contenido "NOT NULL"
+        varchar_11 Estado "NOT NULL; valores: borrador, vigente, reemplazada"
+        uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadaEn "NOT NULL"
+        uuid AprobadaPorId FK "FK comp → VinculoEmpresa"
+        timestamptz AprobadaEn
+    }
+
+    Notificacion {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid DestinatarioId FK "NOT NULL; FK comp → VinculoEmpresa"
+        varchar_20 Tipo "NOT NULL; valores: politica_publicada, tarea_asignada"
+        varchar_200 Titulo "NOT NULL"
+        text Mensaje "NOT NULL"
+        uuid VersionDocumentoId FK "FK comp → VersionDocumento"
+        uuid TareaId FK "FK comp → Tarea"
+        timestamptz CreadaEn "NOT NULL"
+        timestamptz LeidaEn
+        varchar_10 CorreoEstado "NOT NULL; valores: pendiente, enviado, fallido"
+        smallint CorreoIntentos "NOT NULL"
+        timestamptz CorreoEnviadoEn
+        text CorreoUltimoError
+    }
+```
+
+---
+
+## 2.5 Diagrama Relacional Físico Maestro Completo (40 Tablas)
+
+*(Copia el bloque siguiente si deseas importar las 40 tablas de Norvia con todas sus relaciones foráneas en un solo lienzo de draw.io).*
+
+```mermaid
+erDiagram
+    Persona ||--o| Usuario : "PersonaId"
+    Acceso ||--o{ RefreshToken : "AccesoId"
+    VinculoEmpresa |o--o{ RefreshToken : "VinculoEmpresaId"
+    Acceso ||--o| StaffPlataforma : "AccesoId"
+    RolStaffPlataforma ||--o{ StaffPlataforma : "RolStaffPlataformaId"
+    Rol ||--o{ RolPermiso : "RolId"
+    Permiso ||--o{ RolPermiso : "PermisoId"
+    RolStaffPlataforma ||--o{ RolStaffPlataformaPermiso : "RolStaffPlataformaId"
+    Permiso ||--o{ RolStaffPlataformaPermiso : "PermisoId"
+    Rubro |o--o{ Empresa : "RubroId"
+    Empresa ||--o{ VinculoEmpresa : "EmpresaId"
+    Persona ||--o{ VinculoEmpresa : "PersonaId"
+    Acceso ||--o{ VinculoEmpresa : "AccesoId"
+    Rol ||--o{ VinculoEmpresa : "RolId"
+    Empresa ||--o{ HistorialEstadoVinculo : "EmpresaId"
+    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "EmpresaId + VinculoEmpresaId"
+    VinculoEmpresa ||--o{ HistorialEstadoVinculo : "EmpresaId + RegistradoPorId"
+    Empresa ||--o{ HistorialEstadoEmpresa : "EmpresaId"
+    StaffPlataforma |o--o{ HistorialEstadoEmpresa : "RegistradoPorId"
+    Empresa ||--o{ RegistroAuditoria : "EmpresaId"
+    VinculoEmpresa |o--o{ RegistroAuditoria : "EmpresaId + VinculoEmpresaId"
+    StaffPlataforma |o--o{ RegistroAuditoria : "StaffPlataformaId"
+    Rubro ||--o{ CategoriaRiesgo : "RubroId"
+    CategoriaRiesgo ||--o{ PreguntaExploratoria : "CategoriaRiesgoId"
+    Peligro |o--o{ PreguntaExploratoria : "PeligroId"
+    PreguntaExploratoria ||--o{ OpcionPregunta : "PreguntaExploratoriaId"
+    Peligro |o--o{ PlantillaTarea : "PeligroId"
+    Rubro |o--o{ PlantillaDocumento : "RubroId"
+    Empresa ||--o{ Encuesta : "EmpresaId"
+    VinculoEmpresa ||--o{ Encuesta : "EmpresaId + CreadaPorId"
+    Encuesta ||--o{ EncuestaCategoria : "EmpresaId + EncuestaId"
+    CategoriaRiesgo ||--o{ EncuestaCategoria : "CategoriaRiesgoId"
+    Empresa ||--o{ EncuestaCategoria : "EmpresaId"
+    Empresa ||--o{ EncuestaPregunta : "EmpresaId"
+    Encuesta ||--o{ EncuestaPregunta : "EmpresaId + EncuestaId"
+    PreguntaExploratoria ||--o{ EncuestaPregunta : "PreguntaExploratoriaId"
+    Peligro |o--o{ EncuestaPregunta : "PeligroId"
+    Empresa ||--o{ EncuestaOpcion : "EmpresaId"
+    EncuestaPregunta ||--o{ EncuestaOpcion : "EmpresaId + EncuestaPreguntaId"
+    Encuesta ||--o{ ParticipacionEncuesta : "EmpresaId + EncuestaId"
+    VinculoEmpresa ||--o{ ParticipacionEncuesta : "EmpresaId + VinculoEmpresaId"
+    Empresa ||--o{ ParticipacionEncuesta : "EmpresaId"
+    Empresa ||--o{ RespuestaEncuesta : "EmpresaId"
+    Encuesta ||--o{ RespuestaEncuesta : "EmpresaId + EncuestaId"
+    RespuestaEncuesta ||--o{ DetalleRespuesta : "EmpresaId + RespuestaEncuestaId"
+    EncuestaPregunta ||--o{ DetalleRespuesta : "EmpresaId + EncuestaPreguntaId"
+    Empresa ||--o{ DetalleRespuesta : "EmpresaId"
+    Empresa ||--o{ DetalleRespuestaOpcion : "EmpresaId"
+    Empresa ||--o{ RiesgoEmpresa : "EmpresaId"
+    Peligro |o--o{ RiesgoEmpresa : "PeligroId"
+    Encuesta |o--o{ RiesgoEmpresa : "EmpresaId + EncuestaId"
+    Accidente |o--o{ RiesgoEmpresa : "EmpresaId + AccidenteId"
+    VinculoEmpresa |o--o{ RiesgoEmpresa : "EmpresaId + RevisadoPorId"
+    Empresa ||--o{ EvaluacionRiesgo : "EmpresaId"
+    RiesgoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + RiesgoEmpresaId"
+    VinculoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + EvaluadoPorId"
+    Empresa ||--o{ Control : "EmpresaId"
+    RiesgoEmpresa ||--o{ Control : "EmpresaId + RiesgoEmpresaId"
+    Empresa ||--o{ Tarea : "EmpresaId"
+    VinculoEmpresa |o--o{ Tarea : "EmpresaId + ResponsableId"
+    PlantillaTarea |o--o{ Tarea : "PlantillaTareaId"
+    RiesgoEmpresa |o--o{ Tarea : "EmpresaId + RiesgoEmpresaId"
+    Accidente |o--o{ Tarea : "EmpresaId + AccidenteId"
+    VinculoEmpresa ||--o{ Tarea : "EmpresaId + CreadaPorId"
+    Empresa ||--o{ Archivo : "EmpresaId"
+    VinculoEmpresa ||--o{ Archivo : "EmpresaId + SubidoPorId"
+    Tarea |o--o{ Archivo : "EmpresaId + TareaId"
+    Accidente |o--o{ Archivo : "EmpresaId + AccidenteId"
+    Empresa ||--o{ Accidente : "EmpresaId"
+    VinculoEmpresa ||--o{ Accidente : "EmpresaId + ReportadoPorId"
+    Empresa ||--o{ InvestigacionAccidente : "EmpresaId"
+    Accidente ||--o| InvestigacionAccidente : "EmpresaId + AccidenteId"
+    VinculoEmpresa ||--o{ InvestigacionAccidente : "EmpresaId + InvestigadaPorId"
+    Empresa ||--o{ Documento : "EmpresaId"
+    PlantillaDocumento |o--o{ Documento : "PlantillaDocumentoId"
+    VinculoEmpresa ||--o{ Documento : "EmpresaId + CreadoPorId"
+    Empresa ||--o{ VersionDocumento : "EmpresaId"
+    Documento ||--o{ VersionDocumento : "EmpresaId + DocumentoId"
+    VinculoEmpresa ||--o{ VersionDocumento : "EmpresaId + CreadaPorId"
+    VinculoEmpresa |o--o{ VersionDocumento : "EmpresaId + AprobadaPorId"
+    Empresa ||--o{ Notificacion : "EmpresaId"
+    VinculoEmpresa ||--o{ Notificacion : "EmpresaId + DestinatarioId"
+    VersionDocumento |o--o{ Notificacion : "EmpresaId + VersionDocumentoId"
+    Tarea |o--o{ Notificacion : "EmpresaId + TareaId"
+    EncuestaOpcion |o--o{ DetalleRespuesta : "EncuestaPreguntaId + EncuestaOpcionId"
+    DetalleRespuesta ||--o{ DetalleRespuestaOpcion : "EmpresaId + RespuestaEncuestaId + EncuestaPreguntaId"
+    EncuestaOpcion ||--o{ DetalleRespuestaOpcion : "EncuestaPreguntaId + EncuestaOpcionId"
+    Control |o--o{ Tarea : "RiesgoEmpresaId + ControlId"
+
+    Persona {
+        uuid Id PK
+        varchar_80 PrimerNombre "NOT NULL"
+        varchar_80 SegundoNombre
+        varchar_80 PrimerApellido "NOT NULL"
+        varchar_80 SegundoApellido
+        varchar_15 TipoDocumento "valores: dni, pasaporte, otro"
+        varchar_50 NumeroDocumento
+        varchar_30 Telefono
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    Usuario {
+        uuid Id PK
+        uuid PersonaId FK, UK "NOT NULL; → Persona"
+        boolean Activo "NOT NULL"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    Acceso {
+        uuid Id PK
+        varchar_254 Email UK "NOT NULL"
+        varchar_255 PasswordHash "NOT NULL"
+        boolean DebeCambiarPassword "NOT NULL"
+        boolean Verificado "NOT NULL"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    RefreshToken {
+        uuid Id PK
+        uuid AccesoId FK "NOT NULL; → Acceso"
+        uuid VinculoEmpresaId FK "→ VinculoEmpresa"
+        varchar_64 TokenHash UK "NOT NULL"
+        varchar_12 TipoSesion "NOT NULL; valores: empresa, plataforma"
+        timestamptz ExpiraEn "NOT NULL"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    StaffPlataforma {
+        uuid Id PK
+        uuid AccesoId FK, UK "NOT NULL; → Acceso"
+        smallint RolStaffPlataformaId FK "NOT NULL; → RolStaffPlataforma"
+        boolean Activo "NOT NULL"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    RolStaffPlataforma {
+        smallint Id PK
+        varchar_30 Codigo UK "NOT NULL; valores: admin_plataforma, soporte_plataforma"
+        varchar_60 Nombre "NOT NULL"
+    }
+
+    Rol {
+        smallint Id PK
+        varchar_30 Codigo UK "NOT NULL; valores: admin_empresa, responsable_sst, colaborador, encuestado"
+        varchar_60 Nombre "NOT NULL"
+    }
+
+    Permiso {
+        Significado Valor de `Alcance`
+        Operación dentro de un tenant _`EmpresaId` del token `empresa`
+        Operación global _catálogos_ listado de tenants_ suspensión SaaS_ sin datos SST de clientes `plataforma`
+        smallint Id PK
+        varchar_60 Codigo UK "NOT NULL"
+        varchar_120 Nombre "NOT NULL"
+        varchar_10 Alcance "NOT NULL; valores: empresa, plataforma"
+        varchar_10 MetodoHttp "NOT NULL"
+        varchar_200 RutaPatron "NOT NULL"
+        boolean Activo "NOT NULL"
+    }
+
+    RolPermiso {
+        smallint RolId PK, FK "→ Rol"
+        smallint PermisoId PK, FK "→ Permiso"
+    }
+
+    RolStaffPlataformaPermiso {
+        smallint RolStaffPlataformaId PK, FK "→ RolStaffPlataforma"
+        smallint PermisoId PK, FK "→ Permiso"
+    }
+
+    Empresa {
+        uuid Id PK
+        varchar_200 RazonSocial "NOT NULL"
+        char_14 RTN UK "NOT NULL"
+        varchar_300 Direccion
+        varchar_150 ActividadEconomica
+        smallint RubroId FK "→ Rubro"
+        integer TrabajadoresPermanentes
+        date FechaInicioOperaciones
+        varchar_12 Estado "NOT NULL; valores: activa, suspendida, inactiva"
+        timestamptz CreadaEn "NOT NULL"
+    }
+
+    VinculoEmpresa {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid PersonaId FK "NOT NULL; → Persona"
+        uuid AccesoId FK "NOT NULL; → Acceso"
+        smallint RolId FK "NOT NULL; → Rol"
+        varchar_12 Estado "NOT NULL; valores: activo, suspendido, baja"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    HistorialEstadoVinculo {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid VinculoEmpresaId FK "NOT NULL; FK comp → VinculoEmpresa"
+        varchar_12 EstadoAnterior
+        varchar_12 EstadoNuevo "NOT NULL"
+        varchar_30 MotivoCodigo "NOT NULL; valores: decision_admin, baja_laboral, falta_pago_empresa, otro"
+        text MotivoDetalle
+        uuid RegistradoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz RegistradoEn "NOT NULL"
+    }
+
+    HistorialEstadoEmpresa {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_12 EstadoAnterior
+        varchar_12 EstadoNuevo "NOT NULL"
+        varchar_30 MotivoCodigo "NOT NULL; valores: falta_pago_plataforma, reactivacion, otro"
+        text MotivoDetalle
+        uuid RegistradoPorId FK "→ StaffPlataforma"
+        timestamptz RegistradoEn "NOT NULL"
+    }
+
+    RegistroAuditoria {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid VinculoEmpresaId FK "FK comp → VinculoEmpresa"
+        uuid StaffPlataformaId FK "→ StaffPlataforma"
+        varchar_50 Accion "NOT NULL"
+        varchar_60 Entidad "NOT NULL"
+        uuid EntidadId "NOT NULL"
+        timestamptz Fecha "NOT NULL"
+        jsonb Detalle
+    }
+
+    Rubro {
+        smallint Id PK
+        varchar_30 Codigo UK "NOT NULL; valores: oficina, comercio, maquila_fabrica, construccion"
+        varchar_80 Nombre UK "NOT NULL"
+        boolean Activo "NOT NULL"
+    }
+
+    CategoriaRiesgo {
+        uuid Id PK
+        smallint RubroId FK "NOT NULL; → Rubro"
+        varchar_100 Nombre "NOT NULL"
+        text Descripcion
+        boolean Activa "NOT NULL"
+    }
+
+    Peligro {
+        uuid Id PK
+        varchar_20 Codigo UK "NOT NULL"
+        varchar_150 Nombre "NOT NULL"
+        text Descripcion
+        varchar_15 Clasificacion "NOT NULL; valores: fisico, mecanico, electrico, quimico, biologico, ergonomico, psicosocial, locativo, otro"
+        boolean Activo "NOT NULL"
+    }
+
+    PreguntaExploratoria {
+        uuid Id PK
+        uuid CategoriaRiesgoId FK "NOT NULL; → CategoriaRiesgo"
+        varchar_500 Texto "NOT NULL"
+        varchar_300 Ayuda
+        varchar_16 TipoRespuesta "NOT NULL; valores: si_no, opcion_unica, opcion_multiple, escala, texto_corto, texto_largo, numero"
+        boolean Obligatoria "NOT NULL"
+        smallint EscalaMin
+        smallint EscalaMax
+        varchar_50 EtiquetaMin
+        varchar_50 EtiquetaMax
+        smallint UmbralExposicion
+        smallint LongitudMax
+        smallint Orden "NOT NULL"
+        uuid PeligroId FK "→ Peligro"
+        boolean Activa "NOT NULL"
+    }
+
+    OpcionPregunta {
+        uuid Id PK
+        uuid PreguntaExploratoriaId FK "NOT NULL; → PreguntaExploratoria"
+        varchar_200 Texto "NOT NULL"
+        smallint Orden "NOT NULL"
+        boolean IndicaExposicion "NOT NULL"
+    }
+
+    PlantillaTarea {
+        uuid Id PK
+        uuid PeligroId FK "→ Peligro"
+        varchar_15 TipoControl
+        varchar_200 Titulo "NOT NULL"
+        text Descripcion
+        smallint PrioridadSugerida "NOT NULL"
+        boolean RequiereEvidencia "NOT NULL"
+        boolean Activa "NOT NULL"
+    }
+
+    PlantillaDocumento {
+        uuid Id PK
+        varchar_30 Codigo UK "NOT NULL"
+        varchar_200 Titulo "NOT NULL"
+        varchar_15 TipoDocumento "NOT NULL; valores: politica, procedimiento"
+        smallint RubroId FK "→ Rubro"
+        text Contenido "NOT NULL"
+        boolean Activa "NOT NULL"
+    }
+
+    Encuesta {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_200 Titulo "NOT NULL"
+        text Instrucciones
+        varchar_10 Estado "NOT NULL; valores: borrador, publicada, cerrada"
+        uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadaEn "NOT NULL"
+        timestamptz PublicadaEn
+        timestamptz CerradaEn
+    }
+
+    EncuestaCategoria {
+        uuid EncuestaId PK, FK "FK comp → Encuesta"
+        uuid CategoriaRiesgoId PK, FK "→ CategoriaRiesgo"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+    }
+
+    EncuestaPregunta {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
+        uuid PreguntaExploratoriaId FK "NOT NULL; → PreguntaExploratoria"
+        varchar_500 Texto "NOT NULL"
+        varchar_300 Ayuda
+        varchar_16 TipoRespuesta "NOT NULL"
+        boolean Obligatoria "NOT NULL"
+        smallint EscalaMin
+        smallint EscalaMax
+        varchar_50 EtiquetaMin
+        varchar_50 EtiquetaMax
+        smallint UmbralExposicion
+        smallint LongitudMax
+        uuid PeligroId FK "→ Peligro"
+        smallint Orden "NOT NULL"
+    }
+
+    EncuestaOpcion {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaPreguntaId FK "NOT NULL; FK comp → EncuestaPregunta"
+        varchar_200 Texto "NOT NULL"
+        smallint Orden "NOT NULL"
+        boolean IndicaExposicion "NOT NULL"
+    }
+
+    ParticipacionEncuesta {
+        uuid EncuestaId PK, FK "FK comp → Encuesta"
+        uuid VinculoEmpresaId PK, FK "FK comp → VinculoEmpresa"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        timestamptz ParticipoEn "NOT NULL"
+    }
+
+    RespuestaEncuesta {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
+        date FechaRespuesta "NOT NULL"
+    }
+
+    DetalleRespuesta {
+        uuid RespuestaEncuestaId PK, FK "FK comp → RespuestaEncuesta"
+        uuid EncuestaPreguntaId PK, FK "FK comp → EncuestaPregunta"
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaOpcionId
+        numeric_12_2 ValorNumerico
+        text TextoLibre
+    }
+
+    DetalleRespuestaOpcion {
+        uuid RespuestaEncuestaId PK
+        uuid EncuestaPreguntaId PK
+        uuid EncuestaOpcionId PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+    }
+
+    RiesgoEmpresa {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid PeligroId FK "→ Peligro"
+        varchar_300 DescripcionPeligro
+        varchar_200 Actividad
+        varchar_12 Estado "NOT NULL; valores: sugerido, confirmado, descartado"
+        uuid EncuestaId FK "FK comp → Encuesta"
+        uuid AccidenteId FK "FK comp → Accidente"
+        timestamptz CreadoEn "NOT NULL"
+        uuid RevisadoPorId FK "FK comp → VinculoEmpresa"
+        timestamptz RevisadoEn
+    }
+
+    EvaluacionRiesgo {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid RiesgoEmpresaId FK "NOT NULL; FK comp → RiesgoEmpresa"
+        varchar_10 Tipo "NOT NULL; valores: inicial, residual"
+        smallint Probabilidad "NOT NULL"
+        smallint Severidad "NOT NULL"
+        uuid EvaluadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz EvaluadoEn "NOT NULL"
+    }
+
+    Control {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid RiesgoEmpresaId FK "NOT NULL; FK comp → RiesgoEmpresa"
+        varchar_15 Tipo "NOT NULL; valores: eliminacion, sustitucion, ingenieria, administrativo, epp"
+        text Descripcion "NOT NULL"
+        varchar_12 Estado "NOT NULL; valores: propuesto, implementado"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    Tarea {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_200 Titulo "NOT NULL"
+        text Descripcion
+        varchar_12 Estado "NOT NULL; valores: pendiente, en_progreso, completada, cancelada"
+        smallint Prioridad "NOT NULL"
+        uuid ResponsableId FK "FK comp → VinculoEmpresa"
+        date FechaLimite
+        boolean RequiereEvidencia "NOT NULL"
+        uuid PlantillaTareaId FK "→ PlantillaTarea"
+        uuid RiesgoEmpresaId FK "FK comp → RiesgoEmpresa"
+        uuid ControlId
+        uuid AccidenteId FK "FK comp → Accidente"
+        uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadaEn "NOT NULL"
+        timestamptz CompletadaEn
+    }
+
+    Archivo {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_255 NombreOriginal "NOT NULL"
+        varchar_100 TipoContenido "NOT NULL"
+        bigint TamanoBytes "NOT NULL"
+        varchar_500 ClaveAlmacenamiento UK "NOT NULL"
+        uuid SubidoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz SubidoEn "NOT NULL"
+        uuid TareaId FK "FK comp → Tarea"
+        uuid AccidenteId FK "FK comp → Accidente"
+    }
+
+    Accidente {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        varchar_25 Tipo "NOT NULL; valores: accidente, incidente, enfermedad_profesional"
+        varchar_15 EstadoEnfermedad "valores: sospechosa, diagnosticada"
+        boolean EsGrave "NOT NULL"
+        timestamptz FechaHoraEvento "NOT NULL"
+        varchar_200 Lugar
+        text Descripcion "NOT NULL"
+        uuid ReportadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz RegistradoEn "NOT NULL"
+        varchar_16 Estado "NOT NULL; valores: abierto, en_investigacion, cerrado"
+        timestamptz CerradoEn
+    }
+
+    InvestigacionAccidente {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid AccidenteId FK, UK "NOT NULL; FK comp → Accidente"
+        text CausasInmediatas "NOT NULL"
+        text CausasBasicas "NOT NULL"
+        text Conclusiones
+        uuid InvestigadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        date FechaInvestigacion "NOT NULL"
+    }
+
+    Documento {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid PlantillaDocumentoId FK "→ PlantillaDocumento"
+        varchar_200 Titulo "NOT NULL"
+        varchar_15 TipoDocumento "NOT NULL; valores: politica, procedimiento"
+        uuid CreadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    VersionDocumento {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid DocumentoId FK "NOT NULL; FK comp → Documento"
+        integer NumeroVersion "NOT NULL"
+        text Contenido "NOT NULL"
+        varchar_11 Estado "NOT NULL; valores: borrador, vigente, reemplazada"
+        uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadaEn "NOT NULL"
+        uuid AprobadaPorId FK "FK comp → VinculoEmpresa"
+        timestamptz AprobadaEn
+    }
+
+    Notificacion {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid DestinatarioId FK "NOT NULL; FK comp → VinculoEmpresa"
+        varchar_20 Tipo "NOT NULL; valores: politica_publicada, tarea_asignada"
+        varchar_200 Titulo "NOT NULL"
+        text Mensaje "NOT NULL"
+        uuid VersionDocumentoId FK "FK comp → VersionDocumento"
+        uuid TareaId FK "FK comp → Tarea"
+        timestamptz CreadaEn "NOT NULL"
+        timestamptz LeidaEn
+        varchar_10 CorreoEstado "NOT NULL; valores: pendiente, enviado, fallido"
+        smallint CorreoIntentos "NOT NULL"
+        timestamptz CorreoEnviadoEn
+        text CorreoUltimoError
+    }
+```

@@ -7,27 +7,27 @@
 | Término | Significado |
 |---|---|
 | Accidente | Suceso del trabajo que causa una lesión o daño a la salud |
-| Acta | Documento que deja constancia de lo tratado en una reunión de la comisión |
-| Acta de constitución | Documento que registra la creación de la Comisión Mixta |
-| Ausentismo | Ausencias del trabajo por accidentes o enfermedades |
+| Acta | Documento que deja constancia de lo tratado en una reunión de la comisión. Fuera de alcance desde el 13-11-2026 (M7). |
+| Acta de constitución | Documento que registra la creación de la Comisión Mixta. Fuera de alcance desde el 13-11-2026 (M7). |
+| Ausentismo | Ausencias del trabajo por accidentes o enfermedades. Norvia no lo registra desde el 13-11-2026 |
 | Categoría de riesgo | Grupo de riesgos de un rubro, como trabajo en alturas o alto voltaje |
-| Comisión Mixta | Comisión Mixta de Higiene y Seguridad: grupo con representantes del empleador y de los trabajadores que vigila la SST en la empresa |
+| Comisión Mixta | Comisión Mixta de Higiene y Seguridad: grupo con representantes del empleador y de los trabajadores que vigila la SST en la empresa. Fuera de alcance desde el 13-11-2026 (M7). |
 | Control | Medida para reducir un riesgo |
-| Días de incapacidad | Días que una persona no puede trabajar por un accidente o enfermedad |
+| Días de incapacidad | Días que una persona no puede trabajar por un accidente o enfermedad. Norvia no los registra desde el 13-11-2026 |
 | Enfermedad profesional | Enfermedad causada por el trabajo. Puede estar sospechosa o diagnosticada |
-| EPP | Equipo de protección personal: casco, guantes, arnés y otros elementos que usa el trabajador |
-| Equipo de emergencia | Equipo que se usa ante una emergencia, como un extintor o una lámpara de emergencia |
+| EPP | Equipo de protección personal: casco, guantes, arnés y otros elementos que usa el trabajador. Sigue siendo un tipo de control en la matriz; su inventario y entregas (M8) quedaron fuera de alcance |
+| Equipo de emergencia | Equipo que se usa ante una emergencia, como un extintor o una lámpara de emergencia. Fuera de alcance desde el 13-11-2026 (M8) |
 | Evidencia | Archivo o registro que demuestra que algo se hizo |
 | IHSS | Instituto Hondureño de Seguridad Social |
 | Incidente | Suceso que pudo causar daño, pero no lo causó |
 | ISO 45001 | Norma internacional para gestionar la seguridad y salud en el trabajo |
-| Mantenimiento correctivo | Reparación de un equipo que falló o tiene un problema |
-| Mantenimiento preventivo | Revisión programada para evitar que un equipo falle |
+| Mantenimiento correctivo | Reparación de un equipo que falló o tiene un problema. Fuera de alcance desde el 13-11-2026 (M8) |
+| Mantenimiento preventivo | Revisión programada para evitar que un equipo falle. Fuera de alcance desde el 13-11-2026 (M8) |
 | Matriz de riesgos | Tabla con los riesgos de la empresa, su nivel y sus controles |
 | Peligro | Algo que puede causar daño, como una escalera en mal estado |
 | Pregunta exploratoria | Pregunta de la encuesta que ayuda a detectar si existe un peligro |
-| Propietario | Integrante titular de la comisión |
-| Quórum | Número mínimo de miembros presentes para que una reunión sea válida |
+| Propietario | Integrante titular de la comisión. Fuera de alcance desde el 13-11-2026 (M7). |
+| Quórum | Número mínimo de miembros presentes para que una reunión sea válida. Fuera de alcance desde el 13-11-2026 (M7). |
 | Riesgo | Combinación de qué tan probable es un daño y qué tan grave sería |
 | Riesgo residual | Riesgo que queda después de aplicar los controles |
 | Secretaría de Trabajo | Secretaría de Trabajo y Seguridad Social de Honduras, también llamada STSS o SETRASS |
@@ -35,7 +35,7 @@
 | SG-SST | Sistema de gestión de la seguridad y salud en el trabajo |
 | Siniestralidad | Cantidad de accidentes y enfermedades del trabajo en un periodo |
 | SST | Seguridad y salud en el trabajo |
-| Suplente | Integrante que reemplaza al propietario cuando este falta |
+| Suplente | Integrante que reemplaza al propietario cuando este falta. Fuera de alcance desde el 13-11-2026 (M7). |
 
 ## Producto y gestión
 
@@ -53,18 +53,28 @@
 | CuentaPlataforma | Nombre anterior de **StaffPlataforma**; no usar en diseño nuevo |
 | Usuario | Registro global por **Persona** con `Activo` (sin correo/clave). Login en **Acceso**; rol de empresa en **VinculoEmpresa** |
 | Membresia | Nombre anterior de **VinculoEmpresa**; no usar en diseño nuevo |
-| Cargo (comisión) | Función en la Comisión Mixta (`presidente`, `secretario`, `miembro`); no es rol del sistema |
-| Rol (sistema) | Permisos en Norvia para un vínculo (`admin_empresa`, `responsable_sst`, `colaborador`) |
+| Cargo (comisión) | Función en la Comisión Mixta (`presidente`, `secretario`, `miembro`); no es rol del sistema. Fuera de alcance desde el 13-11-2026 (M7). |
+| Rol (sistema) | Permisos en Norvia para un vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`) |
 | Permiso | Fila del catálogo RBAC: código, ruta y método HTTP de una operación protegida |
 | Alcance (de permiso) | Columna **`Permiso.Alcance`**: `empresa` (sesión de **vínculo**, tenant) o `plataforma` (sesión **StaffPlataforma**, operaciones globales). No es el nombre de la tabla de login |
-| Encuesta | Cuestionario que responden los trabajadores para identificar peligros |
+| Área | Parte de una empresa. Se usó hasta el 13-11-2026; ahora todo se trabaja a nivel de empresa |
+| Encargado de área | Responsable de un área. Dejó de usarse junto con las áreas (13-11-2026) |
+| Encuesta | Cuestionario dinámico de Norvia que responden los encuestados para identificar peligros. Estados: `borrador`, `publicada`, `cerrada` |
+| Encuestado | Trabajador con vínculo y rol `encuestado`: responde encuestas, ve sus notificaciones y consulta políticas vigentes |
+| Encuestador | Quien crea, publica y aplica la encuesta. En Norvia es el Responsable SST; no es un rol aparte |
+| Formulario dinámico | Formulario que Norvia arma con los datos de la encuesta: cada pregunta se muestra con el control de su tipo |
 | Entrega | Etapa de construcción que deja algo demostrable |
-| Google Calendar | Calendario de Google; Norvia crea allí eventos con recordatorios |
-| Google Forms | Servicio de formularios de Google; Norvia crea allí las encuestas |
+| Google Calendar | Calendario de Google. Se usaba para los recordatorios; se retiró el 13-11-2026 y lo reemplazan las notificaciones |
+| Google Forms | Formularios de Google. Se usaban para las encuestas; se retiraron el 13-11-2026 y los reemplaza el formulario dinámico |
 | Historia de usuario (HU) | Descripción breve de lo que alguien necesita y para qué |
-| Inventario | Cantidad disponible de cada artículo de EPP |
+| Inventario | Cantidad disponible de cada artículo de EPP. Fuera de alcance desde el 13-11-2026 (M8) |
 | Kanban | Tablero para visualizar el trabajo por estados |
 | Must | Prioridad: sin esto el MVP o la calificación quedan incompletos |
+| Notificación | Aviso para un operador con vínculo, visible en Norvia y enviado por correo; por ejemplo, una política nueva o una tarea asignada |
+| Participación | Registro de que un vínculo ya respondió una encuesta, sin enlazarlo con lo que respondió |
+| Reporte anónimo | Resumen de las respuestas de una encuesta que no permite saber quién respondió qué; se muestra con al menos 3 respuestas |
+| Tipo de pregunta | Forma de responder una pregunta: `si_no`, `opcion_unica`, `opcion_multiple`, `escala`, `texto_corto`, `texto_largo` o `numero` |
+| Umbral de exposición | En una pregunta de escala, valor desde el cual la respuesta indica exposición al peligro |
 | Multiempresa | Varias empresas usan la misma plataforma con su información aislada |
 | MVP | Producto mínimo viable: versión más pequeña que ya resuelve el problema |
 | Pitch | Presentación breve de una idea de negocio |
@@ -79,7 +89,7 @@
 | Término | Significado |
 |---|---|
 | 3FN | Tercera forma normal: forma de organizar tablas para evitar datos repetidos |
-| API | Interfaz por la que un sistema se comunica con otro, como los clientes con el backend o Norvia con Google |
+| API | Interfaz por la que un sistema se comunica con otro, como el frontend con el backend |
 | Backend | Parte del sistema que corre en el servidor |
 | Claim | Dato incluido dentro de un token |
 | Cascada | Borrar o cambiar automáticamente los registros hijos al borrar o cambiar el padre. Norvia no la usa |
@@ -100,6 +110,7 @@
 | JWE | Token JWT con el contenido cifrado |
 | JWT | Token firmado que identifica el vínculo (`VinculoEmpresaId`) y la empresa de la sesión |
 | Middleware | Componente que procesa todas las peticiones del backend |
+| Outbox | Bandeja de salida: tabla donde quedan los correos pendientes para enviarlos y reintentarlos |
 | Llave compuesta | Llave formada por dos o más columnas |
 | PDF | Formato de documento para descargar e imprimir |
 | PK | Llave primaria: columna que identifica cada fila |
