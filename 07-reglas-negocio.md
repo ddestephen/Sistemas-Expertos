@@ -45,8 +45,8 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-09 | Cada empresa pertenece a un solo rubro |
 | RN-10 | Sin rubro y sin al menos una categoría elegida no se puede generar una encuesta |
 | RN-11 | Las categorías de riesgo disponibles dependen del rubro, y las preguntas de la encuesta dependen de las categorías elegidas |
-| RN-12 | Las preguntas y opciones de una encuesta quedan copiadas al generarla. En `borrador` se pueden quitar o reordenar; una vez publicada no cambian, y para cambiarlas se genera una encuesta nueva |
-| RN-13 | Un peligro se sugiere cuando al menos una respuesta indica exposición: una opción marcada como exposición (en `si_no`, `opcion_unica` u `opcion_multiple`) o un valor de `escala` igual o mayor que el umbral de la pregunta. La sugerencia indica cuántas respuestas lo respaldan |
+| RN-12 | Cada pregunta conserva su tipo de respuesta y sus opciones. Editar una encuesta publicada crea una versión nueva; las respuestas enviadas conservan la versión que se mostró al encuestado |
+| RN-13 | Un peligro se sugiere cuando al menos una respuesta elige una opción marcada como exposición (en `seleccion_unica` o `seleccion_multiple`). La sugerencia indica cuántas respuestas lo respaldan |
 | RN-14 | Las mismas respuestas siempre producen las mismas sugerencias |
 
 ## Riesgos
@@ -137,9 +137,9 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 
 | Código | Regla |
 |---|---|
-| RN-68 | El tipo de cada pregunta define el control que muestra el formulario y la validación de la respuesta: `si_no` y `opcion_unica` aceptan una opción; `opcion_multiple`, una o más; `escala`, un entero dentro de su rango; `numero`, un valor numérico; `texto_corto` y `texto_largo`, texto hasta su longitud máxima. Se valida igual en el formulario y en el servidor |
+| RN-68 | El formulario presenta cada pregunta según su tipo: `respuesta_breve` acepta texto, `seleccion_unica` acepta una opción y `seleccion_multiple` acepta una o varias opciones. Se valida igual en el formulario y en el servidor |
 | RN-69 | Una pregunta obligatoria sin respuesta impide enviar la encuesta |
-| RN-70 | Solo se puede responder una encuesta en estado `publicada`. En `borrador` se prepara y en `cerrada` ya no recibe respuestas |
+| RN-70 | Solo se puede responder la versión publicada de una encuesta en estado `publicada`. Una versión en `borrador` se prepara sin que la vean los encuestados; una encuesta `cerrada` ya no recibe respuestas |
 | RN-71 | Cada vínculo responde una misma encuesta una sola vez |
 | RN-72 | La respuesta es anónima: no guarda el vínculo de quien respondió ni la hora, solo la fecha. La participación se guarda aparte, sin relación con la respuesta |
 | RN-73 | El reporte de una encuesta solo se muestra cuando tiene al menos 3 respuestas, para que no se pueda deducir quién respondió qué |

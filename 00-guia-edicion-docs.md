@@ -20,7 +20,7 @@ Seguir este orden al cambiar el modelo o las reglas:
 2. **Cada cambio citable:** indicar sección, qué cambió y motivo (D# o RN-#).
 3. **3FN:** `Persona` sin login; **`Usuario`** solo `Activo` (+ `PersonaId`); credenciales en **`Acceso`**; `VinculoEmpresa` y `StaffPlataforma` llevan `AccesoId`.
 4. **Trazabilidad:** al añadir reglas, actualizar la tabla RN ↔ implementación en [12-modelo-datos.md](12-modelo-datos.md) §9.
-5. **Checklist de cierre:** glosario actualizado; HUs M1 (HU-017–022 y HU-114) coherentes con vínculos; diagramas sin `Membresia`; FK operativas apuntan a `VinculoEmpresa`.
+5. **Checklist de cierre:** glosario actualizado; HUs M1 (HU-017–022, HU-114 y HU-115) coherentes con vínculos; diagramas sin `Membresia`; FK operativas apuntan a `VinculoEmpresa`.
 6. **Bitácora:** al terminar, añadir entrada en **Últimos cambios** y el bloque de detalle en [14-cambios-realizados.md](14-cambios-realizados.md) (plantilla al final del archivo).
 7. **Tablero:** si actualizan la issue en GitHub Projects, marcar `[x]` en la tabla de HUs del cambio correspondiente en el `14`.
 8. **Recortes:** lo que sale del alcance conserva su código (M#, HU, D, RN) y se marca "Fuera de alcance" o "Sin efecto"; las tablas recortadas salen del modelo y se listan en [09-entidades.md](09-entidades.md).

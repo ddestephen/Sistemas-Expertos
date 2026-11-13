@@ -40,7 +40,7 @@ Draw.io admite código Mermaid de forma nativa:
 
 # PARTE 1: Diagramas Entidad-Relación (Conceptuales / Negocio)
 
-Estos diagramas muestran las entidades y sus relaciones con verbos y cardinalidades. Son los mismos de la sección 3 de [modelo de datos](12-modelo-datos.md), que es la fuente de verdad. Modelo vigente: **40 tablas**, sin áreas, sin Google, sin comisión, sin equipos ni EPP, sin personas afectadas y sin informes (recorte del 13-11-2026).
+Estos diagramas muestran las entidades y sus relaciones con verbos y cardinalidades. Son los mismos de la sección 3 de [modelo de datos](12-modelo-datos.md), que es la fuente de verdad. Modelo vigente: **41 tablas**, sin áreas, sin Google, sin comisión, sin equipos ni EPP, sin personas afectadas y sin informes (recorte del 13-11-2026).
 
 ## 1.1 Acceso, empresa y catálogos
 
@@ -79,14 +79,15 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Encuesta ||--|{ EncuestaCategoria : "explora"
+    Encuesta ||--|{ EncuestaVersion : "versiona"
+    EncuestaVersion ||--|{ EncuestaCategoria : "explora"
     CategoriaRiesgo ||--o{ EncuestaCategoria : "elegida en"
-    Encuesta ||--|{ EncuestaPregunta : "copia"
+    EncuestaVersion ||--|{ EncuestaPregunta : "contiene"
     PreguntaExploratoria ||--o{ EncuestaPregunta : "copiada en"
     EncuestaPregunta ||--o{ EncuestaOpcion : "ofrece"
     Encuesta ||--o{ ParticipacionEncuesta : "registra quién participó"
     VinculoEmpresa ||--o{ ParticipacionEncuesta : "participa"
-    Encuesta ||--o{ RespuestaEncuesta : "recibe (anónima)"
+    EncuestaVersion ||--o{ RespuestaEncuesta : "recibe (anónima)"
     RespuestaEncuesta ||--|{ DetalleRespuesta : "contiene"
     EncuestaPregunta ||--o{ DetalleRespuesta : "respondida en"
     EncuestaOpcion |o--o{ DetalleRespuesta : "elegida en"
@@ -159,14 +160,15 @@ erDiagram
     Peligro |o--o{ PreguntaExploratoria : "detecta"
     Peligro |o--o{ PlantillaTarea : "sugiere"
     Rubro |o--o{ PlantillaDocumento : "aplica a"
-    Encuesta ||--|{ EncuestaCategoria : "explora"
+    Encuesta ||--|{ EncuestaVersion : "versiona"
+    EncuestaVersion ||--|{ EncuestaCategoria : "explora"
     CategoriaRiesgo ||--o{ EncuestaCategoria : "elegida en"
-    Encuesta ||--|{ EncuestaPregunta : "copia"
+    EncuestaVersion ||--|{ EncuestaPregunta : "contiene"
     PreguntaExploratoria ||--o{ EncuestaPregunta : "copiada en"
     EncuestaPregunta ||--o{ EncuestaOpcion : "ofrece"
     Encuesta ||--o{ ParticipacionEncuesta : "registra quién participó"
     VinculoEmpresa ||--o{ ParticipacionEncuesta : "participa"
-    Encuesta ||--o{ RespuestaEncuesta : "recibe (anónima)"
+    EncuestaVersion ||--o{ RespuestaEncuesta : "recibe (anónima)"
     RespuestaEncuesta ||--|{ DetalleRespuesta : "contiene"
     EncuestaPregunta ||--o{ DetalleRespuesta : "respondida en"
     EncuestaOpcion |o--o{ DetalleRespuesta : "elegida en"
@@ -406,15 +408,8 @@ erDiagram
         uuid Id PK
         uuid CategoriaRiesgoId FK "NOT NULL; → CategoriaRiesgo"
         varchar_500 Texto "NOT NULL"
-        varchar_300 Ayuda
-        varchar_16 TipoRespuesta "NOT NULL; valores: si_no, opcion_unica, opcion_multiple, escala, texto_corto, texto_largo, numero"
+        varchar_25 TipoRespuesta "NOT NULL; valores: respuesta_breve, seleccion_unica, seleccion_multiple"
         boolean Obligatoria "NOT NULL"
-        smallint EscalaMin
-        smallint EscalaMax
-        varchar_50 EtiquetaMin
-        varchar_50 EtiquetaMax
-        smallint UmbralExposicion
-        smallint LongitudMax
         smallint Orden "NOT NULL"
         uuid PeligroId FK "→ Peligro"
         boolean Activa "NOT NULL"
@@ -452,18 +447,21 @@ erDiagram
 
 ---
 
-## 2.3 Dominio 3: Encuestas Dinámicas y Matriz de Riesgos (11 Tablas)
+## 2.3 Dominio 3: Encuestas Dinámicas y Matriz de Riesgos (12 Tablas)
 
 ```mermaid
 erDiagram
     Empresa ||--o{ Encuesta : "EmpresaId"
     VinculoEmpresa ||--o{ Encuesta : "EmpresaId + CreadaPorId"
-    Encuesta ||--o{ EncuestaCategoria : "EmpresaId + EncuestaId"
+    Empresa ||--o{ EncuestaVersion : "EmpresaId"
+    Encuesta ||--o{ EncuestaVersion : "EmpresaId + EncuestaId"
+    VinculoEmpresa ||--o{ EncuestaVersion : "EmpresaId + CreadaPorId"
+    EncuestaVersion ||--o{ EncuestaCategoria : "EmpresaId + EncuestaVersionId"
     CategoriaRiesgo ||--o{ EncuestaCategoria : "CategoriaRiesgoId"
     Empresa ||--o{ EncuestaCategoria : "EmpresaId"
     Empresa ||--o{ EncuestaPregunta : "EmpresaId"
-    Encuesta ||--o{ EncuestaPregunta : "EmpresaId + EncuestaId"
-    PreguntaExploratoria ||--o{ EncuestaPregunta : "PreguntaExploratoriaId"
+    EncuestaVersion ||--o{ EncuestaPregunta : "EmpresaId + EncuestaVersionId"
+    PreguntaExploratoria |o--o{ EncuestaPregunta : "PreguntaExploratoriaId"
     Peligro |o--o{ EncuestaPregunta : "PeligroId"
     Empresa ||--o{ EncuestaOpcion : "EmpresaId"
     EncuestaPregunta ||--o{ EncuestaOpcion : "EmpresaId + EncuestaPreguntaId"
@@ -471,7 +469,7 @@ erDiagram
     VinculoEmpresa ||--o{ ParticipacionEncuesta : "EmpresaId + VinculoEmpresaId"
     Empresa ||--o{ ParticipacionEncuesta : "EmpresaId"
     Empresa ||--o{ RespuestaEncuesta : "EmpresaId"
-    Encuesta ||--o{ RespuestaEncuesta : "EmpresaId + EncuestaId"
+    EncuestaVersion ||--o{ RespuestaEncuesta : "EmpresaId + EncuestaVersionId"
     RespuestaEncuesta ||--o{ DetalleRespuesta : "EmpresaId + RespuestaEncuestaId"
     EncuestaPregunta ||--o{ DetalleRespuesta : "EmpresaId + EncuestaPreguntaId"
     Empresa ||--o{ DetalleRespuesta : "EmpresaId"
@@ -494,16 +492,26 @@ erDiagram
         uuid Id PK
         uuid EmpresaId FK "NOT NULL; → Empresa"
         varchar_200 Titulo "NOT NULL"
-        text Instrucciones
         varchar_10 Estado "NOT NULL; valores: borrador, publicada, cerrada"
         uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
         timestamptz CreadaEn "NOT NULL"
-        timestamptz PublicadaEn
         timestamptz CerradaEn
     }
 
+    EncuestaVersion {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
+        integer NumeroVersion "NOT NULL"
+        text Instrucciones
+        varchar_12 Estado "NOT NULL; valores: borrador, publicada, reemplazada"
+        uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadaEn "NOT NULL"
+        timestamptz PublicadaEn
+    }
+
     EncuestaCategoria {
-        uuid EncuestaId PK, FK "FK comp → Encuesta"
+        uuid EncuestaVersionId PK, FK "FK comp → EncuestaVersion"
         uuid CategoriaRiesgoId PK, FK "→ CategoriaRiesgo"
         uuid EmpresaId FK "NOT NULL; → Empresa"
     }
@@ -511,18 +519,11 @@ erDiagram
     EncuestaPregunta {
         uuid Id PK
         uuid EmpresaId FK "NOT NULL; → Empresa"
-        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
-        uuid PreguntaExploratoriaId FK "NOT NULL; → PreguntaExploratoria"
+        uuid EncuestaVersionId FK "NOT NULL; FK comp → EncuestaVersion"
+        uuid PreguntaExploratoriaId FK "→ PreguntaExploratoria"
         varchar_500 Texto "NOT NULL"
-        varchar_300 Ayuda
-        varchar_16 TipoRespuesta "NOT NULL"
+        varchar_25 TipoRespuesta "NOT NULL; valores: respuesta_breve, seleccion_unica, seleccion_multiple"
         boolean Obligatoria "NOT NULL"
-        smallint EscalaMin
-        smallint EscalaMax
-        varchar_50 EtiquetaMin
-        varchar_50 EtiquetaMax
-        smallint UmbralExposicion
-        smallint LongitudMax
         uuid PeligroId FK "→ Peligro"
         smallint Orden "NOT NULL"
     }
@@ -546,7 +547,7 @@ erDiagram
     RespuestaEncuesta {
         uuid Id PK
         uuid EmpresaId FK "NOT NULL; → Empresa"
-        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
+        uuid EncuestaVersionId FK "NOT NULL; FK comp → EncuestaVersion"
         date FechaRespuesta "NOT NULL"
     }
 
@@ -555,7 +556,6 @@ erDiagram
         uuid EncuestaPreguntaId PK, FK "FK comp → EncuestaPregunta"
         uuid EmpresaId FK "NOT NULL; → Empresa"
         uuid EncuestaOpcionId
-        numeric_12_2 ValorNumerico
         text TextoLibre
     }
 
@@ -737,9 +737,9 @@ erDiagram
 
 ---
 
-## 2.5 Diagrama Relacional Físico Maestro Completo (40 Tablas)
+## 2.5 Diagrama Relacional Físico Maestro Completo (41 Tablas)
 
-*(Copia el bloque siguiente si deseas importar las 40 tablas de Norvia con todas sus relaciones foráneas en un solo lienzo de draw.io).*
+*(Copia el bloque siguiente si deseas importar las 41 tablas de Norvia con todas sus relaciones foráneas en un solo lienzo de draw.io).*
 
 ```mermaid
 erDiagram
@@ -773,12 +773,15 @@ erDiagram
     Rubro |o--o{ PlantillaDocumento : "RubroId"
     Empresa ||--o{ Encuesta : "EmpresaId"
     VinculoEmpresa ||--o{ Encuesta : "EmpresaId + CreadaPorId"
-    Encuesta ||--o{ EncuestaCategoria : "EmpresaId + EncuestaId"
+    Empresa ||--o{ EncuestaVersion : "EmpresaId"
+    Encuesta ||--o{ EncuestaVersion : "EmpresaId + EncuestaId"
+    VinculoEmpresa ||--o{ EncuestaVersion : "EmpresaId + CreadaPorId"
+    EncuestaVersion ||--o{ EncuestaCategoria : "EmpresaId + EncuestaVersionId"
     CategoriaRiesgo ||--o{ EncuestaCategoria : "CategoriaRiesgoId"
     Empresa ||--o{ EncuestaCategoria : "EmpresaId"
     Empresa ||--o{ EncuestaPregunta : "EmpresaId"
-    Encuesta ||--o{ EncuestaPregunta : "EmpresaId + EncuestaId"
-    PreguntaExploratoria ||--o{ EncuestaPregunta : "PreguntaExploratoriaId"
+    EncuestaVersion ||--o{ EncuestaPregunta : "EmpresaId + EncuestaVersionId"
+    PreguntaExploratoria |o--o{ EncuestaPregunta : "PreguntaExploratoriaId"
     Peligro |o--o{ EncuestaPregunta : "PeligroId"
     Empresa ||--o{ EncuestaOpcion : "EmpresaId"
     EncuestaPregunta ||--o{ EncuestaOpcion : "EmpresaId + EncuestaPreguntaId"
@@ -786,7 +789,7 @@ erDiagram
     VinculoEmpresa ||--o{ ParticipacionEncuesta : "EmpresaId + VinculoEmpresaId"
     Empresa ||--o{ ParticipacionEncuesta : "EmpresaId"
     Empresa ||--o{ RespuestaEncuesta : "EmpresaId"
-    Encuesta ||--o{ RespuestaEncuesta : "EmpresaId + EncuestaId"
+    EncuestaVersion ||--o{ RespuestaEncuesta : "EmpresaId + EncuestaVersionId"
     RespuestaEncuesta ||--o{ DetalleRespuesta : "EmpresaId + RespuestaEncuestaId"
     EncuestaPregunta ||--o{ DetalleRespuesta : "EmpresaId + EncuestaPreguntaId"
     Empresa ||--o{ DetalleRespuesta : "EmpresaId"
@@ -999,15 +1002,8 @@ erDiagram
         uuid Id PK
         uuid CategoriaRiesgoId FK "NOT NULL; → CategoriaRiesgo"
         varchar_500 Texto "NOT NULL"
-        varchar_300 Ayuda
-        varchar_16 TipoRespuesta "NOT NULL; valores: si_no, opcion_unica, opcion_multiple, escala, texto_corto, texto_largo, numero"
+        varchar_25 TipoRespuesta "NOT NULL; valores: respuesta_breve, seleccion_unica, seleccion_multiple"
         boolean Obligatoria "NOT NULL"
-        smallint EscalaMin
-        smallint EscalaMax
-        varchar_50 EtiquetaMin
-        varchar_50 EtiquetaMax
-        smallint UmbralExposicion
-        smallint LongitudMax
         smallint Orden "NOT NULL"
         uuid PeligroId FK "→ Peligro"
         boolean Activa "NOT NULL"
@@ -1046,16 +1042,26 @@ erDiagram
         uuid Id PK
         uuid EmpresaId FK "NOT NULL; → Empresa"
         varchar_200 Titulo "NOT NULL"
-        text Instrucciones
         varchar_10 Estado "NOT NULL; valores: borrador, publicada, cerrada"
         uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
         timestamptz CreadaEn "NOT NULL"
-        timestamptz PublicadaEn
         timestamptz CerradaEn
     }
 
+    EncuestaVersion {
+        uuid Id PK
+        uuid EmpresaId FK "NOT NULL; → Empresa"
+        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
+        integer NumeroVersion "NOT NULL"
+        text Instrucciones
+        varchar_12 Estado "NOT NULL; valores: borrador, publicada, reemplazada"
+        uuid CreadaPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        timestamptz CreadaEn "NOT NULL"
+        timestamptz PublicadaEn
+    }
+
     EncuestaCategoria {
-        uuid EncuestaId PK, FK "FK comp → Encuesta"
+        uuid EncuestaVersionId PK, FK "FK comp → EncuestaVersion"
         uuid CategoriaRiesgoId PK, FK "→ CategoriaRiesgo"
         uuid EmpresaId FK "NOT NULL; → Empresa"
     }
@@ -1063,18 +1069,11 @@ erDiagram
     EncuestaPregunta {
         uuid Id PK
         uuid EmpresaId FK "NOT NULL; → Empresa"
-        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
-        uuid PreguntaExploratoriaId FK "NOT NULL; → PreguntaExploratoria"
+        uuid EncuestaVersionId FK "NOT NULL; FK comp → EncuestaVersion"
+        uuid PreguntaExploratoriaId FK "→ PreguntaExploratoria"
         varchar_500 Texto "NOT NULL"
-        varchar_300 Ayuda
-        varchar_16 TipoRespuesta "NOT NULL"
+        varchar_25 TipoRespuesta "NOT NULL; valores: respuesta_breve, seleccion_unica, seleccion_multiple"
         boolean Obligatoria "NOT NULL"
-        smallint EscalaMin
-        smallint EscalaMax
-        varchar_50 EtiquetaMin
-        varchar_50 EtiquetaMax
-        smallint UmbralExposicion
-        smallint LongitudMax
         uuid PeligroId FK "→ Peligro"
         smallint Orden "NOT NULL"
     }
@@ -1098,7 +1097,7 @@ erDiagram
     RespuestaEncuesta {
         uuid Id PK
         uuid EmpresaId FK "NOT NULL; → Empresa"
-        uuid EncuestaId FK "NOT NULL; FK comp → Encuesta"
+        uuid EncuestaVersionId FK "NOT NULL; FK comp → EncuestaVersion"
         date FechaRespuesta "NOT NULL"
     }
 
@@ -1107,7 +1106,6 @@ erDiagram
         uuid EncuestaPreguntaId PK, FK "FK comp → EncuestaPregunta"
         uuid EmpresaId FK "NOT NULL; → Empresa"
         uuid EncuestaOpcionId
-        numeric_12_2 ValorNumerico
         text TextoLibre
     }
 

@@ -2,9 +2,9 @@
 
 **Para qué sirve:** define todas las tablas de Norvia, sus columnas, relaciones, restricciones e índices. Es la base del diagrama entidad-relación (ERD) que exige el curso y de la implementación con EF Core.
 
-El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D28 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaOpcion, DetalleRespuestaOpcion, ParticipacionEncuesta, Persona, **Acceso**, `VinculoEmpresa`, `StaffPlataforma`, **RefreshToken**, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
+El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D28 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaVersion, EncuestaOpcion, DetalleRespuestaOpcion, ParticipacionEncuesta, Persona, **Acceso**, `VinculoEmpresa`, `StaffPlataforma`, **RefreshToken**, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
 
-Tiene **40 tablas**. Tras la reducción de alcance del 13-11-2026 no hay áreas, ni integración con Google, ni tablas de comisión, equipos, EPP, personas afectadas o informes; la lista de tablas retiradas está en [entidades](09-entidades.md#recortadas-13-11-2026).
+Tiene **41 tablas**. Tras la reducción de alcance del 13-11-2026 no hay áreas, ni integración con Google, ni tablas de comisión, equipos, EPP, personas afectadas o informes; la lista de tablas retiradas está en [entidades](09-entidades.md#recortadas-13-11-2026).
 
 ### Nombres de persona (3FN)
 
@@ -113,14 +113,15 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Encuesta ||--|{ EncuestaCategoria : "explora"
+    Encuesta ||--|{ EncuestaVersion : "versiona"
+    EncuestaVersion ||--|{ EncuestaCategoria : "explora"
     CategoriaRiesgo ||--o{ EncuestaCategoria : "elegida en"
-    Encuesta ||--|{ EncuestaPregunta : "copia"
+    EncuestaVersion ||--|{ EncuestaPregunta : "contiene"
     PreguntaExploratoria ||--o{ EncuestaPregunta : "copiada en"
     EncuestaPregunta ||--o{ EncuestaOpcion : "ofrece"
     Encuesta ||--o{ ParticipacionEncuesta : "registra quién participó"
     VinculoEmpresa ||--o{ ParticipacionEncuesta : "participa"
-    Encuesta ||--o{ RespuestaEncuesta : "recibe (anónima)"
+    EncuestaVersion ||--o{ RespuestaEncuesta : "recibe (anónima)"
     RespuestaEncuesta ||--|{ DetalleRespuesta : "contiene"
     EncuestaPregunta ||--o{ DetalleRespuesta : "respondida en"
     EncuestaOpcion |o--o{ DetalleRespuesta : "elegida en"
@@ -333,22 +334,15 @@ Categorías de riesgo de cada rubro, como trabajo en alturas o alto voltaje.
 
 #### PreguntaExploratoria
 
-Preguntas de cada categoría. El tipo define cómo se pinta y se valida en el formulario dinámico (D26, RN-68). Si la pregunta detecta un peligro, se indica cuál (D7).
+Preguntas de cada categoría. El tipo define cómo se muestra y se valida en el formulario dinámico (D26, RN-68). Si la pregunta detecta un peligro, se indica cuál (D7).
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | CategoriaRiesgoId | uuid | No | FK → CategoriaRiesgo | |
 | Texto | varchar(500) | No | | |
-| Ayuda | varchar(300) | Sí | | Texto de apoyo que se muestra bajo la pregunta |
-| TipoRespuesta | varchar(16) | No | | `si_no`, `opcion_unica`, `opcion_multiple`, `escala`, `texto_corto`, `texto_largo`, `numero` |
+| TipoRespuesta | varchar(25) | No | | `respuesta_breve`, `seleccion_unica`, `seleccion_multiple` |
 | Obligatoria | boolean | No | | Por defecto `true` (RN-69) |
-| EscalaMin | smallint | Sí | | Solo en `escala`. Por ejemplo 1 |
-| EscalaMax | smallint | Sí | | Solo en `escala`. Por ejemplo 5 |
-| EtiquetaMin | varchar(50) | Sí | | Solo en `escala`. Por ejemplo "Nunca" |
-| EtiquetaMax | varchar(50) | Sí | | Solo en `escala`. Por ejemplo "Siempre" |
-| UmbralExposicion | smallint | Sí | | Solo en `escala`: un valor igual o mayor indica exposición (RN-13) |
-| LongitudMax | smallint | Sí | | Solo en `texto_corto` y `texto_largo` |
 | Orden | smallint | No | | Posición dentro de la categoría |
 | PeligroId | uuid | Sí | FK → Peligro | Peligro que detecta, si aplica |
 | Activa | boolean | No | | Por defecto `true` |
@@ -356,11 +350,8 @@ Preguntas de cada categoría. El tipo define cómo se pinta y se valida en el fo
 **Restricciones:**
 
 - UQ `(CategoriaRiesgoId, Orden)`.
-- CHECK: `EscalaMin`, `EscalaMax`, `EtiquetaMin`, `EtiquetaMax` y `UmbralExposicion` solo tienen valor si `TipoRespuesta = 'escala'`; en ese caso `EscalaMin` y `EscalaMax` son obligatorios, `EscalaMin < EscalaMax` y, si hay umbral, está entre ambos.
-- CHECK: `LongitudMax` solo tiene valor si el tipo es `texto_corto` o `texto_largo`, y es `> 0`.
-- CHECK: si el tipo es `texto_corto`, `texto_largo` o `numero`, `PeligroId` es nulo, porque esa respuesta no puede indicar exposición.
-- CHECK: si el tipo es `escala` y `PeligroId` tiene valor, `UmbralExposicion` tiene valor.
-- Las preguntas `si_no`, `opcion_unica` y `opcion_multiple` deben tener opciones en OpcionPregunta; los demás tipos no. Lo valida la aplicación.
+- CHECK: si `TipoRespuesta = 'respuesta_breve'`, `PeligroId` es nulo, porque una respuesta libre no puede indicar exposición.
+- Las preguntas de selección deben tener opciones en OpcionPregunta; las de respuesta breve no. Lo valida la aplicación.
 
 #### OpcionPregunta
 
@@ -374,7 +365,7 @@ Opciones de respuesta de las preguntas de selección. Está en una tabla aparte 
 | Orden | smallint | No | | |
 | IndicaExposicion | boolean | No | | Por defecto `false`. `true` si elegir esta opción sugiere el peligro de la pregunta |
 
-**Restricciones:** UQ `(PreguntaExploratoriaId, Orden)`. Solo las preguntas de selección (`si_no`, `opcion_unica`, `opcion_multiple`) tienen opciones, y una `si_no` tiene exactamente dos; lo valida la aplicación.
+**Restricciones:** UQ `(PreguntaExploratoriaId, Orden)`. Solo las preguntas de selección (`seleccion_unica`, `seleccion_multiple`) tienen opciones; lo valida la aplicación.
 
 #### PlantillaTarea
 
@@ -498,64 +489,77 @@ Acciones importantes, para que la evidencia sea verificable.
 
 #### Encuesta
 
-Cada encuesta generada y respondida dentro de Norvia (D8). No usa formularios externos.
+Cada encuesta creada y respondida dentro de Norvia (D8). Su contenido está en sus versiones.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | Titulo | varchar(200) | No | | |
-| Instrucciones | text | Sí | | Texto que ve el encuestado antes de responder |
-| Estado | varchar(10) | No | | `borrador`, `publicada`, `cerrada` (RN-70) |
+| Estado | varchar(10) | No | | `borrador` (ninguna versión publicada aún), `publicada`, `cerrada` (RN-70) |
 | CreadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | CreadaEn | timestamptz | No | | |
-| PublicadaEn | timestamptz | Sí | | |
 | CerradaEn | timestamptz | Sí | | |
 
-**Restricciones:**
+**Restricciones:** CHECK: `CerradaEn` tiene valor si y solo si `Estado = 'cerrada'`.
 
-- CHECK: `PublicadaEn` tiene valor si y solo si `Estado` es `publicada` o `cerrada`.
-- CHECK: `CerradaEn` tiene valor si y solo si `Estado = 'cerrada'`.
-- Una encuesta publicada o cerrada no cambia sus preguntas (RN-12); lo valida la aplicación.
+#### EncuestaVersion
 
-#### EncuestaCategoria
-
-Categorías elegidas para cada encuesta. Resuelve la relación muchos a muchos entre Encuesta y CategoriaRiesgo.
-
-| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
-|---|---|---|---|---|
-| EncuestaId | uuid | No | PK, FK compuesta → Encuesta | |
-| CategoriaRiesgoId | uuid | No | PK, FK → CategoriaRiesgo | |
-| EmpresaId | uuid | No | FK → Empresa | |
-
-**Restricciones:** PK `(EncuestaId, CategoriaRiesgoId)`. La categoría debe pertenecer al rubro de la empresa (RN-11); lo valida la aplicación.
-
-#### EncuestaPregunta
-
-Copia de cada pregunta al generar la encuesta (RN-12), con su tipo y su configuración, para que los cambios del catálogo no alteren encuestas pasadas. El formulario dinámico se arma a partir de esta tabla y de EncuestaOpcion.
+Versión del cuestionario (D8, RN-12). Editar una encuesta publicada crea una versión nueva en borrador; solo la versión publicada se muestra a los encuestados.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | EncuestaId | uuid | No | FK compuesta → Encuesta | |
-| PreguntaExploratoriaId | uuid | No | FK → PreguntaExploratoria | Pregunta de origen |
-| Texto | varchar(500) | No | | Copia del texto |
-| Ayuda | varchar(300) | Sí | | Copia |
-| TipoRespuesta | varchar(16) | No | | Copia del tipo |
-| Obligatoria | boolean | No | | Copia |
-| EscalaMin, EscalaMax | smallint | Sí | | Copia |
-| EtiquetaMin, EtiquetaMax | varchar(50) | Sí | | Copia |
-| UmbralExposicion | smallint | Sí | | Copia |
-| LongitudMax | smallint | Sí | | Copia |
-| PeligroId | uuid | Sí | FK → Peligro | Copia del peligro asociado |
-| Orden | smallint | No | | Posición en la encuesta |
+| NumeroVersion | integer | No | | CHECK `>= 1` |
+| Instrucciones | text | Sí | | Texto que ve el encuestado antes de responder |
+| Estado | varchar(12) | No | | `borrador`, `publicada`, `reemplazada` |
+| CreadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
+| CreadaEn | timestamptz | No | | |
+| PublicadaEn | timestamptz | Sí | | |
 
 **Restricciones:**
 
-- UQ `(EncuestaId, Orden)`.
-- UQ `(EncuestaId, Id)`, para que una respuesta verifique que la pregunta es de su encuesta.
-- Los mismos CHECK por tipo que PreguntaExploratoria.
+- UQ `(EncuestaId, NumeroVersion)`.
+- UQ parcial `(EncuestaId) WHERE Estado = 'publicada'`: una sola versión disponible para responder.
+- UQ parcial `(EncuestaId) WHERE Estado = 'borrador'`: un solo borrador a la vez.
+- CHECK: `PublicadaEn` tiene valor si `Estado` es `publicada` o `reemplazada`.
+- Una versión publicada o reemplazada no cambia sus preguntas; lo valida la aplicación.
+
+#### EncuestaCategoria
+
+Categorías elegidas para cada versión de encuesta. Resuelve la relación muchos a muchos entre EncuestaVersion y CategoriaRiesgo.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| EncuestaVersionId | uuid | No | PK, FK compuesta → EncuestaVersion | |
+| CategoriaRiesgoId | uuid | No | PK, FK → CategoriaRiesgo | |
+| EmpresaId | uuid | No | FK → Empresa | |
+
+**Restricciones:** PK `(EncuestaVersionId, CategoriaRiesgoId)`. La categoría debe pertenecer al rubro de la empresa (RN-11); lo valida la aplicación.
+
+#### EncuestaPregunta
+
+Copia de cada pregunta en una versión (RN-12), con su tipo, para que los cambios del catálogo o de la encuesta no alteren respuestas anteriores. El formulario dinámico se arma a partir de esta tabla y de EncuestaOpcion.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| EmpresaId | uuid | No | FK → Empresa | |
+| EncuestaVersionId | uuid | No | FK compuesta → EncuestaVersion | |
+| PreguntaExploratoriaId | uuid | Sí | FK → PreguntaExploratoria | Pregunta de origen; nulo si la agregó el Responsable SST al editar |
+| Texto | varchar(500) | No | | Copia del texto, editable mientras la versión está en borrador |
+| TipoRespuesta | varchar(25) | No | | `respuesta_breve`, `seleccion_unica` o `seleccion_multiple` |
+| Obligatoria | boolean | No | | |
+| PeligroId | uuid | Sí | FK → Peligro | Copia del peligro asociado |
+| Orden | smallint | No | | Posición en la versión |
+
+**Restricciones:**
+
+- UQ `(EncuestaVersionId, Orden)`.
+- UQ `(EncuestaVersionId, Id)`, para que una respuesta verifique que la pregunta es de su versión.
+- CHECK: si `TipoRespuesta = 'respuesta_breve'`, `PeligroId` es nulo.
 
 #### EncuestaOpcion
 
@@ -587,16 +591,16 @@ Registra **quién** ya respondió una encuesta, sin decir **qué** respondió (D
 
 #### RespuestaEncuesta
 
-Cada respuesta recibida, **anónima** (D27, RN-72): no guarda el vínculo de quien respondió ni la hora.
+Cada respuesta recibida, **anónima** (D27, RN-72): no guarda el vínculo de quien respondió ni la hora. Guarda la versión que se contestó (RN-12).
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | UUID aleatorio, que no permite ordenar las respuestas por llegada |
 | EmpresaId | uuid | No | FK → Empresa | |
-| EncuestaId | uuid | No | FK compuesta → Encuesta | |
+| EncuestaVersionId | uuid | No | FK compuesta → EncuestaVersion | Versión contestada; la encuesta se obtiene de ella |
 | FechaRespuesta | date | No | | Solo la fecha, la fija el servidor. Sin hora, para que no se pueda cruzar con `ParticipacionEncuesta.ParticipoEn` |
 
-**Restricciones:** UQ `(EncuestaId, Id)`, destino de la FK de DetalleRespuesta.
+**Restricciones:** UQ `(EncuestaVersionId, Id)`, destino de la FK de DetalleRespuesta.
 
 #### DetalleRespuesta
 
@@ -607,21 +611,20 @@ Respuesta a cada pregunta. La columna que se llena depende del tipo de la pregun
 | RespuestaEncuestaId | uuid | No | PK, FK compuesta → RespuestaEncuesta | |
 | EncuestaPreguntaId | uuid | No | PK, FK compuesta → EncuestaPregunta | |
 | EmpresaId | uuid | No | FK → Empresa | |
-| EncuestaOpcionId | uuid | Sí | | Opción elegida en `si_no` y `opcion_unica` |
-| ValorNumerico | numeric(12,2) | Sí | | Valor en `escala` (entero) y `numero` |
-| TextoLibre | text | Sí | | Respuesta en `texto_corto` y `texto_largo` |
+| EncuestaOpcionId | uuid | Sí | | Opción elegida en `seleccion_unica` |
+| TextoLibre | text | Sí | | Respuesta en `respuesta_breve` |
 
 **Restricciones:**
 
 - PK `(RespuestaEncuestaId, EncuestaPreguntaId)`.
 - FK `(EncuestaPreguntaId, EncuestaOpcionId) → EncuestaOpcion (EncuestaPreguntaId, Id)`: la opción debe ser de esa pregunta.
-- CHECK: como máximo una de `EncuestaOpcionId`, `ValorNumerico` o `TextoLibre` tiene valor. En `opcion_multiple` las tres son nulas y las opciones van en DetalleRespuestaOpcion.
-- Que la columna llena corresponda al tipo, que la escala esté en su rango y que el texto no pase su longitud lo valida la aplicación (RN-68), porque el tipo está en otra tabla.
+- CHECK: como máximo una de `EncuestaOpcionId` o `TextoLibre` tiene valor. En `seleccion_multiple` las dos son nulas y las opciones van en DetalleRespuestaOpcion.
+- Que la columna llena corresponda al tipo y que la pregunta sea de la misma versión que la respuesta lo valida la aplicación (RN-68).
 - Una pregunta no obligatoria sin respuesta no genera fila.
 
 #### DetalleRespuestaOpcion
 
-Opciones elegidas en una pregunta `opcion_multiple` (D26). Está aparte para cumplir la 1FN.
+Opciones elegidas en una pregunta `seleccion_multiple` (D26). Está aparte para cumplir la 1FN.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
@@ -853,7 +856,8 @@ Aviso a un operador con vínculo (D28). Se ve dentro de Norvia y se envía por c
 | Relación | Cardinalidad | Cómo se implementa |
 |---|---|---|
 | Persona – Empresa | Muchos a muchos | Tabla intermedia VinculoEmpresa |
-| Encuesta – CategoriaRiesgo | Muchos a muchos | Tabla intermedia EncuestaCategoria |
+| EncuestaVersion – CategoriaRiesgo | Muchos a muchos | Tabla intermedia EncuestaCategoria |
+| Encuesta – EncuestaVersion | Uno a muchos | FK y UQ parcial: una versión publicada y un borrador a la vez |
 | Encuesta – VinculoEmpresa (participación) | Muchos a muchos | Tabla intermedia ParticipacionEncuesta |
 | DetalleRespuesta – EncuestaOpcion (opción múltiple) | Muchos a muchos | Tabla intermedia DetalleRespuestaOpcion |
 | Rubro – CategoriaRiesgo – PreguntaExploratoria – OpcionPregunta | Uno a muchos, en cadena | FK en la tabla hija |
@@ -900,7 +904,6 @@ Cada columna guarda un solo valor:
 
 - Las opciones de una pregunta están en OpcionPregunta y EncuestaOpcion.
 - Las opciones elegidas en una pregunta de opción múltiple están en DetalleRespuestaOpcion.
-- La configuración de cada tipo de pregunta está en columnas propias, no en un texto libre.
 - Las categorías de una encuesta están en EncuestaCategoria.
 - Las fotos y evidencias están en Archivo.
 
@@ -919,7 +922,7 @@ No se guardan datos que se puedan obtener de otros:
 | Nombre completo de Persona | Concatenación de las cuatro columnas de nombre (RN-62) |
 | Nivel y clasificación del riesgo | `Probabilidad × Severidad` |
 | Respuestas que respaldan una sugerencia | Conteo en DetalleRespuesta y DetalleRespuestaOpcion |
-| Resultados del reporte anónimo | Conteos y promedios sobre DetalleRespuesta y DetalleRespuestaOpcion |
+| Resultados del reporte anónimo | Conteos sobre DetalleRespuesta y DetalleRespuestaOpcion |
 | Número de participantes de una encuesta | Conteo en ParticipacionEncuesta |
 | Origen de una tarea | Columna de origen que tiene valor |
 | Estadísticas de accidentes | Conteo de Accidente por `Tipo` y periodo |
@@ -928,7 +931,7 @@ No se guardan datos que se puedan obtener de otros:
 
 Estas columnas repiten un dato a propósito, sin romper la 3FN:
 
-- **Copias de la encuesta** (`EncuestaPregunta.Texto`, tipo y configuración, `EncuestaOpcion.Texto`, `PeligroId`, `IndicaExposicion`): registran lo que se publicó en ese momento. No se pueden deducir del catálogo, porque este puede cambiar (RN-12).
+- **Copias de la encuesta** (`EncuestaPregunta.Texto`, tipo, `EncuestaOpcion.Texto`, `PeligroId`, `IndicaExposicion`): registran lo que mostró cada versión. No se pueden deducir del catálogo, porque este y la encuesta pueden cambiar (RN-12).
 - **`Notificacion.Titulo` y `Mensaje`:** guardan el texto que se envió por correo, aunque el documento o la tarea cambien después.
 - **`EmpresaId` en tablas hijas,** como DetalleRespuesta o ParticipacionEncuesta: técnicamente podría deducirse de la tabla padre. Se guarda porque el curso exige `EmpresaId` en las tablas transaccionales y porque el filtro global lo necesita en cada tabla. Las FK compuestas garantizan que siempre coincide con el padre, así que no puede quedar inconsistente.
 
@@ -955,8 +958,8 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-08 | App | Validación al cambiar roles o suspender vínculos |
 | RN-09 | BD | `Empresa.RubroId` es una sola columna |
 | RN-10, RN-11 | App | Validación antes de generar la encuesta |
-| RN-12 | BD y App | Copias en EncuestaPregunta y EncuestaOpcion; no se editan fuera de `borrador` |
-| RN-13, RN-14 | App | Consulta determinista sobre DetalleRespuesta y DetalleRespuestaOpcion (`IndicaExposicion` o `ValorNumerico >= UmbralExposicion`) |
+| RN-12 | BD y App | Copias por versión en EncuestaPregunta y EncuestaOpcion; RespuestaEncuesta guarda la versión contestada; solo se edita la versión en `borrador` |
+| RN-13, RN-14 | App | Consulta determinista sobre DetalleRespuesta y DetalleRespuestaOpcion (`IndicaExposicion`) |
 | RN-15, RN-16 | BD y App | CHECK de 1 a 5; nivel y clasificación calculados |
 | RN-18 | BD | `RiesgoEmpresa.Estado` |
 | RN-19 | App | Validación al evaluar |
@@ -971,9 +974,9 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-31 | BD | `RegistradoEn DEFAULT now()` |
 | RN-49, RN-50, RN-51 | BD | Estados, UQ parciales y disparador |
 | RN-52 | App | La matriz en PDF se genera desde las tablas |
-| RN-68 | BD y App | CHECK por tipo en las preguntas; validación de la respuesta según el tipo (FluentValidation y Zod) |
+| RN-68 | BD y App | CHECK de `TipoRespuesta`; validación de la respuesta según el tipo (FluentValidation y Zod) |
 | RN-69 | App | Validación al enviar |
-| RN-70 | BD y App | `Encuesta.Estado`; validación al responder |
+| RN-70 | BD y App | `Encuesta.Estado` y `EncuestaVersion.Estado` con UQ parcial; validación al responder |
 | RN-71 | BD | PK `(EncuestaId, VinculoEmpresaId)` en ParticipacionEncuesta |
 | RN-72 | BD | RespuestaEncuesta sin vínculo y con `FechaRespuesta date`; sin FK entre participación y respuesta |
 | RN-73 | App | Conteo de respuestas antes de mostrar el reporte |

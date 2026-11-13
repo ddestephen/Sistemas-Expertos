@@ -59,7 +59,8 @@
 | Alcance (de permiso) | Columna **`Permiso.Alcance`**: `empresa` (sesión de **vínculo**, tenant) o `plataforma` (sesión **StaffPlataforma**, operaciones globales). No es el nombre de la tabla de login |
 | Área | Parte de una empresa. Se usó hasta el 13-11-2026; ahora todo se trabaja a nivel de empresa |
 | Encargado de área | Responsable de un área. Dejó de usarse junto con las áreas (13-11-2026) |
-| Encuesta | Cuestionario dinámico de Norvia que responden los encuestados para identificar peligros. Estados: `borrador`, `publicada`, `cerrada` |
+| Encuesta | Cuestionario dinámico de Norvia que responden los encuestados para identificar peligros. Estados: `borrador`, `publicada`, `cerrada`. Se edita mediante versiones |
+| Versión de encuesta | Copia de las preguntas de una encuesta en un momento dado. Solo una está publicada a la vez; cada respuesta guarda la versión que se contestó |
 | Encuestado | Trabajador con vínculo y rol `encuestado`: responde encuestas, ve sus notificaciones y consulta políticas vigentes |
 | Encuestador | Quien crea, publica y aplica la encuesta. En Norvia es el Responsable SST; no es un rol aparte |
 | Formulario dinámico | Formulario que Norvia arma con los datos de la encuesta: cada pregunta se muestra con el control de su tipo |
@@ -73,8 +74,7 @@
 | Notificación | Aviso para un operador con vínculo, visible en Norvia y enviado por correo; por ejemplo, una política nueva o una tarea asignada |
 | Participación | Registro de que un vínculo ya respondió una encuesta, sin enlazarlo con lo que respondió |
 | Reporte anónimo | Resumen de las respuestas de una encuesta que no permite saber quién respondió qué; se muestra con al menos 3 respuestas |
-| Tipo de pregunta | Forma de responder una pregunta: `si_no`, `opcion_unica`, `opcion_multiple`, `escala`, `texto_corto`, `texto_largo` o `numero` |
-| Umbral de exposición | En una pregunta de escala, valor desde el cual la respuesta indica exposición al peligro |
+| Tipo de pregunta | Forma de responder una pregunta: `respuesta_breve` (texto), `seleccion_unica` (una opción) o `seleccion_multiple` (varias opciones) |
 | Multiempresa | Varias empresas usan la misma plataforma con su información aislada |
 | MVP | Producto mínimo viable: versión más pequeña que ya resuelve el problema |
 | Pitch | Presentación breve de una idea de negocio |

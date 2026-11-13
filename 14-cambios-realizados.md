@@ -10,7 +10,8 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
-| 2026-11-13 | Equipo (redactado con Claude Code) | **Reducción de alcance:** encuestas dinámicas y anónimas sin Google Forms, cuentas de encuestados, sin áreas, M6 sin personas afectadas, notificaciones en Norvia y por correo; M7, M8 y M12 fuera (40 tablas, D26–D28, RN-68–79, HU-114–117) | [Ver cambio](#cambio-2026-11-13-reduccion-alcance) |
+| 2026-11-13 | Equipo (redactado con Claude Code) | **Reducción de alcance** integrada con el rework de Jonathan: encuestas internas con versiones y 3 tipos, respuestas anónimas, cuentas de encuestados, sin áreas, M6 sin personas afectadas, notificaciones en Norvia y por correo; M7, M8 y M12 fuera (41 tablas, D26–D28, RN-68–79, HU-114–118) | [Ver cambio](#cambio-2026-11-13-reduccion-alcance) |
+| 2026-11-13 | Jonathan | Rework de historias: redacción no técnica de los criterios, encuestas internas con versiones (`EncuestaVersion`) y 3 tipos de pregunta, política de contraseñas (HU-114) | Integrado en [este cambio](#cambio-2026-11-13-reduccion-alcance) |
 | 2026-11-09 | Jesús | Archivo nativo editable **`docs/Diagramas.drawio`** (ERD Conceptual y Relacional Físico) y `.gitignore` | [Ver cambio](#cambio-2026-11-09-archivo-drawio) |
 | 2026-11-09 | Jesús | Diagramas ERD y Relacional con tipos PostgreSQL exportables a draw.io en Mermaid (53 tablas, D25) | [Ver cambio](#cambio-2026-11-09-diagramas-drawio) |
 | 2026-11-09 | Jonathan | Tablas **`Acceso`** y **`RefreshToken`**; credenciales fuera de vínculo/staff (D21/D25, RN-57/65–67); alineado a `ProyectoFinal/backend` | [Ver cambio](#cambio-2026-11-09-acceso) |
@@ -27,7 +28,7 @@
 |---|---|
 | **Quién documentó** | Equipo (redactado con Claude Code) |
 | **Fecha** | 13 de noviembre de 2026 |
-| **Alcance** | Reducción del alcance del producto y rediseño de las encuestas. Toca decisiones, reglas, entidades, modelo de datos (53 → 40 tablas), historias, alcance, módulos, actores, marco normativo, backlog, glosario y diagramas Mermaid |
+| **Alcance** | Reducción del alcance del producto y rediseño de las encuestas, integrado con el commit `0c693a9 rework/hus actualizadas` de Jonathan. Toca decisiones, reglas, entidades, modelo de datos (53 → 41 tablas), historias, alcance, módulos, actores, marco normativo, backlog, glosario y diagramas Mermaid |
 
 ### El problema (por qué hubo que cambiar)
 
@@ -49,15 +50,31 @@
 
    Varias rutas de la guía (`docs/`, `ProyectoFinal/`) quedaron desactualizadas.
 
+### Integración con el rework de Jonathan (mismo día)
+
+El 13-11 Jonathan subió en paralelo su propio rediseño de las encuestas y una reescritura de las historias. Al juntar ambos cambios se decidió lo siguiente:
+
+| Tema | Jonathan | Este cambio | Quedó |
+|---|---|---|---|
+| Edición de encuestas | Versiones (`EncuestaVersion`): editar una encuesta publicada crea una versión nueva | Encuesta fija al publicar | **Versiones** (Jonathan) |
+| Tipos de pregunta | `respuesta_breve`, `seleccion_unica`, `seleccion_multiple` | 7 tipos, con escala y umbral | **Los 3 de Jonathan** |
+| Quién responde | Cualquier vínculo; la respuesta queda asociada al trabajador | Rol `encuestado`; respuesta anónima | **Encuestado y anonimato** (decisión del equipo sobre el "reporte anónimo") |
+| Áreas y Google Calendar | Se conservaban | Se eliminan | **Sin áreas ni Google** |
+| Elegir empresa al entrar y roles editables por empresa (HU-019, HU-021) | Sí | Login por empresa sin selector; roles globales | **Modelo actual** (D1, D20, D23): HU-019 y HU-021 se redactaron sin selector y sin edición de funciones por grupo |
+| Redacción de las historias | No técnica, en todas | Técnica en las historias técnicas | **No técnica, en todas** (Jonathan) |
+| Política de contraseñas | HU-114 nueva | — | Se conserva como **HU-114**; las historias nuevas de este cambio pasan a ser **HU-115 a HU-118** |
+| Reglas | RN-68 (respuesta asociada al trabajador) y RN-69 (tipos) | RN-68 a RN-79 | Su RN-68 se descarta porque contradice el anonimato; su RN-69 queda dentro de la nueva **RN-68** (tipos) |
+| HU-006 | Pasa a Must | — | Must |
+
 ### Qué se decidió y por qué
 
 | Decisión | Qué significa | Por qué ayuda |
 |----------|---------------|---------------|
 | **Conservar los códigos** | M1–M12, HU-001–113, D1–D25 y RN-01–67 no se renumeran. Lo recortado se marca "Fuera de alcance" (HU, RN, módulos) o "Sin efecto" (D) | Los enlaces, el tablero y la bitácora anterior siguen siendo válidos |
 | **Las tablas recortadas salen del modelo** | 16 tablas se eliminan del diccionario y de los diagramas. Se listan en `09-entidades.md` § Recortadas | El ERD que se entrega muestra solo lo que se construye |
-| **Encuesta propia (D8, D26)** | Cada pregunta tiene un tipo: `si_no`, `opcion_unica`, `opcion_multiple`, `escala`, `texto_corto`, `texto_largo` o `numero`. La configuración va en columnas (obligatoria, rango y etiquetas de escala, umbral de exposición, longitud máxima). Estados: `borrador` → `publicada` → `cerrada` | El front pinta cada control según el tipo, sin servicios externos, y la base valida cada configuración con CHECK |
+| **Encuesta propia con versiones (D8, D26)** | Cada pregunta tiene un tipo: `respuesta_breve`, `seleccion_unica` o `seleccion_multiple`, y la marca `Obligatoria`. Estados de la encuesta: `borrador` → `publicada` → `cerrada`. Editar una encuesta publicada crea una `EncuestaVersion` nueva; cada respuesta guarda la versión contestada | El front pinta cada control según el tipo, sin servicios externos, y las respuestas viejas no cambian al editar |
 | **Encuestados con cuenta (D5, RN-74)** | Rol nuevo `encuestado`. El "encuestador" es el Responsable SST, que crea y publica la encuesta; no hay un rol aparte | Cada trabajador responde una sola vez, y la regla está en la base |
-| **Respuestas anónimas (D27, RN-71–73)** | `ParticipacionEncuesta` guarda quién participó; `RespuestaEncuesta` guarda qué se respondió, sin vínculo y solo con la fecha. No hay relación entre ambas. El reporte se muestra con al menos 3 respuestas | Es el "reporte anónimo" del diagrama: se controla la participación sin poder identificar respuestas |
+| **Respuestas anónimas (D27, RN-71–73)** | `ParticipacionEncuesta` guarda quién participó; `RespuestaEncuesta` guarda qué se respondió (con la versión), sin vínculo y solo con la fecha. No hay relación entre ambas. El reporte se muestra con al menos 3 respuestas | Es el "reporte anónimo" del diagrama: se controla la participación sin poder identificar respuestas |
 | **Sin áreas (D4)** | Se elimina `Area`. Los riesgos, accidentes y encuestas son de la empresa. `Accidente` usa `Lugar` en texto libre | Reduce FK, reglas e historias en todos los módulos |
 | **Accidentes sin afectados (D11)** | Se elimina `PersonaAfectada`; las estadísticas son conteos por tipo, gravedad y periodo | Recorta alcance y evita guardar datos de salud |
 | **Notificaciones (D28, RN-75, RN-77–79)** | Tabla `Notificacion` por vínculo destinatario: se ve en Norvia y se envía por correo, con reintentos (outbox). Se usa para las políticas publicadas y las tareas asignadas | Es la "notificación de nueva política" del diagrama, sin Google Calendar |
@@ -78,15 +95,15 @@
   - M10, solo la matriz en PDF;
   - M11, en Norvia y por correo.
 - **Módulos fuera de alcance:** M7, M8 y M12.
-- **Modelo:** 40 tablas.
+- **Modelo:** 41 tablas.
   - **Salen (16):** ConexionGoogle, EventoCalendario, Informe, Area, PersonaAfectada, Comision, IntegranteComision, Reunion, Asistencia, Acta, FirmaActa, Equipo, Mantenimiento, ArticuloEPP, IngresoEPP y EntregaEPP.
-  - **Entran (3):** ParticipacionEncuesta, DetalleRespuestaOpcion y Notificacion.
+  - **Entran (4):** EncuestaVersion, ParticipacionEncuesta, DetalleRespuestaOpcion y Notificacion.
   - **Cambian:**
-    - PreguntaExploratoria y EncuestaPregunta: tipos y configuración.
-    - Encuesta: sin columnas de Google; con estados y fechas.
+    - PreguntaExploratoria y EncuestaPregunta: 3 tipos y `Obligatoria`.
+    - Encuesta: sin columnas de Google; con estados.
+    - EncuestaCategoria y EncuestaPregunta: cuelgan de EncuestaVersion.
     - EncuestaPregunta y EncuestaOpcion: sin la pregunta de área.
-    - RespuestaEncuesta: anónima.
-    - DetalleRespuesta: con `ValorNumerico`.
+    - RespuestaEncuesta: anónima, con la versión contestada.
     - RiesgoEmpresa: sin `AreaId`; con `AccidenteId`.
     - Accidente: sin `AreaId`; con `Lugar`.
     - Tarea: origen riesgo, accidente o manual.
@@ -100,17 +117,17 @@
   - Nuevas: RN-68–RN-79.
   - Modificadas: RN-10, RN-12, RN-13 y RN-23.
   - Fuera de alcance: RN-17, RN-29, RN-30, RN-32–48, RN-53–56 y RN-61.
-- **Historias:** 117 en total.
-  - En alcance: 79 (66 Must y 13 Should).
+- **Historias:** 118 en total.
+  - En alcance: 80 (68 Must y 12 Should).
   - Fuera de alcance: 38.
-  - Por entrega: Diseño 16, E1 43 y E2 20.
+  - Por entrega: Diseño 16, E1 44 y E2 20.
 
 ### Qué hizo el equipo en la práctica
 
 - Se actualizó la cadena de verdad en orden: `08` → `07` → `09` → `12` (diccionario, diagramas, relaciones, índices, normalización y trazabilidad §9) → `10` (historias y tabla Resumen) → `14` → `11`.
 - También se ajustaron `01`, `03`, `04`, `05`, `06`, `13`, `README.md` y `00-guia-edicion-docs.md` (rutas nuevas y regla de recortes).
 - Se regeneraron los bloques Mermaid de `15-diagramas-drawio.md` desde el diccionario de `12`.
-- **Pendiente:** `Diagramas.drawio` todavía muestra el modelo de 53 tablas. Hay que reimportar los bloques de `15`.
+- **Pendiente:** `Diagramas.drawio` todavía muestra el modelo de 53 tablas (el nuevo tiene 41). Hay que reimportar los bloques de `15`.
 - Se verificó con un script:
   - que no hay dependencias hacia historias inexistentes ni recortadas;
   - que ninguna historia depende de una entrega posterior;
@@ -120,7 +137,7 @@
 - **Pendiente en el código** (`Proyecto-Sistemas-Expertos-1900-III-PAC-2026/backend`):
   - quitar `Area` y `RiesgoEmpresa.AreaId`;
   - actualizar el enum `TipoRespuestaPregunta`;
-  - crear las entidades de encuesta, `Notificacion`, `Acceso` y `RefreshToken`;
+  - crear las entidades de encuesta (con `EncuestaVersion`), `Notificacion`, `Acceso` y `RefreshToken`;
   - generar una migración nueva.
 - **Por confirmar:** que cada encuestado tenga un correo para su **Acceso** (trabajadores de maquila sin correo).
 
@@ -133,32 +150,33 @@
 | HU-047, HU-051, HU-052 (M6 reducido) | Sí | [ ] |
 | HU-075 (matriz impresa, pasa a E1) | Sí | [ ] |
 | HU-081 (aviso de tarea asignada) | Sí | [ ] |
-| HU-114–117 (nuevas) | Sí | [ ] |
+| HU-114 (Jonathan) y HU-115–118 (nuevas) | Sí | [ ] |
+| Resto de historias (redacción no técnica de Jonathan) | Sí | [ ] |
 | HU-025, 027, 028, 048, 053–069, 076–080, 082–090, 105, 112, 113 (fuera de alcance) | Sí | [ ] cerrar o archivar en el tablero |
 | HU-023, 024, 034, 041, 046, 070–074, 099 (de E3 a E2) | Sí | [ ] |
 
-#### HU-030 | Generar y publicar la encuesta
+#### HU-030 | Crear y editar una encuesta
 
 | **Antes** | Se creaba en Google Forms, con una pregunta de área, y se compartía un enlace |
-| **Ahora** | Se genera en Norvia como borrador (vista previa dinámica, quitar o reordenar preguntas), se publica y se cierra. Sin Google ni pregunta de área |
+| **Ahora** | Se crea en Norvia como borrador, se publica y se cierra. Editarla después de publicada crea una versión nueva. Sin Google ni pregunta de área |
 | **Tablero** | [ ] |
 
-#### HU-031 | Responder la encuesta (antes: Importar las respuestas)
+#### HU-031 | Responder una encuesta (antes: Importar las respuestas)
 
 | **Antes** | El Responsable SST importaba las respuestas desde Google |
-| **Ahora** | El encuestado responde con su cuenta, en un formulario pintado según el tipo de cada pregunta. Responde una sola vez y de forma anónima |
+| **Ahora** | El encuestado responde con su cuenta, en un formulario que muestra cada pregunta según su tipo (texto, una opción o varias). Responde una sola vez, de forma anónima, y la respuesta guarda la versión contestada |
 | **Tablero** | [ ] |
 
-#### HU-032 | Ver el reporte anónimo (antes: Ver el resumen de respuestas)
+#### HU-032 | Consultar gráficos y resultados anónimos (antes: Ver el resumen de respuestas)
 
 | **Antes** | Resumen por pregunta y por área |
-| **Ahora** | Resumen de la empresa por pregunta (conteos, promedios y textos sin autor), visible solo con al menos 3 respuestas |
+| **Ahora** | Gráficos de la empresa por pregunta, comparativas entre versiones y encuestas, y textos sin autor; visible solo con al menos 3 respuestas |
 | **Tablero** | [ ] |
 
 #### HU-033 | Obtener peligros sugeridos
 
 | **Antes** | La sugerencia era por área, desde la opción de exposición |
-| **Ahora** | La sugerencia es de la empresa, desde una opción de exposición o un valor de escala igual o mayor que el umbral |
+| **Ahora** | La sugerencia es de la empresa, desde la opción de exposición |
 | **Tablero** | [ ] |
 
 #### HU-035, HU-036, HU-038 | Matriz sin áreas
@@ -191,10 +209,16 @@
 | **Ahora** | Notificación en Norvia y por correo, con reintento |
 | **Tablero** | [ ] |
 
-#### HU-114 a HU-117 | Historias nuevas
+#### HU-019 y HU-021 | Acceso a varias empresas y grupos
+
+| **Antes** | Redacción técnica (vínculo, `IdEmpresa` cifrado, `HistorialEstadoVinculo`) |
+| **Ahora** | Redacción no técnica de Jonathan, ajustada al modelo vigente: una sesión por empresa, sin opción de cambiar de empresa, y funciones de cada grupo definidas por la plataforma |
+| **Tablero** | [ ] |
+
+#### HU-114 a HU-118 | Historias nuevas
 
 | **Antes** | — |
-| **Ahora** | HU-114: crear cuentas de encuestados (también en lote). HU-115: notificar una política nueva. HU-116: ver mis notificaciones. HU-117: configurar el envío de correo |
+| **Ahora** | HU-114 (Jonathan): política de contraseñas. HU-115: crear cuentas de encuestados (también en lote). HU-116: notificar una política nueva. HU-117: ver mis notificaciones. HU-118: configurar el envío de correo |
 | **Tablero** | [ ] |
 
 ### Mapa rápido (archivos oficiales)
@@ -204,7 +228,7 @@
 | Decisiones D3–D28 | [08-decisiones-bd.md](08-decisiones-bd.md) |
 | Reglas RN-68–79 y recortes | [07-reglas-negocio.md](07-reglas-negocio.md) |
 | Entidades y tablas recortadas | [09-entidades.md](09-entidades.md) |
-| Diccionario de 40 tablas | [12-modelo-datos.md](12-modelo-datos.md) |
+| Diccionario de 41 tablas | [12-modelo-datos.md](12-modelo-datos.md) |
 | Historias y Resumen | [10-historias-usuario.md](10-historias-usuario.md) |
 | Alcance y entregas | [03-alcance.md](03-alcance.md) |
 | Diagramas Mermaid | [15-diagramas-drawio.md](15-diagramas-drawio.md) |

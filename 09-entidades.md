@@ -29,7 +29,7 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Global | RolStaffPlataformaPermiso | Permisos de cada **RolStaffPlataforma** | M1 |
 | Global | Rubro | Los 4 rubros | M2 |
 | Global | CategoriaRiesgo | Categorías de riesgo de cada rubro | M3 |
-| Global | PreguntaExploratoria | Preguntas de cada categoría, con su tipo de respuesta, su configuración y su peligro asociado | M3 |
+| Global | PreguntaExploratoria | Preguntas de cada categoría, con su tipo de respuesta y su peligro asociado | M3 |
 | Global | OpcionPregunta | Opciones de las preguntas de selección, indicando cuál revela exposición | M3 |
 | Global | Peligro | Catálogo de peligros | M3, M4 |
 | Global | PlantillaTarea | Tareas modelo | M4, M5 |
@@ -39,11 +39,12 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Con `EmpresaId` | HistorialEstadoEmpresa | Cambios de estado del tenant (p. ej. mora) | M1 |
 | Con `EmpresaId` | RegistroAuditoria | Acciones importantes | Todos |
 | Con `EmpresaId` | Encuesta | Cada encuesta propia de Norvia y su estado | M3 |
-| Con `EmpresaId` | EncuestaCategoria | Categorías elegidas para cada encuesta | M3 |
-| Con `EmpresaId` | EncuestaPregunta | Copia de las preguntas enviadas | M3 |
+| Con `EmpresaId` | EncuestaVersion | Versión editable o publicada de una encuesta | M3 |
+| Con `EmpresaId` | EncuestaCategoria | Categorías elegidas para cada versión de encuesta | M3 |
+| Con `EmpresaId` | EncuestaPregunta | Copia de las preguntas de una versión | M3 |
 | Con `EmpresaId` | EncuestaOpcion | Copia de las opciones enviadas | M3 |
 | Con `EmpresaId` | ParticipacionEncuesta | Qué vínculo ya respondió cada encuesta, sin enlazarlo a su respuesta | M3 |
-| Con `EmpresaId` | RespuestaEncuesta | Cada respuesta recibida, anónima | M3 |
+| Con `EmpresaId` | RespuestaEncuesta | Cada respuesta recibida, anónima, con la versión contestada | M3 |
 | Con `EmpresaId` | DetalleRespuesta | Respuesta a cada pregunta | M3 |
 | Con `EmpresaId` | DetalleRespuestaOpcion | Opciones elegidas en preguntas de opción múltiple | M3 |
 | Con `EmpresaId` | RiesgoEmpresa | Riesgos de la empresa | M4 |

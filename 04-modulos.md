@@ -33,15 +33,15 @@ La empresa es la única unidad organizativa: no se registran áreas. El cálculo
 
 **Propósito:** conocer el contexto de la organización a través de sus trabajadores, para identificar sus riesgos.
 
-Cada rubro tiene categorías de riesgo, como trabajo en alturas o alto voltaje, y cada categoría tiene preguntas exploratorias. Rubros, categorías y preguntas se guardan en la base de datos. Cada pregunta tiene un **tipo** que decide cómo se muestra y se valida: sí/no, opción única, opción múltiple, escala (por ejemplo, de 1 a 5 con etiquetas), texto corto, texto largo o número.
+Cada rubro tiene categorías de riesgo, como trabajo en alturas o alto voltaje, y cada categoría tiene preguntas exploratorias. Rubros, categorías y preguntas se guardan en la base de datos. Las categorías disponibles se filtran por el rubro de la empresa. Cada pregunta tiene un **tipo** que decide cómo se muestra y se valida: respuesta breve (texto), selección única (una opción) o selección múltiple (varias opciones).
 
 1. El Responsable de SST elige las categorías que quiere explorar. Solo ve las de su rubro.
-2. Norvia genera la encuesta como borrador con las preguntas de esas categorías. El Responsable de SST puede quitar o reordenar preguntas y ver la vista previa.
-3. El Responsable de SST la publica. Desde ese momento sus preguntas no cambian.
+2. Norvia crea la encuesta con una primera **versión** en borrador, con las preguntas de esas categorías. El Responsable de SST puede editarla y ver la vista previa.
+3. El Responsable de SST publica la versión. Si después edita la encuesta, se crea una versión nueva en borrador; los encuestados siguen viendo la versión publicada hasta que se publique la nueva, y cada respuesta conserva la versión que se contestó.
 4. Los **encuestados** entran con su cuenta y responden un **formulario dinámico**: Norvia pinta cada pregunta con el control de su tipo y valida la respuesta igual en el formulario y en el servidor. Cada encuestado responde una sola vez.
 5. Las respuestas son **anónimas**: Norvia guarda que la persona participó, pero no qué respondió.
-6. Norvia muestra un **reporte anónimo** de la empresa, por pregunta, cuando hay al menos 3 respuestas.
-7. Norvia sugiere peligros. Cada pregunta puede asociarse a un peligro y a la respuesta que indica exposición: una opción o, en una escala, un valor desde un umbral. Si al menos una respuesta indica exposición, el peligro se sugiere, indicando cuántas respuestas lo respaldan.
+6. Norvia muestra un **reporte anónimo** de la empresa con gráficos por pregunta y comparativas entre encuestas, cuando hay al menos 3 respuestas.
+7. Norvia sugiere peligros. Cada pregunta puede asociarse a un peligro y a la respuesta que indica exposición: una opción de selección. Si al menos una respuesta indica exposición, el peligro se sugiere, indicando cuántas respuestas lo respaldan.
 
 Los peligros sugeridos pasan a la matriz de riesgos, donde el Responsable de SST los confirma. Corresponde a la idea de "contexto de la organización" de ISO 45001.
 
