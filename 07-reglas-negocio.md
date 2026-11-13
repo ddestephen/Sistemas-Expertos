@@ -43,11 +43,13 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | Código | Regla |
 |---|---|
 | RN-09 | Cada empresa pertenece a un solo rubro |
-| RN-10 | Sin rubro, sin al menos un área y sin cuenta de Google conectada no se puede generar una encuesta |
+| RN-10 | Sin rubro y al menos un área activa no se puede generar una encuesta |
 | RN-11 | Las categorías de riesgo disponibles dependen del rubro, y las preguntas de la encuesta dependen de las categorías elegidas |
-| RN-12 | Las preguntas de una encuesta generada quedan registradas tal como se enviaron; para cambiarlas se genera una encuesta nueva |
+| RN-12 | Cada pregunta conserva su tipo de respuesta y opciones. Las respuestas enviadas conservan la definición de pregunta que se mostró al trabajador, aunque luego se edite la encuesta |
 | RN-13 | Un peligro se sugiere cuando al menos un trabajador da la respuesta que indica exposición. La sugerencia indica el área y cuántos trabajadores la dieron |
 | RN-14 | Las mismas respuestas siempre producen las mismas sugerencias |
+| RN-68 | Solo los vínculos activos de la empresa pueden responder sus encuestas publicadas; cada respuesta queda asociada al trabajador autenticado |
+| RN-69 | El formulario presenta cada pregunta según su tipo: respuesta breve acepta texto, selección única acepta una opción y selección múltiple acepta varias opciones |
 
 ## Riesgos
 

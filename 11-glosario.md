@@ -60,7 +60,6 @@
 | Encuesta | Cuestionario que responden los trabajadores para identificar peligros |
 | Entrega | Etapa de construcción que deja algo demostrable |
 | Google Calendar | Calendario de Google; Norvia crea allí eventos con recordatorios |
-| Google Forms | Servicio de formularios de Google; Norvia crea allí las encuestas |
 | Historia de usuario (HU) | Descripción breve de lo que alguien necesita y para qué |
 | Inventario | Cantidad disponible de cada artículo de EPP |
 | Kanban | Tablero para visualizar el trabajo por estados |

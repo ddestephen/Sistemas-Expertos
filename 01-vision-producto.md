@@ -41,9 +41,9 @@ Norvia trabaja con 4 rubros: oficina administrativa, comercio o tienda, maquila 
 
 Este es el ciclo principal del producto:
 
-1. **Registro.** Una persona registra su empresa, completa sus datos, crea sus áreas y conecta su cuenta de Google.
-2. **Encuesta.** El Responsable de SST elige las categorías de riesgo que le interesan, como trabajo en alturas o alto voltaje. Norvia arma la encuesta con las preguntas de esas categorías y la publica en Google Forms.
-3. **Respuestas.** Los trabajadores responden desde el enlace. Norvia trae las respuestas y sugiere los peligros detectados en cada área.
+1. **Registro.** Una persona registra su empresa, completa sus datos y crea sus áreas.
+2. **Encuesta.** El Responsable de SST elige las categorías de riesgo que le interesan, como trabajo en alturas o alto voltaje. Norvia arma una encuesta interna con las preguntas de esas categorías y la publica para los trabajadores de la empresa.
+3. **Respuestas.** Los trabajadores con cuenta en Norvia inician sesión y responden la encuesta. Norvia presenta los resultados con comparativas y gráficos, y sugiere los peligros detectados en cada área.
 4. **Matriz de riesgos.** El Responsable de SST confirma los peligros, evalúa cada riesgo y define controles.
 5. **Plan de trabajo.** Los riesgos se convierten en tareas con responsable y fecha.
 6. **Operación diaria.** Se registran mantenimientos con fotos desde el teléfono, se entrega equipo de protección, se reportan accidentes, y la Comisión Mixta se reúne y firma sus actas.

@@ -2,7 +2,7 @@
 
 **Para qué sirve:** define todas las tablas de Norvia, sus columnas, relaciones, restricciones e índices. Es la base del diagrama entidad-relación (ERD) que exige el curso y de la implementación con EF Core.
 
-El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D25 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaOpcion, Persona, **Acceso**, `VinculoEmpresa`, `StaffPlataforma`, **RefreshToken**, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
+El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D25 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaVersion, EncuestaOpcion, Persona, **Acceso**, `VinculoEmpresa`, `StaffPlataforma`, **RefreshToken**, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
 
 ### Nombres de persona (3FN)
 
@@ -113,12 +113,14 @@ erDiagram
 
 ```mermaid
 erDiagram
-    Encuesta ||--|{ EncuestaCategoria : "explora"
+    EncuestaVersion ||--|{ EncuestaCategoria : "explora"
     CategoriaRiesgo ||--o{ EncuestaCategoria : "elegida en"
-    Encuesta ||--|{ EncuestaPregunta : "copia"
+    Encuesta ||--|{ EncuestaVersion : "versiona"
+    EncuestaVersion ||--|{ EncuestaPregunta : "contiene"
     EncuestaPregunta ||--o{ EncuestaOpcion : "ofrece"
     Area |o--o{ EncuestaOpcion : "representa"
     Encuesta ||--o{ RespuestaEncuesta : "recibe"
+    EncuestaVersion ||--o{ RespuestaEncuesta : "respondida en"
     RespuestaEncuesta ||--|{ DetalleRespuesta : "contiene"
     EncuestaPregunta ||--o{ DetalleRespuesta : "respondida en"
     EncuestaOpcion |o--o{ DetalleRespuesta : "elegida en"
@@ -358,7 +360,7 @@ Preguntas de cada categoría. Si la pregunta detecta un peligro, se indica cuál
 | Id | uuid | No | PK | |
 | CategoriaRiesgoId | uuid | No | FK → CategoriaRiesgo | |
 | Texto | varchar(500) | No | | |
-| TipoRespuesta | varchar(15) | No | | `si_no`, `opcion_unica`, `texto` |
+| TipoRespuesta | varchar(25) | No | | `respuesta_breve`, `seleccion_unica`, `seleccion_multiple` |
 | Orden | smallint | No | | Posición dentro de la categoría |
 | PeligroId | uuid | Sí | FK → Peligro | Peligro que detecta, si aplica |
 | Activa | boolean | No | | Por defecto `true` |
@@ -534,53 +536,66 @@ Acciones importantes, para que la evidencia sea verificable.
 
 #### Encuesta
 
-Cada encuesta generada en Google Forms (D8).
+Encuesta creada y publicada dentro de Norvia (D8).
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | Titulo | varchar(200) | No | | |
-| GoogleFormId | varchar(100) | No | UQ | Identificador del formulario en Google |
-| UrlRespuesta | varchar(500) | No | | Enlace que se comparte con los trabajadores |
 | Estado | varchar(10) | No | | `publicada`, `cerrada` |
 | CreadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | CreadaEn | timestamptz | No | | |
-| UltimaImportacionEn | timestamptz | Sí | | |
+| EditadaEn | timestamptz | Sí | | Fecha de la última edición |
 
-#### EncuestaCategoria
+#### EncuestaVersion
 
-Categorías elegidas para cada encuesta. Resuelve la relación muchos a muchos entre Encuesta y CategoriaRiesgo.
+Versión inmutable del cuestionario. Cada edición crea una nueva versión; solo la versión publicada se muestra a los trabajadores.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
-| EncuestaId | uuid | No | PK, FK compuesta → Encuesta | |
+| Id | uuid | No | PK | |
+| EmpresaId | uuid | No | | Empresa propietaria |
+| EncuestaId | uuid | No | FK compuesta → Encuesta | |
+| NumeroVersion | integer | No | | CHECK `>= 1` |
+| Estado | varchar(12) | No | | `borrador`, `publicada`, `reemplazada` |
+| CreadaPorId | uuid | No | FK compuesta → VinculoEmpresa | |
+| CreadaEn | timestamptz | No | | |
+
+**Restricciones:** UQ `(EncuestaId, NumeroVersion)` y UQ parcial `(EncuestaId) WHERE Estado = 'publicada'`; solo una versión publicada está disponible para responder.
+
+#### EncuestaCategoria
+
+Categorías elegidas para cada versión de encuesta. Resuelve la relación muchos a muchos entre EncuestaVersion y CategoriaRiesgo.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| EncuestaVersionId | uuid | No | PK, FK compuesta → EncuestaVersion | |
 | CategoriaRiesgoId | uuid | No | PK, FK → CategoriaRiesgo | |
 | EmpresaId | uuid | No | FK → Empresa | |
 
-**Restricciones:** PK `(EncuestaId, CategoriaRiesgoId)`. La categoría debe pertenecer al rubro de la empresa (RN-11); lo valida la aplicación.
+**Restricciones:** PK `(EncuestaVersionId, CategoriaRiesgoId)`. La categoría debe pertenecer al rubro de la empresa (RN-11); lo valida la aplicación.
 
 #### EncuestaPregunta
 
-Copia de cada pregunta tal como se envió (RN-12), para que los cambios del catálogo no alteren encuestas pasadas.
+Copia de cada pregunta y versión publicada (RN-12), para que los cambios del catálogo o de la encuesta no alteren respuestas anteriores.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
-| EncuestaId | uuid | No | FK compuesta → Encuesta | |
+| EncuestaVersionId | uuid | No | FK compuesta → EncuestaVersion | |
 | PreguntaExploratoriaId | uuid | Sí | FK → PreguntaExploratoria | Pregunta de origen. Nulo en la pregunta de área |
 | EsPreguntaArea | boolean | No | | `true` en la pregunta "¿En qué área trabaja?" |
 | Texto | varchar(500) | No | | Copia del texto |
-| TipoRespuesta | varchar(15) | No | | Copia del tipo |
+| TipoRespuesta | varchar(25) | No | | Copia del tipo: `respuesta_breve`, `seleccion_unica` o `seleccion_multiple` |
 | PeligroId | uuid | Sí | FK → Peligro | Copia del peligro asociado |
 | Orden | smallint | No | | |
-| GoogleQuestionId | varchar(50) | No | | Identificador de la pregunta en Google, para leer las respuestas |
 
 **Restricciones:**
 
-- UQ `(EncuestaId, Orden)`.
-- UQ parcial `(EncuestaId) WHERE EsPreguntaArea`: una sola pregunta de área por encuesta.
+- UQ `(EncuestaVersionId, Orden)`.
+- UQ parcial `(EncuestaVersionId) WHERE EsPreguntaArea`: una sola pregunta de área por versión.
 - CHECK `EsPreguntaArea = (PreguntaExploratoriaId IS NULL)`.
 
 #### EncuestaOpcion
@@ -601,18 +616,18 @@ Copia de las opciones de cada pregunta enviada. En la pregunta de área, cada op
 
 #### RespuestaEncuesta
 
-Cada respuesta importada desde Google Forms.
+Respuesta enviada por un trabajador autenticado desde Norvia.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | EncuestaId | uuid | No | FK compuesta → Encuesta | |
-| GoogleResponseId | varchar(100) | No | | Identificador de la respuesta en Google |
+| VinculoEmpresaId | uuid | No | FK compuesta → VinculoEmpresa | Trabajador que responde |
+| EncuestaVersionId | uuid | No | FK compuesta → EncuestaVersion | Versión de la encuesta respondida |
 | RespondidaEn | timestamptz | No | | Hora en que el trabajador respondió |
-| ImportadaEn | timestamptz | No | | |
 
-**Restricciones:** UQ `(EncuestaId, GoogleResponseId)`: importar de nuevo no duplica respuestas.
+**Restricciones:** UQ `(EncuestaId, VinculoEmpresaId)`: un trabajador responde una vez cada encuesta; la versión debe corresponder a la encuesta y empresa indicadas.
 
 El área de quien responde no se guarda aquí: es su respuesta a la pregunta de área, en DetalleRespuesta. Guardarla dos veces rompería la tercera forma normal.
 
@@ -622,15 +637,17 @@ Respuesta a cada pregunta.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
-| RespuestaEncuestaId | uuid | No | PK, FK compuesta → RespuestaEncuesta | |
-| EncuestaPreguntaId | uuid | No | PK, FK compuesta → EncuestaPregunta | |
+| Id | uuid | No | PK | |
+| RespuestaEncuestaId | uuid | No | FK compuesta → RespuestaEncuesta | |
+| EncuestaPreguntaId | uuid | No | FK compuesta → EncuestaPregunta | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | EncuestaOpcionId | uuid | Sí | | Opción elegida |
 | TextoLibre | text | Sí | | Respuesta abierta |
 
 **Restricciones:**
 
-- PK `(RespuestaEncuestaId, EncuestaPreguntaId)`.
+- Una respuesta de selección múltiple genera una fila por opción elegida; una respuesta de texto genera una fila con `TextoLibre`.
+- UQ parcial `(RespuestaEncuestaId, EncuestaPreguntaId, EncuestaOpcionId)` evita repetir una opción elegida; UQ parcial `(RespuestaEncuestaId, EncuestaPreguntaId) WHERE TextoLibre IS NOT NULL` limita a una respuesta de texto por pregunta.
 - FK `(EncuestaPreguntaId, EncuestaOpcionId) → EncuestaOpcion (EncuestaPreguntaId, Id)`: la opción debe ser de esa pregunta.
 - CHECK: exactamente uno de `EncuestaOpcionId` o `TextoLibre` tiene valor.
 
@@ -1077,7 +1094,7 @@ Une cada registro de Norvia con su evento en Google Calendar (D16, RN-54 a RN-56
 | Relación | Cardinalidad | Cómo se implementa |
 |---|---|---|
 | Persona – Empresa | Muchos a muchos | Tabla intermedia VinculoEmpresa |
-| Encuesta – CategoriaRiesgo | Muchos a muchos | Tabla intermedia EncuestaCategoria |
+| EncuestaVersion – CategoriaRiesgo | Muchos a muchos | Tabla intermedia EncuestaCategoria |
 | Reunion – IntegranteComision (asistencia) | Muchos a muchos | Tabla intermedia Asistencia |
 | Acta – IntegranteComision (firmas) | Muchos a muchos | Tabla intermedia FirmaActa |
 | Rubro – CategoriaRiesgo – PreguntaExploratoria – OpcionPregunta | Uno a muchos, en cadena | FK en la tabla hija |
@@ -1189,7 +1206,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-08 | App | Validación al cambiar roles o suspender vínculos |
 | RN-09 | BD | `Empresa.RubroId` es una sola columna |
 | RN-10, RN-11 | App | Validación antes de generar la encuesta |
-| RN-12 | BD | Copias en EncuestaPregunta y EncuestaOpcion |
+| RN-12 | BD | Copias versionadas en EncuestaPregunta y EncuestaOpcion; RespuestaEncuesta registra la versión respondida |
 | RN-13, RN-14 | App | Consulta determinista sobre DetalleRespuesta |
 | RN-15, RN-16 | BD y App | CHECK de 1 a 5; nivel y clasificación calculados |
 | RN-17 | BD | `RiesgoEmpresa.AreaId` obligatorio |

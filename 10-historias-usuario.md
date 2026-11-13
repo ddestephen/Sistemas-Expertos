@@ -43,8 +43,8 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada requerimiento tiene identificador, descripción, actor y prioridad.
-- Se indican entradas y resultados esperados.
+- Cada requerimiento explica la necesidad que atiende, quién se beneficia y su prioridad.
+- Se describe qué necesita la persona para iniciar y qué resultado obtiene.
 - Cada requerimiento se relaciona con al menos una HU.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** ninguna
@@ -56,9 +56,9 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Se documentan seguridad, aislamiento entre empresas, auditoría y mantenibilidad.
-- Rendimiento y disponibilidad consideran que el servidor gratuito se suspende.
-- Se define el tamaño máximo de archivos.
-- Se documentan las dependencias de Google: cuenta, permisos y límites de uso.
+- La disponibilidad y el tiempo de respuesta permiten realizar las tareas previstas en condiciones normales de uso.
+- Las evidencias pueden compartirse dentro de límites adecuados para el trabajo de las empresas.
+- Las dependencias externas necesarias para los procesos de negocio y sus efectos ante una interrupción quedan identificados.
 - Se documentan las restricciones del curso.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** D14, D16
@@ -87,16 +87,17 @@ Cada historia termina con estos datos:
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-002, HU-016 · **Reglas:** ninguna
 
+
 ### HU-006 | Elaborar casos de uso
 
-**Como** equipo, **quiero** representar los casos de uso principales, **para** visualizar qué hace cada rol.
+**Como** equipo, **quiero** describir los casos de uso principales, **para** acordar cómo se atienden las necesidades de las personas usuarias.
 
 **Criterios de aceptación:**
 
-- Un diagrama relaciona los 4 roles con los módulos.
-- Se describen los casos de uso principales.
+- Se describen las responsabilidades de cada tipo de usuario y las funciones que puede realizar.
+- Se explican los procesos principales desde la necesidad hasta el resultado esperado, incluidos los casos alternativos.
 
-**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Should · **Depende de:** HU-002 · **Reglas:** ninguna
+**Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-002 · **Reglas:** ninguna
 
 ### HU-007 | Documentar los flujos principales
 
@@ -104,14 +105,13 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se documenta registro, inicio de sesión, cambio de empresa y conexión con Google.
-- Se documenta categorías → encuesta en Google Forms → respuestas → peligros sugeridos → matriz de riesgos → plan de trabajo.
+- Se documenta el registro y acceso a empresas, la selección de categorías, la creación y respuesta de encuestas en Norvia, los resultados, la sugerencia de peligros, la matriz de riesgos y el plan de trabajo.
 - Se documenta accidente → investigación → medidas → revisión de la matriz.
 - Se documenta reunión → acta → aprobación → firma.
 - Se documenta mantenimiento con fotos → tarea de reparación.
 - Se documenta ingreso de EPP → entrega → inventario.
 - Se documenta plantilla → borrador → aprobación → versión vigente.
-- Se documenta fecha en Norvia → evento en Google Calendar → actualización o eliminación.
+- Se documenta cómo las fechas registradas se reflejan en el calendario y cómo se actualizan o retiran cuando cambian.
 - Cada flujo indica inicio, resultado, alternativas y errores.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-002 · **Reglas:** ninguna
@@ -122,10 +122,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada entidad tiene atributos, tipos, llaves primarias y foráneas.
-- Se indican los atributos obligatorios y opcionales.
-- Cada entidad se clasifica como raíz, global o con `EmpresaId`.
-- Acceso: `Persona`, `Usuario` (`Activo`), **`Acceso`**, `VinculoEmpresa`, `StaffPlataforma`, `RefreshToken`, `RolStaffPlataforma`; RBAC empresa/plataforma.
+- El diccionario explica qué información necesita cada función, qué datos son obligatorios y cómo se relacionan los conceptos del negocio.
+- Se distingue la información compartida por la plataforma de la información propia de cada empresa.
+- Se describe qué personas pueden acceder a cada tipo de información y con qué responsabilidades.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** D1 a D25
 
@@ -135,10 +134,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se listan las tablas con `EmpresaId` y las entidades globales.
-- Se documenta el patrón `VinculoEmpresa` + **`Acceso`** (varias empresas = varios vínculos; sesiones separadas por JWT/refresh, no selector tras login).
-- Se define cómo el JWT fija una sola empresa por sesión (sin selector tras login).
-- Se documenta cómo se impiden las referencias entre empresas.
+- Se define qué información es propia de cada empresa y qué información es común a toda la plataforma.
+- Una persona con acceso a varias empresas solo consulta la información de la empresa en la que está trabajando.
+- La información de una empresa no puede mezclarse, compartirse ni asociarse por error con la de otra.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008 · **Reglas:** RN-04, RN-05, RN-06, RN-07, D1, D7, D15
 
@@ -148,12 +146,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Muestra entidades, relaciones, cardinalidades y llaves.
-- Las relaciones muchos a muchos usan entidades intermedias.
-- Las tablas cumplen 1FN, 2FN y 3FN.
-- Las decisiones de normalización quedan documentadas.
-- Cada tabla existe en el diccionario de datos.
-- El ERD incluye `Persona`, `Usuario`, `VinculoEmpresa`, `StaffPlataforma`, historiales, RBAC; no `Membresia`.
+- El modelo representa la información que el negocio necesita registrar y las relaciones entre ella.
+- La información no se duplica de forma que produzca contradicciones en la operación.
+- Se explica cómo el modelo mantiene separada la información de cada empresa.
+- Las decisiones que afectan el registro y consulta de información quedan documentadas.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-008, HU-009 · **Reglas:** D1 a D25
 
@@ -163,9 +159,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se identifican restricciones de unicidad y campos obligatorios.
-- Se documentan las reglas de eliminación y actualización.
-- Se identifican índices frecuentes, incluido `EmpresaId`.
+- No se permite registrar información duplicada cuando deba ser única.
+- No se permite completar una operación sin la información que el negocio requiere.
+- Los cambios y retiros de información preservan los registros necesarios para la operación y el historial.
+- Las consultas frecuentes permiten encontrar la información en un tiempo adecuado para el uso normal.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-010 · **Reglas:** D15
 
@@ -175,11 +172,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada endpoint tiene método, ruta, parámetros, respuestas y códigos HTTP.
-- Cada endpoint indica sus requisitos de acceso.
-- Los DTOs de entrada y salida están separados de las entidades.
-- Hay una estructura uniforme para errores.
-- Los contratos sirven para web y teléfono.
+- Se documenta qué operaciones puede realizar cada tipo de usuario y qué información necesita para completarlas.
+- Cada operación describe el resultado esperado y quién está autorizado a realizarla.
+- Los mensajes explican de forma clara qué ocurrió cuando una operación no se puede completar.
+- Las mismas funciones pueden utilizarse desde la web y el teléfono.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-002, HU-010 · **Reglas:** ninguna
 
@@ -189,10 +185,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se definen las capas `Domain`, `Application`, `Infrastructure` y `API`.
-- Se establecen las dependencias permitidas.
-- Se define dónde van los casos de uso, la persistencia y el `DbContext`.
-- Se documentan la inyección de dependencias, el manejo de errores y Vertical Slicing.
+- Se definen responsabilidades claras para aplicar las reglas del negocio, completar sus procesos y conservar la información necesaria.
+- Los cambios en una función no deben provocar resultados distintos en otras funciones que siguen las mismas reglas.
+- Se documenta cómo se amplían las funciones y cómo se informa cuando un proceso no puede completarse.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** ninguna
 
@@ -202,15 +197,12 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Login empresa: correo y contraseña de **Acceso** + identificador de empresa cifrado; login plataforma: **Acceso** + **StaffPlataforma**.
-- Refresh rotativo en **RefreshToken** (solo hash); access JWT no persiste (D25, RN-66).
-- Claims: `EmpresaId` cifrado, `VinculoEmpresaId`, `RolId`.
-- Catálogo **Permiso** con **`Alcance`**: `empresa` (vínculo) o `plataforma` (staff). Sin mezclar alcances en `RolPermiso` / `RolStaffPlataformaPermiso` (D24, RN-63).
-- Autorización: sesión empresa vía `Rol`/`RolPermiso` solo permisos `empresa`; sesión staff vía `RolStaffPlataforma`/`RolStaffPlataformaPermiso` solo permisos `plataforma` (D20, D23, RN-64).
-- Login plataforma: `StaffPlataforma`; JWT sin `EmpresaId` de tenant o con claim de plataforma explícito.
-- Se resuelve con el catedrático cómo cumplir `EmpresaId` encriptado.
-- Se identifican endpoints públicos y protegidos.
-- Se documentan las respuestas 401 y 403.
+- El acceso a una empresa se concede solo a personas con una cuenta válida y autorización vigente para esa empresa.
+- Las personas con acceso a varias empresas deben ingresar a cada una por separado; la información y las funciones disponibles corresponden únicamente a la empresa seleccionada.
+- Las funciones disponibles para cada persona corresponden al grupo de acceso al que pertenece dentro de esa empresa.
+- El personal autorizado para administrar la plataforma puede realizar tareas generales, pero no consultar información de SST de las empresas ni administrar sus operaciones internas.
+- La falta de autorización impide el acceso a la información o función solicitada.
+- Las credenciales y la información de acceso no se muestran a otras personas.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-009 · **Reglas:** RN-03, RN-05, RN-06, RN-57, RN-61, RN-63, RN-64, RN-65, RN-66, RN-67, D1, D20, D21, D23, D24, D25
 
@@ -233,9 +225,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Existen el repositorio y su tablero.
-- Cada HU es un issue con sus criterios de aceptación.
-- Los issues tienen entrega, módulo, prioridad y responsable.
+- El equipo cuenta con un tablero común para consultar el trabajo pendiente y su avance.
+- Cada historia aprobada tiene criterios claros, prioridad, entrega y una persona responsable.
+- El estado del tablero permite identificar trabajo terminado, en curso y bloqueado.
 
 **Módulo:** Diseño · **Entrega:** Diseño · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-001 · **Reglas:** ninguna
 
@@ -249,10 +241,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se crean la empresa, la persona, la fila `Usuario` (`Activo = true`), **Acceso** (correo + hash) y el **VinculoEmpresa** en una sola operación.
-- Quien registra queda como Administrador de empresa en ese vínculo.
+- Al completar el registro, la empresa queda creada y quien la registra obtiene acceso como Administrador de empresa.
+- Los datos del perfil y las áreas se completan después, según HU-026 y HU-027.
 - Un RTN de empresa repetido se rechaza con un mensaje claro.
-- La contraseña se guarda con hash en **Acceso**, nunca en texto plano.
+- La contraseña queda protegida y nunca se muestra ni se almacena en texto legible.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-091, HU-092 · **Reglas:** RN-01, D2
 
@@ -262,65 +254,82 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- El login empresa usa correo y contraseña de **Acceso** y el identificador de empresa (cifrado); la API valida el **VinculoEmpresa** correspondiente.
-- Refresh y logout usan **RefreshToken** (solo hash en BD).
-- Si `Usuario.Activo` es falso, la empresa está suspendida o el vínculo no está `activo`, no hay acceso.
+- El inicio de sesión permite acceder a una empresa usando credenciales válidas y autorización vigente para esa empresa.
+- No se permite el acceso si la cuenta está desactivada, la empresa suspendida o el acceso de la persona a esa empresa fue retirado.
 - Las credenciales incorrectas reciben un mensaje que no revela qué dato falló.
-- El JWT incluye `EmpresaId` cifrado, `VinculoEmpresaId` y rol (HU-014).
+- Al cerrar sesión, deja de estar disponible el acceso de esa sesión.
+- Después de iniciar sesión, el acceso queda limitado a la empresa seleccionada y a las funciones del grupo al que pertenece la persona en esa empresa.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-017, HU-094 · **Reglas:** RN-57, RN-60, RN-66, RN-67, D1, D21, D25
 
 ### HU-019 | Acceder a otra empresa
 
-**Como** persona con vínculos en varias empresas, **quiero** iniciar sesión por empresa sin mezclar tenants, **para** que los accesos sigan separados.
+**Como** persona que tiene acceso a varias empresas con el mismo correo, **quiero** elegir en cuál trabajar, **para** gestionar cada empresa con el acceso que me corresponde en ella.
 
 **Criterios de aceptación:**
 
-- No hay selector de empresa tras un login: cada sesión empresa requiere su `IdEmpresa` (cifrado) y credenciales de **Acceso**.
-- Si varias empresas comparten el mismo correo institucional, comparten la misma contraseña (**Acceso**); aun así cada login/refresh es una sesión distinta por tenant (RN-65).
-- Cerrar sesión en una empresa (revocar su refresh) no invalida la sesión de otra empresa.
-- Pedir datos con token de otra empresa devuelve 403.
+- Al ingresar, la persona puede elegir cualquiera de las empresas donde tenga acceso vigente.
+- El mismo correo permite acceder a varias empresas sin crear una cuenta distinta para cada una.
+- En cada empresa, la persona dispone de las funciones del grupo al que pertenece; puede pertenecer a grupos distintos en empresas diferentes.
+- Al cambiar de empresa, la información y las funciones disponibles corresponden a la empresa elegida.
+- La persona no puede consultar ni modificar información de una empresa mientras trabaja en otra.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** RN-02, RN-05, RN-58, RN-65, D1, D21
 
-### HU-020 | Agregar vínculos
+### HU-020 | Agregar personas a la empresa
 
-**Como** Administrador de empresa, **quiero** dar de alta personas con correo institucional, **para** que participen en la gestión.
+**Como** Administrador de empresa, **quiero** dar de alta personas y asignarlas a un grupo de acceso, **para** que participen en la gestión según sus responsabilidades.
 
 **Criterios de aceptación:**
 
-- Creo o enlazo `Persona`, `Usuario` (`Activo` si es nueva en la app), **Acceso** (nuevo o existente por correo) y `VinculoEmpresa`.
-- Asigno rol al crear el vínculo.
-- Una persona no puede tener dos vínculos en la misma empresa.
-- El correo es único en **Acceso**; un segundo vínculo en otra empresa puede reutilizar el mismo **Acceso** (misma contraseña).
+- Al dar de alta a una persona, se crea su cuenta de Norvia o se reutiliza la cuenta existente, se le da acceso a la empresa y se la incorpora a un grupo de acceso.
+- Las funciones disponibles se definen para cada grupo; las personas que pertenecen al grupo reciben esas funciones en esa empresa.
+- Una persona no puede recibir acceso duplicado a la misma empresa.
+- La misma cuenta puede permitir el acceso a varias empresas sin crear cuentas duplicadas.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** RN-02, D5
 
-### HU-021 | Gestionar roles y vínculos
+### HU-021 | Administrar el acceso de las personas
 
-**Como** Administrador de empresa, **quiero** cambiar roles y estados de vínculos, **para** controlar quién accede.
+**Como** Administrador de empresa, **quiero** administrar los grupos de acceso y la participación de las personas en ellos, **para** controlar quién puede acceder y qué funciones ofrece cada grupo.
 
 **Criterios de aceptación:**
 
-- Solo afecta a mi empresa.
-- Suspender o dar de baja el **vínculo** registra `HistorialEstadoVinculo` con motivo (no confundir con `Usuario.Activo`, que bloquea a la persona en toda la plataforma y solo gestiona staff con `RolStaffPlataforma`).
-- La empresa no puede quedar sin Administrador con vínculo activo.
-- Otros roles reciben 403.
+- Una persona administradora puede conceder, suspender o dar de baja el acceso de una persona a la empresa, y asignarla o cambiarla de grupo.
+- Una persona administradora puede definir y actualizar las funciones disponibles para cada grupo; el cambio aplica a las personas que pertenecen a ese grupo en esa empresa.
+- Para suspender o dar de baja el acceso se solicita un motivo; la persona deja de poder usar Norvia para esa empresa.
+- La suspensión o baja no afecta el acceso de esa persona a otras empresas.
+- La empresa mantiene al menos una persona administradora con acceso vigente.
+- Solo personas autorizadas pueden administrar accesos, grupos y las funciones disponibles para cada grupo.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-020, HU-095 · **Reglas:** RN-03, RN-08, RN-59
 
 ### HU-022 | Cambiar mi contraseña
 
-**Como** operador con vínculo activo, **quiero** cambiar la contraseña de mi **Acceso**, **para** proteger mis entradas al sistema.
+**Como** operador con acceso autorizado, **quiero** cambiar mi contraseña, **para** proteger mi entrada al sistema.
 
 **Criterios de aceptación:**
 
-- Debo indicar la contraseña actual de **Acceso**.
-- La nueva cumple la política definida.
-- Debo cambiar el acceso temporal al entrar por primera vez (`DebeCambiarPassword`).
-- Si mi correo se usa en vínculos de varias empresas, el cambio aplica a todas (mismo **Acceso**, RN-65).
+- Antes de permitir el cambio, se envía un correo a la dirección asociada a la cuenta para confirmar que la persona puede acceder a ella.
+- La contraseña solo puede cambiarse después de confirmar la solicitud desde ese correo.
+- La contraseña nueva cumple la política definida en HU-114.
+- Si se usa una contraseña temporal, se solicita cambiarla en el primer ingreso antes de continuar.
+- Si la misma cuenta permite acceder a varias empresas, el cambio de contraseña aplica a todas.
 
-**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Should · **Depende de:** HU-018 · **Reglas:** ninguna
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Should · **Depende de:** HU-018, HU-114 · **Reglas:** ninguna
+
+### HU-114 | Definir la política de contraseñas
+
+**Como** persona usuaria, **quiero** conocer los requisitos para elegir una contraseña, **para** proteger mi cuenta y poder acceder a Norvia.
+
+**Criterios de aceptación:**
+
+- La contraseña debe tener entre 15 y 64 caracteres.
+- Se aceptan frases y no se exige combinar mayúsculas, minúsculas, números o símbolos.
+- No se aceptan contraseñas comunes ni contraseñas conocidas como comprometidas.
+- Si una contraseña no cumple estos requisitos, se explica qué debe corregirse para continuar.
+
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** ninguna
 
 ### HU-023 | Administrar los catálogos
 
@@ -332,7 +341,7 @@ Cada historia termina con estos datos:
 - Cada categoría pertenece a un rubro, y cada pregunta a una categoría.
 - Puedo asociar una pregunta a un peligro y a la respuesta que indica exposición.
 - Los cambios no alteran encuestas ya generadas.
-- Otros roles reciben 403.
+- Solo personas autorizadas para administrar los catálogos pueden hacer esos cambios.
 
 **Módulo:** M1 · **Entrega:** E3 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-097 · **Reglas:** RN-12, D7
 
@@ -342,24 +351,24 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Veo nombre, rubro, fecha de registro y número de vínculos activos.
-- No veo su información de SST.
+- Se muestra el nombre, rubro, fecha de registro y cantidad de personas con acceso vigente.
+- La información de SST de cada empresa solo puede consultarse por personas autorizadas de esa empresa.
 
 **Módulo:** M1 · **Entrega:** E3 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-017 · **Reglas:** RN-05
 
-### HU-025 | Conectar la cuenta de Google
+### HU-025 | Conectar el calendario de la empresa
 
-**Como** Administrador de empresa, **quiero** conectar la cuenta de Google de la empresa, **para** generar encuestas y usar el calendario.
+**Como** Administrador de empresa, **quiero** conectar el calendario de la empresa, **para** mantener sus fechas importantes disponibles.
 
 **Criterios de aceptación:**
 
-- Autorizo el acceso desde Norvia con la cuenta de Google de la empresa.
-- La empresa tiene como máximo una cuenta conectada.
-- Puedo desconectarla y conectar otra.
-- Sin cuenta conectada, Norvia indica que no se pueden generar encuestas ni eventos.
-- Las credenciales nunca se muestran.
+- Una persona autorizada puede conectar el calendario que utiliza la empresa.
+- Cada empresa puede tener un calendario conectado a la vez.
+- Una persona autorizada puede desconectar o reemplazar el calendario.
+- Sin conexión, las fechas siguen disponibles en Norvia y se informa que no se sincronizan con el calendario externo.
+- La información de acceso al calendario no se muestra a otras personas.
 
-**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-021, HU-113 · **Reglas:** RN-53, D16
+**Módulo:** M1 · **Entrega:** E3 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-021, HU-113 · **Reglas:** RN-53, D16
 
 ---
 
@@ -384,9 +393,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada área pertenece a mi empresa.
-- Puedo asignar un Encargado de área.
-- Un área con registros asociados se desactiva, no se borra.
+- Las áreas se administran por separado para cada empresa.
+- Una persona responsable puede asignarse a cada área.
+- El área puede dejar de utilizarse sin perder los registros relacionados.
 
 **Módulo:** M2 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-026 · **Reglas:** RN-07, D3, D4
 
@@ -398,8 +407,8 @@ Cada historia termina con estos datos:
 
 - Con 10 y 49 trabajadores indica 1 representante por parte.
 - Con 50 y 99 indica 2; con 100 y 499, 3; con 500 y 999, 4; con 1000, 5.
-- El resultado se calcula con los trabajadores permanentes de la empresa y no se guarda.
-- Si cambia el número de trabajadores, recuerda comunicarlo a la Secretaría de Trabajo.
+- El resultado se calcula a partir del número de trabajadores permanentes y se muestra a la persona responsable.
+- Si cambia el número de trabajadores, se recuerda que debe comunicarse a la Secretaría de Trabajo.
 
 **Módulo:** M2 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-026 · **Reglas:** arts. 12, 14, 17, RN-32
 
@@ -413,46 +422,52 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Solo veo las categorías del rubro de mi empresa.
-- Puedo elegir una o varias categorías.
-- Antes de generar la encuesta veo las preguntas que incluirá.
+- Se muestran las categorías correspondientes al rubro de la empresa que se gestiona.
+- La persona responsable puede elegir una o varias categorías.
+- Antes de crear la encuesta se muestran las preguntas que incluirá.
 
 **Módulo:** M3 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-027, HU-097 · **Reglas:** RN-09, RN-11, D7
 
-### HU-030 | Generar la encuesta en Google Forms
+### HU-030 | Crear y editar una encuesta
 
-**Como** Responsable SST, **quiero** generar la encuesta con un clic, **para** compartirla con los trabajadores sin armarla a mano.
-
-**Criterios de aceptación:**
-
-- La encuesta se crea en la cuenta de Google de la empresa con las preguntas de las categorías elegidas.
-- Incluye una pregunta sobre el área, con las áreas de la empresa como opciones.
-- Queda publicada, y Norvia muestra su enlace para compartirlo.
-- Se registran categorías, preguntas, fecha y autor.
-- Si Google falla, se informa el error y no queda una encuesta a medias.
-
-**Módulo:** M3 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-029, HU-025 · **Reglas:** RN-10, RN-12, D8, D16
-
-### HU-031 | Importar las respuestas
-
-**Como** Responsable SST, **quiero** traer las respuestas de la encuesta, **para** analizarlas en Norvia.
+**Como** Responsable SST, **quiero** crear y editar una encuesta en Norvia, **para** recopilar respuestas de los trabajadores sin armar el formulario a mano.
 
 **Criterios de aceptación:**
 
-- Puedo importar las respuestas cuando quiera.
-- Importar de nuevo trae solo las respuestas nuevas, sin duplicar.
-- Veo cuántas respuestas tiene la encuesta y la fecha de la última importación.
+- Las categorías disponibles corresponden al rubro de la empresa y las preguntas elegidas se incorporan a la encuesta.
+- Cada pregunta se presenta según su tipo: respuesta breve como texto, selección única como una opción y selección múltiple como varias opciones.
+- Se incluye una pregunta de área con las áreas disponibles de la empresa como opciones.
+- La encuesta puede guardarse como borrador, editarse por quien la creó y publicarse para trabajadores con acceso a esa empresa.
+- Al editar una encuesta publicada, los trabajadores siguen viendo la versión vigente hasta que se publique la nueva.
+- Quien creó la encuesta puede editarla y consultar las respuestas mientras conserve autorización para esa empresa.
+- Las respuestas ya enviadas conservan el contenido de la encuesta que vio cada trabajador.
+
+**Módulo:** M3 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-029 · **Reglas:** RN-10, RN-12, D8
+
+### HU-031 | Responder una encuesta
+
+**Como** trabajador con acceso a la empresa, **quiero** responder las encuestas disponibles en Norvia, **para** reportar las condiciones de riesgo de mi área.
+
+**Criterios de aceptación:**
+
+- Al ingresar, se muestran las encuestas publicadas que la persona puede responder.
+- Cada pregunta aparece con la forma de respuesta correspondiente y permite enviar la respuesta.
+- Cada trabajador puede responder una vez cada encuesta.
+- La respuesta queda asociada al trabajador, a su empresa y a la versión que contestó.
+- Al enviar, se confirma que la respuesta quedó registrada.
 
 **Módulo:** M3 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-030 · **Reglas:** D8, D16
 
-### HU-032 | Ver el resumen de respuestas
+### HU-032 | Consultar gráficos y resultados
 
-**Como** Responsable SST, **quiero** ver un resumen de las respuestas, **para** entender la situación de cada área.
+**Como** Responsable SST, **quiero** ver gráficos y resultados comparativos, **para** entender la situación por pregunta y área.
 
 **Criterios de aceptación:**
 
-- Veo, por pregunta, cuántos trabajadores dieron cada respuesta.
-- Puedo filtrar el resumen por área.
+- Se muestran gráficos con la distribución de respuestas por pregunta y área.
+- Se pueden comparar resultados entre áreas dentro de la misma encuesta.
+- Se muestran la cantidad de respuestas y el periodo analizado.
+- Los resultados se actualizan con las respuestas recibidas y solo los consulta quien creó la encuesta mientras esté autorizado para esa empresa.
 
 **Módulo:** M3 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-031 · **Reglas:** ninguna
 
@@ -465,8 +480,8 @@ Cada historia termina con estos datos:
 - Si al menos un trabajador da la respuesta que indica exposición, se sugiere el peligro asociado en su área.
 - Cada sugerencia indica la pregunta que la originó y cuántos trabajadores dieron esa respuesta.
 - Las mismas respuestas producen las mismas sugerencias.
-- Importar nuevas respuestas actualiza las sugerencias sin duplicarlas.
-- Asociar un peligro a otra pregunta del catálogo cambia los resultados sin modificar código.
+- Las nuevas respuestas actualizan las sugerencias sin repetirlas.
+- Al cambiar la relación entre una pregunta y un peligro, las sugerencias reflejan la nueva relación.
 
 **Módulo:** M3 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-031 · **Reglas:** art. 46.1.b, RN-13, RN-14, D9
 
@@ -476,8 +491,8 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Veo cada encuesta con su fecha, categorías y número de respuestas.
-- Puedo abrir el resumen y las sugerencias de cada una.
+- Se muestran encuestas anteriores con fecha, categorías y cantidad de respuestas.
+- Se pueden comparar sus resultados y consultar las sugerencias de peligros de cada una.
 
 **Módulo:** M3 · **Entrega:** E3 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-033 · **Reglas:** RN-12, D8
 
@@ -650,17 +665,19 @@ Cada historia termina con estos datos:
 
 **Módulo:** M6 · **Entrega:** E2 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-027, HU-100, HU-105 · **Reglas:** arts. 9.j, 46.1.d, RN-26, RN-27, RN-31
 
+
 ### HU-048 | Registrar a las personas afectadas
 
-**Como** Responsable SST, **quiero** registrar a las personas afectadas, **para** llevar el control de cada caso.
+**Como** Responsable SST, **quiero** incluir a las personas afectadas en el reporte de un evento, **para** comprender a quiénes debe atenderse.
 
 **Criterios de aceptación:**
 
-- Registro nombre, puesto, tipo de lesión y días de incapacidad.
-- La persona no necesita tener cuenta.
-- Solo el Responsable SST y la comisión ven estos datos.
+- Se conserva la información necesaria para identificar a cada persona afectada y comprender su situación.
+- El registro puede incluir a una persona que no tenga una cuenta en Norvia.
+- La información queda disponible únicamente para las personas autorizadas a atender el caso.
 
 **Módulo:** M6 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-047 · **Reglas:** art. 47.f, RN-30, D11
+
 
 ### HU-049 | Investigar un evento
 
@@ -735,7 +752,7 @@ Cada historia termina con estos datos:
 - Se exige el mismo número de representantes por parte.
 - Cada propietario tiene suplente.
 - Hay un presidente y un secretario activos.
-- Cada integrante es un vínculo activo de la empresa (`IntegranteComision.VinculoEmpresaId`).
+- Cada integrante debe formar parte de la misma empresa para la que se constituye la comisión.
 
 **Módulo:** M7 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-053, HU-020 · **Reglas:** arts. 14, 19, 20, 21, 28.c, RN-32, RN-33, RN-36, D3, D5
 
@@ -832,8 +849,8 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada equipo tiene identificador, nombre, tipo, área y responsable de mantenimiento.
-- El identificador no puede repetirse dentro de la empresa.
+- Cada equipo puede reconocerse por su nombre y se asocia con su tipo, área y responsable de mantenimiento.
+- No se permite registrar dos equipos con el mismo nombre dentro de una empresa.
 - Puedo marcar un equipo como equipo de emergencia.
 - Puedo indicar la próxima fecha de mantenimiento.
 
@@ -845,11 +862,11 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Elijo el equipo por su identificador.
+- Se puede seleccionar el equipo que recibió el mantenimiento o reparación.
 - Indico si es preventivo o correctivo, y describo lo realizado.
 - Tomo una o varias fotografías con el teléfono.
 - No se puede marcar como realizado sin al menos una fotografía.
-- La fecha de registro la fija el servidor, y un mantenimiento realizado no se edita.
+- La fecha del registro queda establecida al documentar el mantenimiento; los mantenimientos realizados conservan su historial.
 - Al registrar un preventivo puedo programar la siguiente fecha.
 
 **Módulo:** M8 · **Entrega:** E2 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-062, HU-100, HU-105 · **Reglas:** RN-43, RN-44, D14, D17
@@ -1073,7 +1090,7 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Al asignar una tarea se crea un evento en su fecha límite e invita al responsable.
-- El recordatorio lo envía Google Calendar, también en el teléfono.
+- El responsable recibe un recordatorio en el calendario que utiliza la empresa, incluso desde el teléfono.
 
 **Módulo:** M11 · **Entrega:** E3 · **Dónde:** Web y teléfono · **Prioridad:** Must · **Depende de:** HU-025, HU-043 · **Reglas:** RN-54, D16
 
@@ -1095,7 +1112,7 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Al programar la próxima fecha de un equipo se crea un evento e invita a su responsable.
-- El evento indica el equipo y su identificador.
+- El evento permite reconocer el equipo que requiere mantenimiento.
 
 **Módulo:** M11 · **Entrega:** E3 · **Dónde:** Web y teléfono · **Prioridad:** Should · **Depende de:** HU-025, HU-062 · **Reglas:** RN-54, D16
 
@@ -1192,9 +1209,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Existen los proyectos `Domain`, `Application`, `Infrastructure` y `API`.
-- Las dependencias siguen la arquitectura aprobada.
-- Las funcionalidades se organizan por Vertical Slicing.
+- Las funciones del sistema aplican las reglas de negocio aprobadas de manera consistente.
+- Un cambio en una función no altera el comportamiento esperado de otras funciones sin relación.
+- Los problemas durante un proceso se informan sin perder el trabajo ya realizado.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-013 · **Reglas:** ninguna
 
@@ -1204,9 +1221,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Las entidades coinciden con el ERD aprobado.
-- Las migraciones incluyen restricciones e índices.
-- La base se crea desde cero con las migraciones.
+- La información necesaria para operar queda disponible y relacionada correctamente.
+- La creación o actualización de la información conserva los datos ya registrados.
+- Una instalación nueva queda preparada para iniciar las operaciones del sistema.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-011 · **Reglas:** ninguna
 
@@ -1216,10 +1233,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Toda entidad con `EmpresaId` tiene filtro global.
-- El tenant sale del JWT (`EmpresaId` del vínculo autenticado), nunca del cliente.
-- Al guardar, `EmpresaId` se asigna desde el token, no desde el cuerpo del request.
-- El uso de `IgnoreQueryFilters` está limitado y justificado.
+- La información de cada empresa solo puede ser consultada o modificada por personas autorizadas para esa empresa.
+- Las operaciones nunca mezclan información de dos empresas.
+- No se puede crear ni modificar información de una empresa desde el acceso autorizado a otra.
+- La información compartida de la plataforma permanece disponible donde corresponda, sin exponer información privada de las empresas.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-092, HU-094 · **Reglas:** RN-04, RN-05, RN-06, RN-07, D15
 
@@ -1229,10 +1246,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- El token incluye `VinculoEmpresaId`, `EmpresaId` (cifrado según HU-014) y `RolId`.
-- El login previo valida correo y contraseña de **Acceso** y el vínculo/empresa de la sesión.
-- Se validan firma, emisor, audiencia y expiración.
-- Un token inválido recibe 401.
+- Solo las personas con credenciales válidas y acceso vigente pueden ingresar.
+- El acceso queda limitado a la empresa y a las funciones disponibles para el grupo al que pertenece la persona en ella.
+- Las credenciales inválidas o el acceso vencido impiden continuar y se informan de forma clara.
+- Al cerrar la sesión, la persona deja de tener acceso a esa sesión.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-014, HU-091 · **Reglas:** RN-06, RN-57, D1, D21
 
@@ -1242,10 +1259,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada endpoint protegido se resuelve contra **Permiso** filtrado por **`Alcance`** y tipo de sesión: vínculo → `RolPermiso`; staff → `RolStaffPlataformaPermiso` (RN-63, RN-64, D24).
-- Un rol sin permiso recibe 403.
-- El staff de plataforma usa `RolStaffPlataforma`/`RolStaffPlataformaPermiso` (`Alcance = plataforma`), sin permisos de gestionar vínculos ajenos.
-- Las acciones de la comisión se validan contra el cargo de la persona.
+- Cada persona puede realizar únicamente las funciones disponibles para los grupos a los que pertenece dentro de la empresa activa.
+- Las personas sin autorización no pueden ver información ni realizar acciones restringidas.
+- El personal que administra la plataforma no puede consultar información de SST ni gestionar las operaciones internas de una empresa.
+- Las responsabilidades asignadas dentro de una comisión determinan qué acciones puede realizar cada integrante.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-094 · **Reglas:** RN-03, RN-61, RN-63, RN-64, D3, D20, D24
 
@@ -1255,9 +1272,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada comando tiene su validador.
-- Un middleware global convierte los errores a la estructura acordada.
-- Los errores no exponen detalles internos.
+- La información incompleta o inválida no permite completar una operación.
+- Se explica qué debe corregirse para poder continuar.
+- Los errores no exponen información confidencial ni detalles internos.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-012 · **Reglas:** ninguna
 
@@ -1267,9 +1284,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cubre los 4 rubros, cada uno con sus categorías y preguntas.
-- Las preguntas que detectan un peligro tienen su peligro y su respuesta de exposición.
-- Repetir la carga no duplica datos.
+- Están disponibles los cuatro rubros con sus categorías y preguntas aprobadas.
+- Cada pregunta asociada a un peligro indica qué respuesta representa exposición.
+- Las cargas repetidas no generan información duplicada.
 - El contenido usa redacción propia y lo revisa alguien con conocimiento de SST.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-092 · **Reglas:** D7
@@ -1280,9 +1297,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Con dos empresas de prueba, ninguna lista, consulta ni modifica datos de la otra.
-- Referenciar un registro de otra empresa se rechaza.
-- Cambiar `EmpresaId` en la petición no tiene efecto.
+- Una persona autorizada para una empresa no puede consultar ni modificar información de otra.
+- No se pueden asociar datos de distintas empresas.
+- El aislamiento se mantiene al consultar, registrar, editar o retirar información.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-093 · **Reglas:** RN-05, RN-06, RN-07, D15
 
@@ -1292,8 +1309,8 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se registran `VinculoEmpresaId` o `StaffPlataformaId`, empresa (si aplica), acción, entidad y fecha.
-- El registro no se puede editar desde la aplicación.
+- Las acciones importantes indican quién las realizó, qué ocurrió, qué información afectaron y cuándo; la empresa se identifica cuando corresponde.
+- La evidencia de las acciones pasadas no puede alterarse durante el uso normal del sistema.
 - Cubre al menos firmas, aprobaciones, cambios de rol, mantenimientos y entregas de EPP.
 
 **Módulo:** Técnico · **Entrega:** E3 · **Dónde:** No aplica · **Prioridad:** Should · **Depende de:** HU-093 · **Reglas:** ninguna
@@ -1304,10 +1321,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- El servicio no requiere pago.
-- Se validan tipo y tamaño antes de guardar.
-- Los archivos sobreviven a un reinicio del backend.
-- Los archivos de una empresa no son accesibles para otra.
+- El almacenamiento de archivos no genera costos para el proyecto.
+- Solo se admiten archivos permitidos y dentro del tamaño aceptado.
+- Las fotos y evidencias siguen disponibles aunque el sistema se reinicie.
+- Los archivos de una empresa solo pueden consultarlos personas autorizadas para esa misma empresa.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-093 · **Reglas:** RN-05, D14
 
@@ -1317,8 +1334,8 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Usa React, TypeScript y Vite.
-- Hay carpetas `features/` por módulo.
+- Las personas usuarias pueden encontrar y utilizar las funciones correspondientes a su trabajo.
+- Las funciones del sistema mantienen una presentación y comportamiento coherentes entre módulos.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-012 · **Reglas:** ninguna
 
@@ -1328,9 +1345,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Sin sesión, una ruta protegida redirige al inicio de sesión.
-- Un rol sin permiso no ve esa pantalla.
-- Un token vencido cierra la sesión.
+- Sin iniciar sesión, no se puede acceder a información privada de la empresa.
+- Las funciones no autorizadas no están disponibles para la persona.
+- Cuando el acceso deja de ser válido, se solicita volver a ingresar antes de continuar.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-101, HU-094 · **Reglas:** ninguna
 
@@ -1340,9 +1357,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Usan Zod y React Hook Form con `mode: 'onChange'`.
-- Las reglas coinciden con FluentValidation.
-- No hay validaciones manuales con `if/else`.
+- Los errores de captura se muestran antes de enviar la información.
+- Las mismas reglas se aplican al registrar información desde los distintos canales.
+- Los mensajes indican cómo corregir los datos para continuar.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-101, HU-096 · **Reglas:** ninguna
 
@@ -1352,9 +1369,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Cada petición adjunta el JWT como `Bearer`.
-- El extractor convierte cualquier error en un mensaje claro.
-- Mientras el servidor se reactiva, se muestra un estado de carga.
+- El acceso de la persona se conserva de forma segura mientras utiliza el sistema.
+- Los errores se presentan con mensajes claros y útiles.
+- Mientras se completa una operación, el sistema indica que está trabajando.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-101 · **Reglas:** ninguna
 
@@ -1364,10 +1381,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- La tecnología está decidida y aceptada por el equipo y el catedrático.
-- Funciona en Android y en iPhone, o se documenta la limitación.
-- Inicia sesión y consume la misma API que la web.
-- Puede usar la cámara del teléfono.
+- El equipo puede completar desde el teléfono las tareas de campo incluidas en el alcance.
+- Se puede ingresar con la misma cuenta y conservar las autorizaciones de la empresa.
+- Se pueden adjuntar fotografías tomadas con el teléfono.
+- Las limitaciones de dispositivos compatibles se comunican con claridad.
 
 **Módulo:** Técnico · **Entrega:** E2 · **Dónde:** Teléfono · **Prioridad:** Must · **Depende de:** HU-094, HU-012 · **Reglas:** ninguna
 
@@ -1377,9 +1394,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Usa una etapa de compilación y una de ejecución.
-- La imagen final usa runtime Alpine.
-- La generación de PDF funciona dentro de esa imagen.
+- El servicio del sistema puede iniciarse en el entorno previsto para su publicación.
+- Las funciones necesarias para generar y consultar documentos están disponibles en ese entorno.
+- Una actualización del servicio no pierde la información del negocio.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091 · **Reglas:** ninguna
 
@@ -1389,9 +1406,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Levanta la API, PostgreSQL y el frontend web.
-- La API se conecta a la base y aplica migraciones.
-- Funciona en una máquina limpia con las instrucciones del repositorio.
+- El equipo puede iniciar el sistema completo en un entorno nuevo siguiendo las instrucciones disponibles.
+- Los datos de prueba y catálogos necesarios quedan disponibles para revisar los flujos principales.
+- Los principales procesos pueden demostrarse sin configuración manual repetitiva.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-106 · **Reglas:** ninguna
 
@@ -1401,8 +1418,8 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- La base tiene migraciones y catálogos cargados.
-- Las credenciales no están en el repositorio.
+- La información del negocio y los catálogos permanecen disponibles en el entorno publicado.
+- Los datos de acceso al entorno se mantienen protegidos y fuera de los materiales compartidos.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-092, HU-097 · **Reglas:** ninguna
 
@@ -1412,9 +1429,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- El servicio compila desde el Dockerfile y está conectado a GitHub.
-- La API responde por HTTPS y usa la base en la nube.
-- Solo acepta peticiones de los clientes autorizados.
+- Las funciones del sistema están disponibles en el entorno publicado mediante una conexión segura.
+- La información registrada se conserva y puede consultarse durante la operación.
+- Solo personas autorizadas pueden utilizar las funciones disponibles.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-106, HU-108 · **Reglas:** ninguna
 
@@ -1424,9 +1441,9 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Usa la API de producción por HTTPS.
-- Las rutas funcionan al recargar la página.
-- El flujo principal funciona de punta a punta en producción.
+- Las personas usuarias pueden completar los procesos principales en el entorno publicado.
+- La información y las funciones siguen disponibles al volver a una pantalla o actualizarla.
+- El recorrido principal funciona de principio a fin.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-101, HU-109 · **Reglas:** ninguna
 
@@ -1436,8 +1453,8 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Un push a `main` actualiza backend y frontend sin pasos manuales.
-- El equipo lo demuestra con un cambio real.
+- Una actualización aprobada del producto se refleja en el entorno publicado sin repetir tareas manuales.
+- El equipo puede comprobar que la nueva versión quedó disponible y que los procesos principales siguen funcionando.
 
 **Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-109, HU-110 · **Reglas:** ninguna
 
@@ -1447,30 +1464,29 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Se puede instalar sin costo en los teléfonos del equipo.
-- La app usa la API de producción.
+- El equipo puede instalar la aplicación en sus teléfonos sin costo.
+- La aplicación permite completar las tareas de campo previstas en el entorno publicado.
 
 **Módulo:** Técnico · **Entrega:** E2 · **Dónde:** Teléfono · **Prioridad:** Must · **Depende de:** HU-105, HU-109 · **Reglas:** ninguna
 
-### HU-113 | Integrar con Google Forms y Google Calendar
+### HU-113 | Integrar con Google Calendar
 
-**Como** equipo, **quiero** conectar Norvia con las APIs de Google, **para** generar encuestas, leer respuestas y gestionar eventos.
+**Como** equipo, **quiero** conectar Norvia con Google Calendar, **para** reflejar las fechas importantes de las empresas.
 
 **Criterios de aceptación:**
 
-- La empresa autoriza el acceso con su cuenta de Google.
-- Las credenciales se guardan cifradas y nunca llegan al cliente.
-- Se pueden crear formularios, agregar preguntas, publicarlos y leer sus respuestas.
-- Se pueden crear, actualizar y eliminar eventos con invitados.
-- Los errores y límites de uso de Google se manejan sin perder datos.
+- Una persona autorizada puede conectar el calendario utilizado por la empresa.
+- Las fechas y eventos de Norvia se reflejan en el calendario conectado, con sus invitados correspondientes.
+- Los cambios o cancelaciones en Norvia se reflejan en el calendario.
+- Si el calendario externo no está disponible, la información se conserva en Norvia y se sincroniza cuando sea posible.
 
-**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-093 · **Reglas:** RN-05, RN-53, D16
+**Módulo:** Técnico · **Entrega:** E3 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-093 · **Reglas:** RN-05, RN-53, D16
 
 ---
 
 ## Resumen
 
-Total: 113 historias: 90 Must y 23 Should. Por entrega: Diseño 16, E1 44, E2 25 y E3 28.
+Total: 114 historias: 91 Must y 23 Should. Por entrega: Diseño 16, E1 43, E2 25 y E3 30.
 
 | ID | Historia | Módulo | Entrega | Dónde | Prioridad |
 |---|---|---|---|---|---|
@@ -1493,19 +1509,20 @@ Total: 113 historias: 90 Must y 23 Should. Por entrega: Diseño 16, E1 44, E2 25
 | HU-017 | Registrar mi empresa | M1 | E1 | Web | Must |
 | HU-018 | Iniciar y cerrar sesión | M1 | E1 | Web y teléfono | Must |
 | HU-019 | Acceder a otra empresa | M1 | E1 | Web y teléfono | Must |
-| HU-020 | Agregar vínculos | M1 | E1 | Web | Must |
-| HU-021 | Gestionar roles y vínculos | M1 | E1 | Web | Must |
+| HU-020 | Agregar personas a la empresa | M1 | E1 | Web | Must |
+| HU-021 | Administrar el acceso de las personas | M1 | E1 | Web | Must |
 | HU-022 | Cambiar mi contraseña | M1 | E1 | Web y teléfono | Should |
+| HU-114 | Definir la política de contraseñas | M1 | E1 | Web y teléfono | Must |
 | HU-023 | Administrar los catálogos | M1 | E3 | Web | Should |
 | HU-024 | Consultar las empresas registradas | M1 | E3 | Web | Should |
-| HU-025 | Conectar la cuenta de Google | M1 | E1 | Web | Must |
+| HU-025 | Conectar el calendario de la empresa | M1 | E3 | Web | Must |
 | HU-026 | Completar el perfil | M2 | E1 | Web | Must |
 | HU-027 | Registrar áreas | M2 | E1 | Web | Must |
 | HU-028 | Calcular la composición de la comisión | M2 | E2 | Web | Must |
 | HU-029 | Elegir categorías de riesgo | M3 | E1 | Web | Must |
-| HU-030 | Generar la encuesta en Google Forms | M3 | E1 | Web | Must |
-| HU-031 | Importar las respuestas | M3 | E1 | Web | Must |
-| HU-032 | Ver el resumen de respuestas | M3 | E1 | Web | Must |
+| HU-030 | Crear y editar una encuesta | M3 | E1 | Web | Must |
+| HU-031 | Responder una encuesta | M3 | E1 | Web | Must |
+| HU-032 | Consultar gráficos y resultados | M3 | E1 | Web | Must |
 | HU-033 | Obtener peligros sugeridos | M3 | E1 | Web | Must |
 | HU-034 | Consultar encuestas anteriores | M3 | E3 | Web | Should |
 | HU-035 | Confirmar los peligros sugeridos | M4 | E1 | Web | Must |
@@ -1586,4 +1603,4 @@ Total: 113 historias: 90 Must y 23 Should. Por entrega: Diseño 16, E1 44, E2 25
 | HU-110 | Desplegar el frontend web | Técnico | E1 | Web | Must |
 | HU-111 | Automatizar el despliegue | Técnico | E1 | No aplica | Must |
 | HU-112 | Distribuir la app para pruebas | Técnico | E2 | Teléfono | Must |
-| HU-113 | Integrar con Google Forms y Google Calendar | Técnico | E1 | No aplica | Must |
+| HU-113 | Integrar con Google Calendar | Técnico | E3 | No aplica | Must |

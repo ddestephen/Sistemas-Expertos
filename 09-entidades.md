@@ -40,9 +40,10 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Con `EmpresaId` | ConexionGoogle | Cuenta de Google conectada y sus credenciales cifradas | M1 |
 | Con `EmpresaId` | RegistroAuditoria | Acciones importantes | Todos |
 | Con `EmpresaId` | Area | Áreas de la empresa | M2 |
-| Con `EmpresaId` | Encuesta | Cada encuesta, con su formulario y enlace en Google | M3 |
-| Con `EmpresaId` | EncuestaCategoria | Categorías elegidas para cada encuesta | M3 |
-| Con `EmpresaId` | EncuestaPregunta | Copia de las preguntas enviadas | M3 |
+| Con `EmpresaId` | Encuesta | Encuesta interna creada para una empresa | M3 |
+| Con `EmpresaId` | EncuestaVersion | Versión editable/publicada de una encuesta | M3 |
+| Con `EmpresaId` | EncuestaCategoria | Categorías elegidas para cada versión de encuesta | M3 |
+| Con `EmpresaId` | EncuestaPregunta | Copia de las preguntas de una versión | M3 |
 | Con `EmpresaId` | EncuestaOpcion | Copia de las opciones enviadas | M3 |
 | Con `EmpresaId` | RespuestaEncuesta | Cada respuesta recibida | M3 |
 | Con `EmpresaId` | DetalleRespuesta | Respuesta a cada pregunta | M3 |

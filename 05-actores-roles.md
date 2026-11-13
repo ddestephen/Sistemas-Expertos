@@ -15,9 +15,9 @@ Hay cuatro conceptos distintos en acceso:
 | Rol | Alcance | Puede |
 |---|---|---|
 | Staff con **RolStaffPlataforma** | Toda la plataforma | Catálogos globales, datos básicos de empresas, suspensión SaaS. Sin acceso SST de clientes ni asignación de `Rol` en vínculos |
-| Administrador de empresa (vínculo `admin_empresa`) | Su empresa | Configurar la empresa, Google, **altas y roles de vínculos** en esa empresa |
-| Responsable SST | Su empresa | Gestionar encuestas, riesgos, plan, accidentes, comisión, equipos, EPP, documentos y reportes |
-| Colaborador | Su empresa | Atender sus tareas, reportar accidentes, registrar mantenimientos y firmar actas cuando le corresponda |
+| Administrador de empresa (vínculo `admin_empresa`) | Su empresa | Configurar la empresa, conectar Google Calendar, **altas y roles de vínculos** en esa empresa |
+| Responsable SST | Su empresa | Crear y editar encuestas, consultar sus respuestas, gestionar riesgos, plan, accidentes, comisión, equipos, EPP, documentos y reportes |
+| Colaborador | Su empresa | Responder encuestas asignadas, atender sus tareas, reportar accidentes, registrar mantenimientos y firmar actas cuando le corresponda |
 
 ## Asignaciones
 
@@ -34,8 +34,7 @@ Hay cuatro conceptos distintos en acceso:
 
 ## Personas que no usan el sistema
 
-Un trabajador no necesita cuenta para participar:
+Los trabajadores sin cuenta no pueden responder encuestas dentro de Norvia. Para participar en otros procesos:
 
-- **Responde la encuesta** desde el enlace de Google Forms.
 - **Recibe equipo de protección,** y la entrega se registra con su nombre, área y puesto.
 - **Si sufre un accidente,** sus datos se registran en el reporte.
