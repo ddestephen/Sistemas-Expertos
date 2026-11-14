@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-13 | Equipo (redactado con Claude Code) | Guía de **Clean Architecture y Vertical Slicing** (`16-arquitectura-backend-frontend.md`) y evaluación de la rama `feature/acceso-auth`: servicio por caso de uso, repositorio por slice + unidad de trabajo, FluentValidation con middleware global | [Ver cambio](#cambio-2026-11-13-arquitectura) |
 | 2026-11-13 | Equipo (redactado con Claude Code) | **Reducción de alcance** integrada con el rework de Jonathan: encuestas internas con versiones y 3 tipos, respuestas anónimas, cuentas de encuestados, sin áreas, M6 sin personas afectadas, notificaciones en Norvia y por correo; M7, M8 y M12 fuera (41 tablas, D26–D28, RN-68–79, HU-114–118) | [Ver cambio](#cambio-2026-11-13-reduccion-alcance) |
 | 2026-11-13 | Jonathan | Rework de historias: redacción no técnica de los criterios, encuestas internas con versiones (`EncuestaVersion`) y 3 tipos de pregunta, política de contraseñas (HU-114) | Integrado en [este cambio](#cambio-2026-11-13-reduccion-alcance) |
 | 2026-11-09 | Jesús | Archivo nativo editable **`docs/Diagramas.drawio`** (ERD Conceptual y Relacional Físico) y `.gitignore` | [Ver cambio](#cambio-2026-11-09-archivo-drawio) |
@@ -19,6 +20,68 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-13-arquitectura` {#cambio-2026-11-13-arquitectura}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 13 de noviembre de 2026 |
+| **Alcance** | Documento nuevo `16-arquitectura-backend-frontend.md`, con enlaces en `README.md`, `00-guia-edicion-docs.md` y la DoD de `13-sprint-backlog.md`. No cambia el modelo de datos ni las reglas. **No se modificó código**: las correcciones quedan propuestas |
+
+### El problema (por qué hubo que cambiar)
+
+1. La rama `feature/acceso-auth` (commit `9aa2517`, login, refresh y logout con JWT) se revisó contra Clean Architecture y Vertical Slicing, que la rúbrica califica en el backend.
+2. **Las referencias entre proyectos son correctas.** Sin embargo:
+   - un solo `AuthServicio` agrupa los 4 casos de uso, y la carpeta del módulo se divide por tipo técnico (`DTOs/`, `Interfaces/`, `Validators/`);
+   - el repositorio guarda en cada método, así que la rotación del refresh no es atómica;
+   - no hay middleware global de errores;
+   - el paquete `FluentValidation.AspNetCore` está deprecado y choca con FluentValidation 12;
+   - las abstracciones transversales están dentro del slice;
+   - la configuración se lee directamente de `IConfiguration` en varios lugares.
+3. No existía un documento que dijera cómo organizar el código, así que cada integrante lo resolvía a su manera.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Un servicio por caso de uso** | `Features/<Modulo>/<CasoDeUso>/` con Request, Response, Validator, `I<CasoDeUso>Repositorio` y `<CasoDeUso>Servicio` (`EjecutarAsync`). Sin MediatR | Es Vertical Slicing real, sin dependencias ni licencias |
+| **Repositorio por slice + `IUnidadDeTrabajo`** | Los repositorios no guardan; el servicio confirma una vez por caso de uso | Transacciones atómicas, y Application no depende de EF Core |
+| **FluentValidation obligatorio** | Un validador por slice. Un filtro propio lo ejecuta y el middleware global convierte la `ValidationException` a ProblemDetails. Solo se quita el paquete de integración deprecado | Cumple "middleware que intercepta FluentValidation" de la rúbrica |
+| **`Resultado<T>` + `Error`** | Los fallos de negocio no son excepciones; se traducen a 400/401/403/404/409 | Respuestas HTTP coherentes en todos los módulos |
+| **Patrón Options** | Ningún servicio lee `IConfiguration`; `AddJwtBearer` pasa a la API | Configuración en un solo lugar y capas limpias |
+| **Frontend por features** | `src/features/<modulo>/{api, components, hooks, pages, schemas, types}` | Mismo criterio de slices que el backend; Zod como espejo de FluentValidation |
+
+### Cómo quedó (resumen)
+
+- La guía tiene 10 secciones (capas, carpetas, anatomía de un slice con el ejemplo `LoginEmpresa`, reglas de slicing, datos, multiempresa, validación y errores, configuración, frontend y checklist de PR) y un anexo con la evaluación de la rama.
+- **Correcciones propuestas,** en orden:
+  1. middleware global + filtro de FluentValidation;
+  2. `IUnidadDeTrabajo`;
+  3. mover las abstracciones a `Common` y pasar la configuración a Options;
+  4. separar `AuthServicio` en 4 slices y usar `Resultado<T>`;
+  5. mover el seeder y borrar `PersonaCreateDTO`;
+  6. hacer HU-093 (filtro por empresa).
+
+### Qué hizo el equipo en la práctica
+
+- Revisó los `.csproj`, `Program.cs`, el controller, el servicio, las interfaces, los repositorios y la configuración de la rama.
+- Redactó `16-arquitectura-backend-frontend.md` y lo enlazó desde `README.md`, `00-guia-edicion-docs.md` y la DoD de `13-sprint-backlog.md`.
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero |
+|----|-------------|---------|
+| HU-013 (arquitectura del backend) | Sí, la guía la concreta | [ ] |
+| HU-091, HU-094, HU-096 (implementación) | Correcciones propuestas en el anexo de la guía | [ ] |
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Reglas de arquitectura y evaluación | [16-arquitectura-backend-frontend.md](16-arquitectura-backend-frontend.md) |
 
 ---
 

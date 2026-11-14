@@ -24,6 +24,7 @@ Seguir este orden al cambiar el modelo o las reglas:
 6. **Bitácora:** al terminar, añadir entrada en **Últimos cambios** y el bloque de detalle en [14-cambios-realizados.md](14-cambios-realizados.md) (plantilla al final del archivo).
 7. **Tablero:** si actualizan la issue en GitHub Projects, marcar `[x]` en la tabla de HUs del cambio correspondiente en el `14`.
 8. **Recortes:** lo que sale del alcance conserva su código (M#, HU, D, RN) y se marca "Fuera de alcance" o "Sin efecto"; las tablas recortadas salen del modelo y se listan en [09-entidades.md](09-entidades.md).
+9. **Arquitectura del código:** las reglas de capas y slices están en [16-arquitectura-backend-frontend.md](16-arquitectura-backend-frontend.md), que es un documento técnico (puede nombrar tecnologías). Si cambia una de esas reglas, se registra en la bitácora.
 
 ## Términos clave (resumen)
 

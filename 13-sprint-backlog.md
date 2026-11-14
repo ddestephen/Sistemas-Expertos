@@ -134,7 +134,7 @@ Para considerar una historia como completada en el tablero Kanban de GitHub Proj
 - [ ] La issue asociada en GitHub Projects se encuentra en la columna **Done**.
 
 ### Para historias de la Fase 2:
-- [ ] El código sigue la estructura estricta de Clean Architecture sin referencias circulares.
+- [ ] El código sigue la estructura estricta de Clean Architecture sin referencias circulares y cumple el checklist de [arquitectura](16-arquitectura-backend-frontend.md#10-checklist-para-cada-pr).
 - [ ] La entidad incluye `EmpresaId` y está protegida por `HasQueryFilter`.
 - [ ] Los DTOs de entrada y salida están separados de las entidades de dominio (simetría DTO).
 - [ ] Las validaciones semánticas están escritas con FluentValidation y cubren casos límite.
