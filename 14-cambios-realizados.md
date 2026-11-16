@@ -10,6 +10,12 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-15 | Jonathan | Doc **18**: anexo JSON (request/response) por endpoint MVP | Auth ✅ alineado a DTOs; resto 🚧 según modelo §4 |
+| 2026-11-15 | Jonathan | Guías **17** (permisos/seed/Postman) y **18** (contratos API MVP Must/Should) | Enlazadas en `README.md`; mapeo HU → endpoint → `CatalogoPermisos` |
+| 2026-11-15 | Jonathan | Auth: `DTOs/` + `Validators/` **por slice**; `Data/` solo `NorviaDbContext`; resto en `Persistence/` | Alineado a HabitForge (contexto en Data; contratos por feature) |
+| 2026-11-15 | Jonathan | Auth: estructura de contratos y vertical slicing | Actualizado `16-arquitectura` §3 y regla `dto-sufijo` |
+| 2026-11-15 | Jonathan | AccesoRecurso en vertical slicing: slice `PermitirAccesoRecurso/` + `IPermitirAccesoRecursoRepositorio` | Sin `IAutorizadorPermisos` en Common; repo por convención DI |
+| 2026-11-15 | Jonathan | Convención de contratos: sufijo **`Dto`** | Alineado al código Auth (`*RequestDto`, `SesionResponseDto`) |
 | 2026-11-13 | Equipo (redactado con Claude Code) | Guía de **Clean Architecture y Vertical Slicing** (`16-arquitectura-backend-frontend.md`) y evaluación de la rama `feature/acceso-auth`: servicio por caso de uso, repositorio por slice + unidad de trabajo, FluentValidation con middleware global | [Ver cambio](#cambio-2026-11-13-arquitectura) |
 | 2026-11-13 | Equipo (redactado con Claude Code) | **Reducción de alcance** integrada con el rework de Jonathan: encuestas internas con versiones y 3 tipos, respuestas anónimas, cuentas de encuestados, sin áreas, M6 sin personas afectadas, notificaciones en Norvia y por correo; M7, M8 y M12 fuera (41 tablas, D26–D28, RN-68–79, HU-114–118) | [Ver cambio](#cambio-2026-11-13-reduccion-alcance) |
 | 2026-11-13 | Jonathan | Rework de historias: redacción no técnica de los criterios, encuestas internas con versiones (`EncuestaVersion`) y 3 tipos de pregunta, política de contraseñas (HU-114) | Integrado en [este cambio](#cambio-2026-11-13-reduccion-alcance) |
@@ -47,7 +53,7 @@
 
 | Decisión | Qué significa | Por qué ayuda |
 |----------|---------------|---------------|
-| **Un servicio por caso de uso** | `Features/<Modulo>/<CasoDeUso>/` con Request, Response, Validator, `I<CasoDeUso>Repositorio` y `<CasoDeUso>Servicio` (`EjecutarAsync`). Sin MediatR | Es Vertical Slicing real, sin dependencias ni licencias |
+| **Un servicio por caso de uso** | Slice = `DTOs/` + `Validators/` + servicio + `I*Repositorio`. Sin MediatR | Vertical slicing real (contratos dentro del caso de uso) |
 | **Repositorio por slice + `IUnidadDeTrabajo`** | Los repositorios no guardan; el servicio confirma una vez por caso de uso | Transacciones atómicas, y Application no depende de EF Core |
 | **FluentValidation obligatorio** | Un validador por slice. Un filtro propio lo ejecuta y el middleware global convierte la `ValidationException` a ProblemDetails. Solo se quita el paquete de integración deprecado | Cumple "middleware que intercepta FluentValidation" de la rúbrica |
 | **`Resultado<T>` + `Error`** | Los fallos de negocio no son excepciones; se traducen a 400/401/403/404/409 | Respuestas HTTP coherentes en todos los módulos |

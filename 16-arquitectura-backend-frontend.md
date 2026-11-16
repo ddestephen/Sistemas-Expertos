@@ -50,19 +50,24 @@ backend/
 │   │   ├── Seguridad/          SesionToken
 │   │   └── CasosDeUso/         IServicioCasoDeUso (marcador)
 │   ├── Features/
-│   │   └── <Modulo>/           Auth, Empresas, Vinculos, Encuestas, Riesgos…
-│   │       ├── Errores.cs      errores del módulo (y otras piezas compartidas solo por sus slices)
-│   │       └── <CasoDeUso>/    LoginEmpresa, RefrescarSesion, CrearRiesgo…
+│   │   └── <Modulo>/           Auth, AccesoRecurso, Empresas, Vinculos…
+│   │       ├── DTOs/           solo *ResponseDto compartidos del módulo (p. ej. SesionResponseDto)
+│   │       ├── Errores.cs      errores del módulo (y piezas: RutaNormalizada, EmisorSesion…)
+│   │       └── <CasoDeUso>/    LoginEmpresa, CerrarSesion, PermitirAccesoRecurso…
+│   │           ├── DTOs/       *RequestDto del caso
+│   │           ├── Validators/ AbstractValidator<*RequestDto>
+│   │           ├── *Servicio.cs
+│   │           └── I*Repositorio.cs
 │   └── DependencyInjection.cs
 ├── Norvia.Infrastructure/
+│   ├── Data/                   NorviaDbContext.cs (solo el DbContext, como HabitForge)
 │   ├── Persistence/
 │   │   ├── Configurations/<Area>/
 │   │   ├── Conversiones/
 │   │   ├── Interceptores/      AsignarEmpresaInterceptor
 │   │   ├── Migrations/
 │   │   ├── Repositorios/<Modulo>/   LoginEmpresaRepositorio…
-│   │   ├── Seed/               StaffSeeder, InicializacionBaseDatos (se llama desde Program.cs)
-│   │   ├── NorviaDbContext.cs
+│   │   ├── Seed/               StaffSeeder, InicializacionBaseDatos
 │   │   └── UnidadDeTrabajo.cs
 │   ├── Seguridad/              JwtTokenServicio, CifradorEmpresaId, HasherPassword
 │   ├── Tiempo/                 RelojBaseDatos
@@ -70,37 +75,59 @@ backend/
 │   └── DependencyInjection.cs
 └── Norvia.API/
     ├── Controllers/            <Modulo>Controller (delgados)
-    ├── Middleware/             ManejoErroresMiddleware
+    ├── Middleware/             ManejoErroresMiddleware, AutorizacionPermisosMiddleware
     ├── Filtros/                ValidacionFiltro
     ├── Seguridad/              TenantActual (lee el JWT)
     ├── Extensiones/            ResultadoExtensiones (Resultado → IActionResult), AutenticacionExtensiones
     └── Program.cs
 ```
 
-## 3. Anatomía de un slice
+## 3. Anatomía de un módulo y su slice
 
-Un **slice** es una carpeta con todo lo que necesita **un** caso de uso. No se divide por tipo técnico: no hay subcarpetas `DTOs/`, `Interfaces/` ni `Validators/` dentro de un módulo.
+Cada **caso de uso** es una carpeta con sus contratos y validación (estilo HabitForge `Features/Habitos/DTOs` + `Validators`, pero **por slice**):
 
-| Archivo | Qué es |
+| Ubicación | Qué va ahí |
 |---|---|
-| `<CasoDeUso>Request.cs` | Datos de entrada (record) |
-| `<CasoDeUso>Response.cs` | Datos de salida (record). Se omite si el caso de uso no devuelve datos |
-| `<CasoDeUso>Validator.cs` | `AbstractValidator<<CasoDeUso>Request>` de FluentValidation |
-| `I<CasoDeUso>Repositorio.cs` | Solo las consultas y altas que necesita este caso de uso |
-| `<CasoDeUso>Servicio.cs` | Las reglas de negocio. Un único método `EjecutarAsync` |
+| `Features/<Modulo>/<CasoDeUso>/DTOs/` | `*RequestDto` (sufijo `Dto`; no exponer entidades) |
+| `Features/<Modulo>/<CasoDeUso>/Validators/` | `AbstractValidator<*RequestDto>` |
+| `Features/<Modulo>/<CasoDeUso>/` | `<CasoDeUso>Servicio` + `I<CasoDeUso>Repositorio` |
+| `Features/<Modulo>/DTOs/` | Solo `*ResponseDto` **compartidos** por varios slices (p. ej. `SesionResponseDto`) |
+| Raíz del módulo | `Errores.cs` y piezas compartidas (`EmisorSesion`, `RutaNormalizada`…) |
 
-### Ejemplo: `Features/Auth/LoginEmpresa/`
+**No** hay carpeta `Interfaces/` en el módulo. Un servicio no reúne varios casos de uso.
+
+En Infrastructure: `Data/` solo tiene el `DbContext`; configs, migraciones, repos y seed van en `Persistence/`.
+
+### Ejemplo: Auth
+
+```
+Features/Auth/
+  DTOs/SesionResponseDto.cs          ← compartido
+  LoginEmpresa/
+    DTOs/LoginEmpresaRequestDto.cs
+    Validators/LoginEmpresaValidator.cs
+    LoginEmpresaServicio.cs
+    ILoginEmpresaRepositorio.cs
+  CerrarSesion/
+    DTOs/…
+    Validators/…
+    …
+```
 
 ```csharp
-// LoginEmpresaRequest.cs
-public sealed record LoginEmpresaRequest(string Email, string Password, string IdEmpresa);
+// LoginEmpresa/DTOs/LoginEmpresaRequestDto.cs
+public sealed record LoginEmpresaRequestDto
+{
+    public string Email { get; init; } = string.Empty;
+    public string Password { get; init; } = string.Empty;
+    public string IdEmpresa { get; init; } = string.Empty;
+}
 
-// Respuesta: los tres slices que abren o renuevan sesión devuelven la misma forma,
-// así que vive a nivel de módulo (Features/Auth/SesionResponse.cs).
-public sealed record SesionResponse(string AccessToken, string RefreshToken, int ExpiresIn);
+// Auth/DTOs/SesionResponseDto.cs (compartido por varios slices del módulo)
+public sealed record SesionResponseDto(string AccessToken, string RefreshToken, int ExpiresIn);
 
-// LoginEmpresaValidator.cs
-public sealed class LoginEmpresaValidator : AbstractValidator<LoginEmpresaRequest>
+// LoginEmpresa/Validators/LoginEmpresaValidator.cs
+public sealed class LoginEmpresaValidator : AbstractValidator<LoginEmpresaRequestDto>
 {
     public LoginEmpresaValidator()
     {
@@ -110,7 +137,7 @@ public sealed class LoginEmpresaValidator : AbstractValidator<LoginEmpresaReques
     }
 }
 
-// ILoginEmpresaRepositorio.cs
+// LoginEmpresa/ILoginEmpresaRepositorio.cs
 public interface ILoginEmpresaRepositorio
 {
     Task<Acceso?> BuscarAccesoAsync(string emailNormalizado, CancellationToken ct);
@@ -119,7 +146,7 @@ public interface ILoginEmpresaRepositorio
     void AgregarRefresh(RefreshToken refresh);          // no guarda
 }
 
-// LoginEmpresaServicio.cs
+// LoginEmpresa/LoginEmpresaServicio.cs
 public sealed class LoginEmpresaServicio(
     ILoginEmpresaRepositorio repo,
     IUnidadDeTrabajo uow,
@@ -128,7 +155,7 @@ public sealed class LoginEmpresaServicio(
     IReloj reloj,
     EmisorSesion emisor) : IServicioCasoDeUso      // EmisorSesion: pieza del módulo Auth
 {
-    public async Task<Resultado<SesionResponse>> EjecutarAsync(LoginEmpresaRequest req, CancellationToken ct)
+    public async Task<Resultado<SesionResponseDto>> EjecutarAsync(LoginEmpresaRequestDto req, CancellationToken ct)
     {
         if (!cifrador.TryDescifrar(req.IdEmpresa, out var empresaId))
             return Errores.CredencialesInvalidas;
@@ -160,7 +187,7 @@ public sealed class AuthController : ControllerBase
 {
     [HttpPost("login/empresa")]
     public async Task<IActionResult> LoginEmpresa(
-        LoginEmpresaRequest request, [FromServices] LoginEmpresaServicio servicio, CancellationToken ct)
+        LoginEmpresaRequestDto request, [FromServices] LoginEmpresaServicio servicio, CancellationToken ct)
         => (await servicio.EjecutarAsync(request, ct)).AHttp(this);
 }
 ```
@@ -169,11 +196,11 @@ public sealed class AuthController : ControllerBase
 
 1. **Un caso de uso = una carpeta = un servicio.** Un servicio no tiene métodos públicos de otros casos de uso.
 2. **Un slice no importa otro slice.** Si dos slices necesitan lo mismo, se mueve a `Common`. Si solo es parecido, se duplica: la duplicación entre slices es aceptable; el acoplamiento no.
-3. **Algo pasa a `Common` solo cuando lo usan dos o más slices** y es transversal (tiempo, seguridad, tenant, resultados). Si solo lo comparten slices **del mismo módulo**, va en la raíz del módulo (`Features/Auth/Errores.cs`, `SesionResponse.cs`, `EmisorSesion.cs`) y no en `Common`.
+3. **Algo pasa a `Common` solo cuando lo usan dos o más slices** y es transversal (tiempo, seguridad, tenant, resultados). Si solo lo comparten slices **del mismo módulo**, va en la raíz del módulo o en `Features/Auth/DTOs/` para responses compartidos (`Errores.cs`, `SesionResponseDto.cs`, `EmisorSesion.cs`) y no en `Common`.
 4. **Nombres en español y PascalCase**, con el verbo del caso de uso: `CrearRiesgo`, `EvaluarRiesgo`, `PublicarVersionEncuesta`, `ResponderEncuesta`.
 5. **Un controller por módulo,** y cada acción inyecta solo el servicio de su caso de uso (`[FromServices]`).
 6. **Registro automático:** `AddApplication()` registra como *scoped* toda clase que implemente `IServicioCasoDeUso`, y todos los validadores (`AddValidatorsFromAssembly`). `AddInfrastructure()` registra los repositorios por convención (`I<X>Repositorio` → `<X>Repositorio`).
-7. **El repositorio vive en Infrastructure,** en `Persistence/Repositorios/<Modulo>/`, con el mismo nombre que el slice.
+7. **El repositorio vive en Infrastructure,** en `Persistence/Repositorios/<Modulo>/`, con el mismo nombre que el slice. El `DbContext` está solo en `Data/`.
 
 ## 5. Acceso a datos
 
@@ -194,7 +221,7 @@ public sealed class AuthController : ControllerBase
 
 ## 7. Validación y errores
 
-**FluentValidation es obligatorio.** Toda validación de entrada se escribe como un `AbstractValidator<Request>` (FluentValidation v12, en Application) dentro del slice. No hay validaciones de entrada con `if` en controllers ni en servicios.
+**FluentValidation es obligatorio.** Toda validación de entrada se escribe como un `AbstractValidator<*RequestDto>` (FluentValidation v12, en Application) en `Features/<Modulo>/<CasoDeUso>/Validators/`. No hay validaciones de entrada con `if` en controllers ni en servicios.
 
 Flujo:
 
@@ -250,7 +277,8 @@ src/
 ## 10. Checklist para cada PR
 
 - [ ] Las referencias entre proyectos respetan la tabla de la sección 1 (revisar los `.csproj`).
-- [ ] Cada caso de uso nuevo es una carpeta en `Features/<Modulo>/<CasoDeUso>/` con Request, Validator, Repositorio y Servicio.
+- [ ] Cada caso de uso nuevo es `Features/<Modulo>/<CasoDeUso>/` con `DTOs/`, `Validators/`, Servicio e `I*Repositorio`; responses compartidos en `Features/<Modulo>/DTOs/`.
+- [ ] Los contratos HTTP usan sufijo `Dto`; el controller no recibe entidades de dominio.
 - [ ] Ningún slice importa otro slice.
 - [ ] Los repositorios no llaman a `SaveChanges`; el servicio llama a `IUnidadDeTrabajo` una vez.
 - [ ] Las entidades de empresa implementan `ITieneEmpresa` y quedan bajo `HasQueryFilter`; el request no trae `EmpresaId`.
@@ -274,14 +302,14 @@ Revisión del commit `9aa2517 feature/Jwt incoporation` (login, refresh y logout
 
 | # | Problema | Regla que incumple | Corrección |
 |---|---|---|---|
-| 1 | `AuthServicio` reúne 4 casos de uso, y `Features/Auth/` se divide en `DTOs/`, `Interfaces/` y `Validators/` | Secciones 3 y 4 | Crear los slices `LoginEmpresa/`, `LoginPlataforma/`, `RefrescarSesion/` y `CerrarSesion/`, cada uno con su request, validador, repositorio y servicio |
+| 1 | `AuthServicio` reúne 4 casos de uso (y a veces carpeta `Interfaces/`) | Secciones 3 y 4 | Crear slices `LoginEmpresa/`, … cada uno con `DTOs/`, `Validators/`, servicio e `I*Repositorio` |
 | 2 | `AuthRepositorio` llama a `SaveChanges` en cada método; la rotación del refresh se hace en dos transacciones | Sección 5 | Agregar `IUnidadDeTrabajo`/`UnidadDeTrabajo` y dejar los repositorios sin `SaveChanges` |
 | 3 | No hay middleware global ni ProblemDetails; `FluentValidation.AspNetCore` 11 (deprecado) choca con FluentValidation 12 | Sección 7 | Mantener los validadores de FluentValidation y agregar `ValidacionFiltro` + `ManejoErroresMiddleware`; quitar solo el paquete de integración |
 | 4 | `IRelojBaseDatos`, `ICifradorEmpresaId`, `ITokenServicio` e `IVerificadorPassword` están dentro del slice Auth | Secciones 1 y 2 | Moverlas a `Application/Common/Interfaces` (renombrar `IVerificadorPassword` a `IHasherPassword`, con `Hashear` y `Verificar`) |
 | 5 | Infrastructure configura `AddJwtBearer`, la clave del JWT se lee en dos lugares, y los servicios leen `IConfiguration` | Secciones 1 y 8 | Crear `JwtOpciones`/`CifradoOpciones`/`StaffSeedOpciones` y mover `AddJwtBearer` a la API |
 | 6 | `ResultadoAuth` es un booleano y todo fallo responde 401 | Sección 7 | Usar `Resultado<T>` + `Error` y `ResultadoExtensiones.AHttp` |
 | 7 | `StaffSeeder` usa `PasswordHasher` directamente y está en `Infrastructure/Auth/` | Secciones 2 y 4 | Moverlo a `Persistence/Seed/` y usar `IHasherPassword` |
-| 8 | `Features/Personas/DTOs/PersonaCreateDTO.cs` es una clase vacía | Sección 3 | Borrarla; se crea dentro del slice de HU-017/HU-020 cuando se implemente |
+| 8 | `Features/Personas/DTOs/PersonaCreateDTO.cs` es una clase vacía / sin sufijo `Dto` | Sección 3 | Borrarla; el DTO se crea en `Features/<Modulo>/DTOs/` al implementar HU-017/HU-020 |
 | 9 | Faltan `ITenantActual`, `HasQueryFilter` y la asignación de `EmpresaId` al guardar | Sección 6 | No es una violación: es la siguiente historia (HU-093) |
 
 **Estado:** las correcciones 1 a 8 se aplicaron en la rama `fix/acceso-auth` (13-11-2026). La 9 queda para HU-093.

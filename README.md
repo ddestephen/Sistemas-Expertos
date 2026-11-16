@@ -40,6 +40,8 @@ Si una palabra no te resulta conocida, búscala en el [glosario](11-glosario.md)
 | [15-diagramas-drawio.md](15-diagramas-drawio.md) | Diagramas ERD y relacionales con tipos PostgreSQL exportables a draw.io | Quien diseñe o modele la base de datos |
 | [Diagramas.drawio](Diagramas.drawio) | Archivo vectorial nativo de Draw.io con páginas ERD y Relacional | Quien diseñe o modele la base de datos |
 | [16-arquitectura-backend-frontend.md](16-arquitectura-backend-frontend.md) | Reglas de Clean Architecture y Vertical Slicing para el backend y el frontend, con la evaluación de la rama `feature/acceso-auth` | Quien programe o revise código |
+| [17-guia-permisos-seeder-y-pruebas.md](17-guia-permisos-seeder-y-pruebas.md) | Cómo registrar rutas en `CatalogoPermisos`, códigos HTTP 401/403/404 y pruebas Postman | Backend y quien agregue endpoints |
+| [18-contratos-api-mvp.md](18-contratos-api-mvp.md) | Catálogo completo de API: índice maestro + JSON de request/response por ruta (Must/Should/Could) | Backend, front y Postman |
 
 ## Lo que el equipo debe aprobar
 

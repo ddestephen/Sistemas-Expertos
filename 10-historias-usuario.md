@@ -1,4 +1,4 @@
-# Historias de usuario
+﻿# Historias de usuario
 
 **Para qué sirve:** describe todo el trabajo del proyecto, historia por historia. Estas historias se cargan al tablero del equipo.
 
@@ -320,14 +320,14 @@ Cada historia termina con estos datos:
 
 ### HU-114 | Definir la política de contraseñas
 
-**Como** persona usuaria, **quiero** conocer los requisitos para elegir una contraseña, **para** proteger mi cuenta y poder acceder a Norvia.
+**Como** persona usuaria, **quiero** establecer una contraseña que cumpla los requisitos de seguridad de Norvia, **para** proteger mi cuenta.
 
 **Criterios de aceptación:**
 
-- La contraseña debe tener entre 15 y 64 caracteres.
-- Se aceptan frases y no se exige combinar mayúsculas, minúsculas, números o símbolos.
-- No se aceptan contraseñas comunes ni contraseñas conocidas como comprometidas.
-- Si una contraseña no cumple estos requisitos, se explica qué debe corregirse para continuar.
+- El sistema acepta contraseñas de entre 8 y 64 caracteres.
+- El sistema acepta frases y no exige combinar mayúsculas, minúsculas, números o símbolos.
+- El sistema rechaza contraseñas comunes o conocidas como comprometidas.
+- Si la contraseña no cumple la política, el sistema indica qué requisito debe corregirse.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** ninguna
 
@@ -374,15 +374,15 @@ Cada historia termina con estos datos:
 
 ### HU-115 | Crear cuentas de encuestados
 
-**Como** Administrador de empresa, **quiero** crear las cuentas de los trabajadores que responderán las encuestas, **para** que cada uno responda una sola vez con su propio acceso.
+**Como** Administrador de empresa, **quiero** dar acceso a los trabajadores que responderán las encuestas, **para** que cada persona participe con su propia cuenta.
 
 **Criterios de aceptación:**
 
-- Puedo crear una cuenta a la vez o varias en lote, a partir de una lista con nombres y correo.
-- Cada cuenta da acceso a la empresa en el grupo de encuestados; si la persona ya tiene cuenta en Norvia, se reutiliza.
-- El acceso inicial es temporal y se solicita cambiar la contraseña en el primer ingreso, según la política de HU-114.
-- En el lote, las filas con errores (correo inválido o persona que ya tiene acceso a la empresa) se informan sin detener las demás.
-- Un encuestado solo puede responder encuestas, ver sus notificaciones y consultar las políticas vigentes.
+- Se permite dar de alta a una persona o cargar varias mediante una lista de nombres y correos.
+- Para cada trabajador, Norvia crea una cuenta si no existe o reutiliza la cuenta existente, y concede acceso a esta empresa en el grupo de encuestados.
+- El acceso inicial requiere cambiar la contraseña en el primer ingreso y cumple la política definida en HU-114.
+- En una carga por lote, Norvia informa las filas con correo inválido o acceso ya existente y continúa procesando las demás.
+- El grupo de encuestados solo permite responder encuestas, consultar las notificaciones dirigidas a la cuenta y consultar las políticas vigentes.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-020, HU-114 · **Reglas:** RN-02, RN-65, RN-74, D5
 
@@ -488,8 +488,6 @@ Cada historia termina con estos datos:
 
 - Se muestran la cantidad de participantes y de respuestas, y el periodo analizado.
 - Se muestran gráficos con la distribución de respuestas por pregunta, y las respuestas breves sin autor.
-- Se pueden comparar resultados entre versiones de la misma encuesta y entre encuestas.
-- Los resultados solo se muestran si la encuesta tiene al menos 3 respuestas.
 - Nada en los resultados permite saber quién dio cada respuesta.
 
 **Módulo:** M3 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-031 · **Reglas:** RN-72, RN-73, D27
@@ -1171,26 +1169,26 @@ Las notificaciones son internas de Norvia y por correo (D28). Las historias HU-0
 
 ### HU-116 | Notificar una política nueva
 
-**Como** Responsable SST, **quiero** que al aprobar una versión de una política se avise a todos, **para** que conozcan la política vigente.
+**Como** Responsable SST, **quiero** notificar a las personas con acceso vigente cuando se apruebe una política, **para** que puedan consultar su versión vigente.
 
 **Criterios de aceptación:**
 
-- Al aprobar una versión de un documento de tipo política se crea una notificación para cada vínculo activo de la empresa.
-- Cada notificación se ve en Norvia y se envía por correo, con el título de la política y el enlace a la versión vigente.
-- Aprobar no avisa dos veces a la misma persona por la misma versión.
-- Si el correo falla, la notificación sigue visible y el envío se reintenta.
+- Al aprobar una versión de un documento clasificado como política, Norvia crea una notificación para cada vínculo activo de esa empresa.
+- La notificación incluye el título de la política y un enlace a la versión aprobada; queda disponible en Norvia y se envía por correo.
+- Una misma aprobación no genera notificaciones duplicadas para una persona.
+- Si el envío del correo falla, la notificación permanece disponible en Norvia y el envío se reintenta según HU-118.
 
 **Módulo:** M11 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-072, HU-117, HU-118 · **Reglas:** RN-75, RN-78, D28
 
-### HU-117 | Ver mis notificaciones
+### HU-117 | Consultar notificaciones
 
-**Como** operador con vínculo, **quiero** ver mis notificaciones, **para** enterarme de lo nuevo sin depender del correo.
+**Como** persona con acceso vigente a una empresa, **quiero** consultar mis notificaciones en Norvia, **para** enterarme de las novedades aunque no revise mi correo.
 
 **Criterios de aceptación:**
 
-- Veo mis notificaciones, de la más reciente a la más antigua, con un contador de no leídas.
-- Puedo abrir el registro de origen (la política o la tarea) y marcar la notificación como leída.
-- No veo notificaciones de otras personas ni de otras empresas.
+- Las notificaciones se muestran de la más reciente a la más antigua e incluyen un contador de las que no se han leído.
+- Se puede abrir el elemento relacionado con cada notificación, como una tarea o una política, y marcarla como leída.
+- Solo se muestran las notificaciones dirigidas a la cuenta de la persona y correspondientes a la empresa seleccionada.
 
 **Módulo:** M11 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-018, HU-093 · **Reglas:** RN-79, D28
 
@@ -1609,18 +1607,19 @@ Las notificaciones son internas de Norvia y por correo (D28). Las historias HU-0
 **Módulo:** Técnico · **Entrega:** Fuera de alcance · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-093 · **Reglas:** RN-05, RN-53, D16
 
 
-### HU-118 | Configurar el envío de correo
+### HU-118 | Configurar el envío de correos
 
-**Como** equipo, **quiero** que Norvia envíe correos y los reintente si fallan, **para** que las notificaciones lleguen aunque el servicio de correo falle por un momento.
+**Como** equipo de desarrollo, **quiero** configurar un servicio de envío de correos con reintentos, **para** entregar las notificaciones y recuperar los envíos ante fallos temporales.
 
 **Criterios de aceptación:**
 
-- Los datos de acceso al servicio de correo se guardan de forma segura y no forman parte del código.
-- Las notificaciones pendientes o fallidas se envían automáticamente y se registra cuántas veces se intentó.
-- Si se agotan los intentos, la notificación queda marcada como fallida sin afectar la operación que la originó.
-- El envío funciona tanto en el entorno local como en el entorno publicado.
+- Las credenciales del servicio se configuran fuera del código y se almacenan de forma segura.
+- El sistema procesa automáticamente los correos pendientes y reintenta los envíos fallidos según una política configurable.
+- Cada intento queda registrado; al agotar los reintentos, el correo queda marcado como fallido sin revertir la operación que originó la notificación.
+- El envío de correos funciona en los entornos local y publicado mediante la configuración correspondiente.
 
 **Módulo:** Técnico · **Entrega:** E2 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-092 · **Reglas:** RN-78, D28
+
 ---
 
 ## Resumen
@@ -1746,4 +1745,350 @@ Total: 118 historias. En alcance: 80 (68 Must y 12 Should). Por entrega: Diseño
 | HU-115 | Crear cuentas de encuestados | M1 | E1 | Web | Must |
 | HU-116 | Notificar una política nueva | M11 | E2 | Web | Must |
 | HU-117 | Ver mis notificaciones | M11 | E2 | Web | Must |
-| HU-118 | Configurar el envío de correo | Técnico | E2 | No aplica | Must |
+| HU-118 | Configurar el envío de correos | Técnico | E2 | No aplica | Must |
+
+---
+
+## Guía de sub-issues Frontend y Backend para el backlog priorizado
+
+Esta guía ayuda a planificar por separado el trabajo de interfaz y el comportamiento del servidor. **No sustituye los criterios de aceptación de cada HU.** Crea los sub-issues cuando la HU entre a planificación y el trabajo se vaya a asignar o realizar por separado; no es necesario crearlos todos desde el inicio.
+
+- Mantén la HU como issue padre y conserva allí el resultado completo que necesita la persona.
+- Crea bajo ella un sub-issue `Frontend — ...` y otro `Backend — ...` cuando ambos trabajos sean necesarios.
+- Redacta cada sub-issue como un resultado observable; no necesita formato «Como usuario...» ni detalles de implementación.
+- GitHub asigna el número del issue automáticamente. No inventes códigos `HU` para los sub-issues.
+- Asigna cada sub-issue al sprint en el que se trabajará. La HU padre permanece abierta hasta que se cumplan sus criterios de aceptación y se complete el flujo.
+- Vincula la pull request con el sub-issue que implementa. No cierres la HU padre desde una PR si aún quedan partes pendientes.
+
+Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el título `HU-xxx Front — ...` o `HU-xxx Back — ...`. `HU-xxx` en el título es una referencia a la HU padre; GitHub asigna al sub-issue su propio número `#`. En el cuerpo incluye solo **Criterios de aceptación**: condiciones verificables que indiquen cuándo se puede cerrar el sub-issue. No hace falta agregar un objetivo ni usar el formato «Como usuario...». Ajusta los criterios al alcance aprobado.
+
+### HU-017 | Registrar mi empresa
+
+- **Título:** `HU-017 Front — Registrar la empresa desde la web`
+  - **Criterios de aceptación:**
+    - El representante puede ingresar los datos requeridos para registrar la empresa y la cuenta inicial; los datos del perfil que corresponden a HU-026 no se solicitan en este paso.
+    - Si falta un dato o tiene formato inválido, se identifica el campo y se explica qué debe corregirse. Si el RTN ya está registrado, se muestra un mensaje claro sin borrar los demás datos ingresados.
+    - Cuando el registro termina correctamente, se confirma que la empresa quedó creada y que el representante recibió acceso como Administrador de empresa.
+- **Título:** `HU-017 Back — Crear la empresa y el acceso de administrador`
+  - **Criterios de aceptación:**
+    - Con datos válidos, crea la empresa, la cuenta de quien la registra y su vínculo con rol Administrador de empresa como una sola operación.
+    - Rechaza un RTN que ya pertenece a otra empresa y devuelve un resultado que permite mostrar el mensaje correspondiente en la web.
+    - Protege la contraseña; no la almacena ni la devuelve en texto legible.
+
+### HU-018 | Iniciar y cerrar sesión
+
+- **Título:** `HU-018 Front — Ingresar y cerrar sesión desde la web`
+  - **Criterios de aceptación:**
+    - Presenta los campos para ingresar con correo institucional y contraseña y permite enviar las credenciales.
+    - Si las credenciales son incorrectas o la cuenta no puede acceder, informa que no se pudo iniciar sesión sin revelar cuál dato falló.
+    - Después del ingreso muestra las funciones disponibles para el grupo de la persona en la empresa elegida; al cerrar sesión, esa sesión deja de permitir el acceso.
+- **Título:** `HU-018 Back — Validar credenciales y autorización de acceso`
+  - **Criterios de aceptación:**
+    - Concede sesión solo si la cuenta está activa, la empresa no está suspendida y el vínculo con esa empresa está vigente.
+    - Limita las operaciones permitidas a la empresa de la sesión y a las funciones del grupo asignado a la persona.
+    - Al cerrar sesión, deja de aceptar esa sesión como acceso válido.
+
+### HU-020 | Agregar personas a la empresa
+
+- **Título:** `HU-020 Front — Dar de alta personas y asignarlas a un grupo`
+  - **Criterios de aceptación:**
+    - Permite al administrador ingresar los datos de una persona y seleccionar el grupo de acceso que tendrá en su empresa.
+    - Al completar el alta, confirma que la persona tiene acceso a la empresa y al grupo indicado.
+    - Si esa persona ya tiene un vínculo activo en la empresa, informa que no se puede duplicar el acceso.
+- **Título:** `HU-020 Back — Crear o reutilizar la cuenta y vincularla a la empresa`
+  - **Criterios de aceptación:**
+    - Si el correo corresponde a una cuenta existente, la reutiliza; si no existe, crea una cuenta para la persona.
+    - Vincula la cuenta a la empresa solicitante con el grupo elegido, sin crear una segunda cuenta para la misma persona.
+    - Rechaza un vínculo duplicado con la misma empresa y conserva la posibilidad de que la cuenta tenga acceso a otras empresas.
+
+### HU-115 | Crear cuentas de encuestados
+
+- **Título:** `HU-115 Front — Crear encuestados individualmente o en lote`
+  - **Criterios de aceptación:**
+    - Permite al administrador registrar un encuestado individualmente o enviar una lista de nombres y correos para dar de alta varias personas.
+    - En el alta por lote, informa qué filas tienen correo inválido o acceso previo a la empresa y continúa procesando las demás.
+    - Al finalizar, muestra cuáles cuentas recibieron acceso como encuestados y cuáles requieren corrección.
+- **Título:** `HU-115 Back — Preparar el acceso de las cuentas de encuestados`
+  - **Criterios de aceptación:**
+    - Para cada trabajador crea una cuenta si no existe o reutiliza la existente, siguiendo el alta de persona de HU-020, y evita un segundo vínculo a la misma empresa.
+    - Concede el grupo encuestado y acceso inicial temporal; en el primer ingreso se debe cambiar la contraseña según HU-114.
+    - Limita las funciones de esa cuenta a responder encuestas, ver sus notificaciones y consultar las políticas vigentes.
+
+### HU-021 | Gestionar roles y membresías
+
+- **Título:** `HU-021 Front — Administrar grupos y estados de acceso`
+  - **Criterios de aceptación:**
+    - Muestra las personas con acceso a la empresa y el grupo al que pertenece cada una.
+    - Permite a una persona administradora conceder, suspender o dar de baja un vínculo, y asignar o cambiar su grupo.
+    - Al suspender o dar de baja, solicita el motivo y confirma el cambio; no presenta como completada una operación que el usuario no puede realizar.
+- **Título:** `HU-021 Back — Aplicar cambios de acceso autorizados`
+  - **Criterios de aceptación:**
+    - Acepta cambios de acceso solo de personas autorizadas y asigna funciones según los grupos definidos por la plataforma.
+    - Registra el motivo para suspensiones y bajas, e impide retirar o suspender el último vínculo administrador activo de la empresa.
+    - Limita cada cambio al vínculo de la empresa correspondiente; la suspensión o baja no afecta los accesos de la misma cuenta a otras empresas.
+
+### HU-023 | Administrar los catálogos
+
+- **Título:** `HU-023 Front — Mantener los catálogos desde la web`
+  - **Criterios de aceptación:**
+    - Permite al administrador de plataforma crear, editar y desactivar rubros, categorías, preguntas, peligros y plantillas.
+    - Permite organizar las categorías dentro de un rubro y las preguntas dentro de una categoría; al editar preguntas, permite elegir su tipo.
+    - Permite asociar una pregunta con un peligro y señalar cuál respuesta indica exposición; informa errores de relación y confirma los cambios válidos.
+- **Título:** `HU-023 Back — Guardar cambios autorizados en los catálogos`
+  - **Criterios de aceptación:**
+    - Conserva las relaciones entre rubros, categorías, preguntas y peligros, junto con el tipo de pregunta y la opción que indica exposición.
+    - Rechaza cambios de personas sin autorización para administrar los catálogos.
+    - Los cambios del catálogo se aplican a nuevas encuestas y no alteran el contenido de encuestas que ya fueron generadas.
+
+### HU-024 | Consultar las empresas registradas
+
+- **Título:** `HU-024 Front — Consultar la lista de empresas`
+  - **Criterios de aceptación:**
+    - Presenta para cada empresa su nombre, rubro, fecha de registro y cantidad de personas con acceso vigente.
+    - Cuando no hay empresas para mostrar, presenta un estado vacío claro en vez de una lista aparentemente incompleta.
+- **Título:** `HU-024 Back — Entregar datos generales permitidos de las empresas`
+  - **Criterios de aceptación:**
+    - Devuelve nombre, rubro, fecha de registro y cantidad de personas con acceso vigente para las empresas registradas.
+    - La consulta no incluye información de SST de las empresas y solo está disponible para el rol de Administrador de plataforma autorizado.
+
+### HU-026 | Completar el perfil
+
+- **Título:** `HU-026 Front — Completar y actualizar el perfil empresarial`
+  - **Criterios de aceptación:**
+    - Muestra los campos de razón social, RTN, dirección, actividad económica y número de trabajadores permanentes, con errores junto al dato que la persona debe corregir.
+    - Permite elegir uno de los cuatro rubros definidos y guardar el perfil de la empresa.
+    - Al volver a consultar el perfil, muestra los datos guardados; permite actualizarlos y confirma si el cambio se completó.
+- **Título:** `HU-026 Back — Validar y guardar el perfil de la empresa`
+  - **Criterios de aceptación:**
+    - Comprueba que estén presentes los datos requeridos y que el RTN no pertenezca ya a otra empresa; si no se cumple, informa el campo o la regla que impide guardar.
+    - Guarda o actualiza el perfil únicamente para la empresa a la que la persona está autorizada.
+    - Devuelve el perfil con los datos efectivamente guardados para que la web los muestre al volver a abrirlo.
+
+### HU-029 | Elegir categorías de riesgo
+
+- **Título:** `HU-029 Front — Elegir categorías para la encuesta`
+  - **Criterios de aceptación:**
+    - Muestra las categorías que corresponden al rubro de la empresa activa, sin presentar categorías de otros rubros.
+    - Permite al Responsable SST seleccionar una o varias categorías y revisar cuáles quedarán incluidas.
+    - Antes de crear la encuesta, muestra las preguntas que se incorporarán según la selección; informa claramente si no hay categorías disponibles.
+- **Título:** `HU-029 Back — Consultar categorías según el rubro de la empresa`
+  - **Criterios de aceptación:**
+    - Devuelve las categorías asociadas al rubro de la empresa que se está gestionando y no mezcla categorías de otros rubros.
+    - Permite la consulta solo dentro de una empresa a la que la persona tiene acceso y entrega las preguntas relacionadas para la vista previa.
+
+### HU-030 | Crear y editar una encuesta
+
+- **Título:** `HU-030 Front — Crear y editar la encuesta desde la web`
+  - **Criterios de aceptación:**
+    - El Responsable SST puede revisar las categorías y preguntas elegidas y confirmar que cada pregunta se muestra como texto, selección única o selección múltiple, según su tipo.
+    - Puede guardar el borrador, editar el título, las instrucciones y las preguntas, y abrir una vista previa que representa lo que verá el encuestado.
+    - Puede publicar la encuesta, distinguir el borrador de la versión vigente y cerrar la encuesta; la web informa que una encuesta cerrada ya no recibe respuestas.
+    - Si la operación falla o la persona ya no tiene autorización para la empresa, muestra un mensaje claro y no presenta el cambio como guardado.
+- **Título:** `HU-030 Back — Guardar y publicar encuestas por versión`
+  - **Criterios de aceptación:**
+    - Conserva el título, las instrucciones, las preguntas y sus tipos para cada borrador, junto con las categorías que eligió el Responsable SST.
+    - Al editar una encuesta publicada, crea una versión nueva en borrador y mantiene disponible la versión vigente hasta que se publique la nueva.
+    - Publicar hace disponible la versión vigente a los encuestados de la empresa; cerrar la encuesta impide registrar nuevas respuestas.
+    - Cada respuesta enviada mantiene la versión y el contenido exacto que vio la persona al contestar.
+
+### HU-031 | Responder una encuesta
+
+- **Título:** `HU-031 Front — Responder la encuesta desde la web`
+  - **Criterios de aceptación:**
+    - muestra encuestas publicadas de la empresa que la persona aún no respondió
+    - presenta cada pregunta según su tipo y marca las obligatorias
+    - explica los errores antes del envío y confirma cuando la respuesta queda registrada.
+- **Título:** `HU-031 Back — Registrar una respuesta anónima de la versión vigente`
+  - **Criterios de aceptación:**
+    - acepta respuestas solo de encuestados autorizados y una vez por encuesta
+    - valida las preguntas obligatorias y registra aparte que la persona participó
+    - conserva la versión respondida sin asociar la identidad con las respuestas.
+
+### HU-032 | Consultar gráficos y resultados anónimos
+
+- **Título:** `HU-032 Front — Consultar resultados y gráficos anónimos`
+  - **Criterios de aceptación:**
+    - muestra la cantidad de participantes y respuestas, junto con el periodo analizado
+    - muestra gráficos con la distribución de respuestas por pregunta y las respuestas breves sin autor
+    - no presenta información que permita identificar quién dio cada respuesta.
+- **Título:** `HU-032 Back — Calcular resultados sin identificar respuestas`
+  - **Criterios de aceptación:**
+    - calcula la cantidad de participantes y respuestas, el periodo y la distribución de respuestas por pregunta
+    - entrega las respuestas breves sin asociarlas a un autor
+    - no devuelve información que permita identificar quién dio cada respuesta.
+
+### HU-033 | Obtener peligros sugeridos
+
+- **Título:** `HU-033 Front — Consultar peligros sugeridos`
+  - **Criterios de aceptación:**
+    - muestra cada peligro, la pregunta de origen y el número de respuestas que lo respaldan
+    - presenta un estado vacío cuando no hay sugerencias.
+- **Título:** `HU-033 Back — Generar peligros sugeridos desde las respuestas`
+  - **Criterios de aceptación:**
+    - aplica la regla de exposición definida
+    - muestra pregunta de origen y cantidad de respuestas que respaldan cada peligro
+    - actualiza sugerencias con nuevas respuestas sin duplicarlas
+    - las mismas respuestas producen las mismas sugerencias y los cambios de relación pregunta-peligro se reflejan.
+
+### HU-036 | Agregar riesgos
+
+- **Título:** `HU-036 Front — Agregar riesgos a la matriz`
+  - **Criterios de aceptación:**
+    - permite seleccionar un peligro del catálogo o describirlo
+    - permite indicar la actividad relacionada
+    - muestra los riesgos agregados y confirma el resultado.
+- **Título:** `HU-036 Back — Conservar los riesgos de la empresa`
+  - **Criterios de aceptación:**
+    - valida el peligro o descripción y la actividad relacionada
+    - asocia el riesgo a la empresa activa
+    - impide consultar o modificar riesgos de otra empresa.
+
+### HU-037 | Evaluar un riesgo
+
+- **Título:** `HU-037 Front — Ingresar la evaluación de un riesgo`
+  - **Criterios de aceptación:**
+    - permite elegir probabilidad y severidad del 1 al 5 con su explicación visible
+    - muestra la clasificación calculada y mensajes claros ante datos inválidos
+    - muestra quién evaluó y cuándo.
+- **Título:** `HU-037 Back — Calcular y conservar la evaluación del riesgo`
+  - **Criterios de aceptación:**
+    - valida probabilidad y severidad del 1 al 5
+    - calcula y clasifica el nivel de riesgo
+    - conserva fecha y evaluador con la evaluación.
+
+### HU-038 | Ver la matriz de riesgos
+
+- **Título:** `HU-038 Front — Consultar la matriz de riesgos`
+  - **Criterios de aceptación:**
+    - muestra los riesgos en una matriz de probabilidad por severidad
+    - ofrece una lista filtrable por peligro, clasificación, nivel y estado
+    - permite abrir el detalle de cada riesgo.
+- **Título:** `HU-038 Back — Entregar los riesgos de la empresa para la matriz`
+  - **Criterios de aceptación:**
+    - entrega riesgos y evaluaciones de la empresa activa para ubicarlos por probabilidad y severidad
+    - permite los filtros por peligro, clasificación, nivel y estado
+    - no incluye datos de otra empresa.
+
+### HU-039 | Definir controles
+
+- **Título:** `HU-039 Front — Revisar y definir controles de riesgo`
+  - **Criterios de aceptación:**
+    - muestra sugerencias del peligro ordenadas de mayor a menor efectividad
+    - permite aceptar, editar o descartar sugerencias y agregar un control propio
+    - muestra el tipo y descripción de cada control, y señala riesgos altos sin control.
+- **Título:** `HU-039 Back — Conservar controles asociados a cada riesgo`
+  - **Criterios de aceptación:**
+    - conserva el tipo y descripción de cada control para el riesgo correspondiente
+    - exige al menos un control para riesgos altos o críticos
+    - permite consultar controles y riesgos altos que siguen sin control.
+
+### HU-045 | Adjuntar evidencia
+
+- **Título:** `HU-045 Front — Adjuntar y consultar evidencia de una tarea`
+  - **Criterios de aceptación:**
+    - permite adjuntar imágenes o PDF dentro del tamaño permitido
+    - muestra fecha y autor de la evidencia
+    - solo permite consultar el archivo a operadores vinculados a la empresa
+    - impide completar una tarea que exige evidencia si aún no se adjuntó.
+- **Título:** `HU-045 Back — Guardar y proteger la evidencia de la tarea`
+  - **Criterios de aceptación:**
+    - valida que el archivo sea imagen o PDF y respete el tamaño permitido
+    - conserva fecha y autor
+    - limita la consulta a operadores vinculados a la empresa y no permite completar sin evidencia cuando sea obligatoria.
+
+### HU-047 | Reportar un evento
+
+- **Título:** `HU-047 Front — Reportar un accidente, incidente o enfermedad`
+  - **Criterios de aceptación:**
+    - permite indicar tipo, fecha, hora, lugar en texto libre y descripción
+    - permite marcar enfermedad sospechosa o diagnosticada, accidente grave y adjuntar fotos
+    - confirma el registro del evento.
+- **Título:** `HU-047 Back — Validar y conservar el evento reportado`
+  - **Criterios de aceptación:**
+    - registra quién reportó y cuándo, junto con los datos del evento
+    - acepta reportes de cualquier operador con vínculo activo en la empresa
+    - conserva el evento asociado a la empresa correspondiente.
+
+### HU-050 | Definir medidas correctivas
+
+- **Título:** `HU-050 Front — Registrar medidas correctivas del evento`
+  - **Criterios de aceptación:**
+    - permite crear medidas correctivas desde el evento
+    - muestra el avance de las medidas desde el evento.
+- **Título:** `HU-050 Back — Conservar medidas vinculadas al evento`
+  - **Criterios de aceptación:**
+    - crea una tarea por cada medida correctiva con origen «accidente»
+    - permite consultar desde el evento el avance de sus medidas.
+
+### HU-070 | Generar un documento
+
+- **Título:** `HU-070 Front — Solicitar y consultar el borrador del documento`
+  - **Criterios de aceptación:**
+    - muestra plantillas disponibles para el rubro de la empresa
+    - presenta el borrador e indica que la empresa debe revisar su contenido.
+- **Título:** `HU-070 Back — Generar el borrador con datos de la empresa`
+  - **Criterios de aceptación:**
+    - genera el documento con la plantilla y datos de la empresa
+    - incluye al menos la política de SST y el procedimiento de investigación de accidentes
+    - conserva el resultado como borrador e indica que requiere revisión de la empresa.
+
+### HU-071 | Editar el borrador
+
+- **Título:** `HU-071 Front — Editar y guardar el borrador`
+  - **Criterios de aceptación:**
+    - permite modificar el contenido del borrador
+    - informa si los cambios se guardaron o si ocurrió un error.
+- **Título:** `HU-071 Back — Conservar cambios del borrador`
+  - **Criterios de aceptación:**
+    - guarda los cambios realizados en el borrador
+    - los cambios no modifican la plantilla original.
+
+### HU-072 | Aprobar un documento
+
+- **Título:** `HU-072 Front — Revisar y aprobar el documento`
+  - **Criterios de aceptación:**
+    - permite a la persona Responsable SST aprobar el documento
+    - muestra la confirmación del resultado
+    - cuando se aprueba una política, informa que se avisará a las personas con acceso vigente.
+- **Título:** `HU-072 Back — Registrar aprobación y versión vigente`
+  - **Criterios de aceptación:**
+    - registra quién aprobó y la fecha
+    - una versión aprobada no se puede editar
+    - cada documento conserva una sola versión vigente y la aprobación de políticas genera el aviso previsto en HU-116.
+
+### HU-074 | Consultar documentos vigentes
+
+- **Título:** `HU-074 Front — Consultar documentos vigentes`
+  - **Criterios de aceptación:**
+    - muestra solo versiones vigentes
+    - permite buscar por nombre y descargar el documento en PDF.
+- **Título:** `HU-074 Back — Entregar documentos vigentes autorizados`
+  - **Criterios de aceptación:**
+    - entrega solo versiones vigentes autorizadas para el vínculo de la persona
+    - permite descargar el documento en PDF y buscarlo por nombre.
+
+### HU-075 | Generar la matriz de riesgos en PDF
+
+- **Título:** `HU-075 Front — Abrir o descargar la matriz en PDF`
+  - **Criterios de aceptación:**
+    - permite generar el PDF al solicitarlo, abrirlo o descargarlo
+    - muestra la fecha de generación
+    - el archivo puede imprimirse directamente.
+- **Título:** `HU-075 Back — Generar el PDF de la matriz autorizada`
+  - **Criterios de aceptación:**
+    - incluye datos de la empresa, riesgos confirmados, peligro, actividad, evaluación inicial y residual, y controles
+    - genera el PDF al solicitarlo e incluye la fecha de generación
+    - no guarda el archivo generado y permite abrirlo o descargarlo solo con autorización.
+
+### Aclaración sobre HU-020 y HU-115
+
+HU-020 contempla agregar una persona aunque todavía no tenga cuenta en Norvia: su criterio indica que se crea una cuenta nueva o se reutiliza una existente. HU-115 cubre específicamente las cuentas de encuestados, incluida la creación individual o en lote, el acceso temporal y las restricciones del rol. Por tanto, las personas sin cuenta sí están contempladas; no dupliques la misma tarea de crear o reutilizar cuentas en ambas HUs. HU-115 puede reutilizar ese comportamiento de HU-020 y añadir el flujo específico de encuestados.
+
+### Exclusiones y dependencias
+
+- No crear sub-issues de interfaz para HUs marcadas **Fuera de alcance**.
+- Las HUs técnicas transversales (por ejemplo, HU-101 a HU-104) se planifican aparte; no las dupliques bajo cada HU funcional.
+- HU-030 no debe incluir una pregunta de área mientras el alcance aprobado diga que no se registran áreas. Si se decide incluirlas, primero hay que actualizar el alcance y HU-027.
+- La HU-030 escrita en este archivo no coincide completamente con la versión compartida para preparar las subtareas: la versión compartida menciona una pregunta de área y consultar respuestas; la del archivo incluye editar título e instrucciones y cerrar la encuesta. Antes de crear estos sub-issues, acuerden cuál versión es la vigente y actualicen la HU padre y este desglose. Mientras las áreas estén fuera de alcance, no incluyan la pregunta de área.
+- HU-031 depende de que HU-030 tenga una versión publicada disponible.
+
