@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-16 | Equipo (redactado con Claude Code) | **HU-115** implementada: alta de encuestados individual y por lote, con contraseña temporal generada; el login informa `debeCambiarPassword` | [Ver cambio](#cambio-2026-11-16-hu-115) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-021** implementada: listar los accesos de la empresa y cambiar rol o estado con motivo e historial, sin dejar a la empresa sin administrador | [Ver cambio](#cambio-2026-11-15-hu-021) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-020** implementada: `POST /api/vinculos` agrega una persona a la empresa de la sesión, creando su cuenta con contraseña temporal o reutilizando la existente | [Ver cambio](#cambio-2026-11-15-hu-020) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-114** implementada y **modificada**: la contraseña ahora exige al menos una mayúscula, un número y un carácter especial (antes no exigía combinaciones); endpoint `POST /api/auth/contrasena/establecer` | [Ver cambio](#cambio-2026-11-15-hu-114) |
@@ -30,6 +31,58 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-16-hu-115` {#cambio-2026-11-16-hu-115}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 16 de noviembre de 2026 |
+| **Alcance** | Código de la rama `feature/hu-115` (slices `CrearEncuestado` y `CrearEncuestadosLote`, pieza compartida `AltaDeVinculo`, campo `debeCambiarPassword` en la sesión) y contrato en `18-contratos-api-mvp.md`. No cambia el modelo de datos ni las reglas |
+
+### El problema (por qué hubo que cambiar)
+
+1. Los trabajadores que responden encuestas necesitan una cuenta propia (D5, RN-74), y cargarlos uno por uno no es práctico.
+2. El lote del contrato no trae contraseña por fila, y el envío por correo (HU-118) es de E2.
+3. HU-115 pide cambiar la contraseña en el primer ingreso, pero el login no lo informaba.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Contraseña generada por cuenta nueva** | 12 caracteres que cumplen HU-114, distintos por persona, devueltos una sola vez | Cada persona tiene su propia contraseña sin esperar a HU-118. En el alta individual también se puede enviar una |
+| **El lote no se detiene** | Cada fila se valida aparte; los errores se informan con su número de fila y las válidas se guardan juntas | Criterio de HU-115 |
+| **Pieza compartida `AltaDeVinculo`** | La lógica de crear o reutilizar la cuenta pasa de HU-020 a la raíz del módulo `Vinculos` | Un solo lugar para RN-02 y RN-65; los slices no se importan entre sí |
+| **Solo informar el primer ingreso** | La sesión trae `debeCambiarPassword`; el front pide el cambio y la API no bloquea | Decisión del equipo |
+
+### Cómo quedó (resumen)
+
+- `POST /api/vinculos/encuestados` (201) y `POST /api/vinculos/encuestados/lote` (200, de 1 a 500 filas), solo para `admin_empresa`.
+- Códigos de error por fila: `email_invalido`, `datos_invalidos`, `duplicado`, `duplicado_en_lote` y `fila_invalida`.
+- Login y refresh devuelven `debeCambiarPassword`.
+- El encuestado solo tiene los permisos de RN-74 y el de cambiar su contraseña.
+
+### Trabajo hecho
+
+- Slices `CrearEncuestado` y `CrearEncuestadosLote`, `AltaDeVinculo` con su repositorio, y `GeneradorContrasenaTemporal` en `Common/Seguridad`.
+- `CrearVinculo` (HU-020) usa la pieza compartida, sin cambios en su contrato.
+- `SesionResponseDto` con `debeCambiarPassword`.
+- Permisos `vinculo.encuestado.crear` y `vinculo.encuestado.lote`.
+- Se probaron 21 casos nuevos con dos empresas en una base temporal:
+  - contraseña generada y propia, y duplicados;
+  - un lote mixto con cada tipo de error y la reutilización de una cuenta de otra empresa;
+  - límites del lote y RN-74;
+  - el ciclo completo del primer ingreso.
+- Se volvieron a correr las pruebas de HU-020 (15) y HU-021 (26) sin fallas.
+
+### Antes y ahora por historia
+
+| HU | Antes | Ahora |
+|----|-------|-------|
+| HU-115 | Contrato 🚧 sin contraseña en el lote | ✅ Alta individual y por lote con contraseña temporal generada |
+| HU-018 | La sesión no indicaba contraseña temporal | `debeCambiarPassword` en login y refresh |
 
 ---
 

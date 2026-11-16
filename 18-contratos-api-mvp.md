@@ -77,7 +77,7 @@ Los nombres de propiedad en `errors` coinciden con el **nombre de la propiedad d
 | HU-102 | — | — | — | — | — | — | ➖ Front (react-router) |
 | HU-098 | — | pruebas integración | — | — | — | — | 🚧 |
 
-`SesionResponseDto`: `{ accessToken, refreshToken, expiresIn }`.
+`SesionResponseDto`: `{ accessToken, refreshToken, expiresIn, debeCambiarPassword }`.
 
 ---
 
@@ -112,10 +112,16 @@ Transacción: `Empresa` + `Persona` + `Acceso` + `VinculoEmpresa` con `admin_emp
 
 **ActualizarVinculoRequestDto:** `rolCodigo?`, `estado?`, `motivoCodigo?` (obligatorio al suspender o dar de baja), `motivoDetalle?`. Detalle en el [anexo](#anexo-vinculos).
 
-### HU-115 | Cuentas encuestados (Must)
+### HU-115 | Cuentas encuestados (Must) — ✅
 
 | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|
+| POST | `api/vinculos/encuestados` | `CrearEncuestadoRequestDto` | 201 `CrearEncuestadoResponseDto` | `vinculo.encuestado.crear` | `admin_empresa` | ✅ |
+| POST | `api/vinculos/encuestados/lote` | `CrearEncuestadosLoteRequestDto` | 200 `CrearEncuestadosLoteResponseDto` | `vinculo.encuestado.lote` | `admin_empresa` | ✅ |
+
+El rol `encuestado` lo fija el servidor. Las cuentas nuevas reciben una contraseña temporal **generada por Norvia**, salvo que en el alta individual se envíe una, y se devuelve una sola vez. Detalle en el [anexo](#anexo-vinculos).
+
+---|---|---|---|---|---|---|
 | POST | `api/vinculos/encuestados` | `CrearEncuestadoRequestDto` | `VinculoResponseDto` | `vinculo.encuestado.crear` | `admin_empresa` | 🚧 |
 | POST | `api/vinculos/encuestados/lote` | `CrearEncuestadosLoteRequestDto` | `CrearEncuestadosLoteResponseDto` | `vinculo.encuestado.lote` | `admin_empresa` | 🚧 |
 
@@ -315,7 +321,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-021 | GET | `/api/vinculos` | — | `VinculoResponseDto[]` | Vínculos |
 | HU-021 | GET | `/api/vinculos/{id}` | — | `VinculoResponseDto` | Vínculos |
 | HU-021 | PATCH | `/api/vinculos/{id}` | JSON | `VinculoResponseDto` | Vínculos |
-| HU-115 | POST | `/api/vinculos/encuestados` | JSON | `VinculoResponseDto` | Vínculos |
+| HU-115 | POST | `/api/vinculos/encuestados` | JSON | `CrearEncuestadoResponseDto` (201) | Vínculos |
 | HU-115 | POST | `/api/vinculos/encuestados/lote` | JSON | `CrearEncuestadosLoteResponseDto` | Vínculos |
 | HU-023 | GET/POST/PATCH | `/api/rubros`… | JSON | ver catálogos | Catálogos |
 | HU-023 | GET/POST/PATCH | `/api/categorias-riesgo`… | JSON | ver catálogos | Catálogos |
@@ -392,12 +398,14 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | `accessToken` | string | JWT (Bearer) |
 | `refreshToken` | string | Opaco; solo en body, no en header |
 | `expiresIn` | int | Segundos de vida del access token |
+| `debeCambiarPassword` | bool | `true` si la cuenta tiene una contraseña temporal (HU-020, HU-115). El front debe mostrar el cambio (`POST /api/auth/contrasena/establecer`) antes de continuar; la API **no** lo bloquea |
 
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
   "refreshToken": "8f3c2a1b-....",
-  "expiresIn": 900
+  "expiresIn": 900,
+  "debeCambiarPassword": false
 }
 ```
 
@@ -599,7 +607,7 @@ Cambia la contraseña de la sesión actual. Sirve también para el primer ingres
 
 ---
 
-### M1 — Vínculos (HU-020 y HU-021 ✅, HU-115 🚧) {#anexo-vinculos}
+### M1 — Vínculos (HU-020, HU-021 y HU-115) — ✅ {#anexo-vinculos}
 
 **Auth:** Bearer (sesión **empresa**), rol `admin_empresa`.
 
@@ -719,22 +727,46 @@ Edición parcial: se envía solo lo que cambia (al menos `rolCodigo` o `estado`)
 | 404 | `vinculos.no_encontrado` | El vínculo no existe o es de otra empresa |
 | 409 | `vinculos.ultimo_administrador` | El cambio dejaría a la empresa sin administrador activo |
 
-#### `POST /api/vinculos/encuestados` — `CrearEncuestadoRequestDto`
+#### `POST /api/vinculos/encuestados` — `CrearEncuestadoRequestDto` (HU-115) — ✅
 
-**Request** (sin `rolCodigo`; servidor asigna `encuestado`):
+Igual que `POST /api/vinculos`, pero **sin `rolCodigo`**: el servidor asigna `encuestado` (RN-74). Con una cuenta existente, se reutilizan la cuenta y su persona (RN-02, RN-65).
 
 ```json
 {
   "email": "trabajador@miempresa.hn",
   "primerNombre": "Pedro",
+  "segundoNombre": null,
   "primerApellido": "García",
-  "passwordTemporal": "Temporal123456"
+  "segundoApellido": null,
+  "passwordTemporal": null
 }
 ```
 
-**Response 201:** `VinculoResponseDto` con `rolCodigo`: `"encuestado"`.
+`passwordTemporal` es opcional. Si se envía, debe cumplir HU-114. Si la cuenta es nueva y no se envía, Norvia **genera** una contraseña de 12 caracteres que cumple HU-114, sin caracteres confusos como `0/O` o `1/l/I`.
 
-#### `POST /api/vinculos/encuestados/lote` — `CrearEncuestadosLoteRequestDto`
+**Response 201** — `CrearEncuestadoResponseDto`
+
+```json
+{
+  "id": "01933f50-....",
+  "personaId": "01933f51-....",
+  "email": "trabajador@miempresa.hn",
+  "nombreCompleto": "Pedro García",
+  "rolCodigo": "encuestado",
+  "estado": "activo",
+  "creadoEn": "2026-11-16T02:30:00Z",
+  "cuentaNueva": true,
+  "passwordTemporal": "Kp7#mx4R?ta9"
+}
+```
+
+`passwordTemporal` solo viene cuando Norvia la generó. **Se muestra una única vez**: no se guarda en claro. El administrador la entrega a la persona hasta que exista el envío por correo (HU-118), y la persona la cambia en su primer ingreso (`debeCambiarPassword: true` en el login).
+
+**Errores:** 400 validación · 403 `permiso.prohibido` · 409 `vinculos.duplicado`.
+
+#### `POST /api/vinculos/encuestados/lote` — `CrearEncuestadosLoteRequestDto` (HU-115) — ✅
+
+Entre 1 y 500 filas. Cada fila se procesa por separado: las que tienen problemas se informan y **no detienen** a las demás. Las válidas se guardan juntas en una transacción.
 
 ```json
 {
@@ -745,21 +777,45 @@ Edición parcial: se envía solo lo que cambia (al menos `rolCodigo` o `estado`)
 }
 ```
 
+Cada fila acepta además `segundoNombre` y `segundoApellido`. No lleva contraseña: Norvia genera una para cada cuenta nueva.
+
 **Response 200** — `CrearEncuestadosLoteResponseDto`
 
 ```json
 {
   "creados": 1,
+  "cuentas": [
+    {
+      "fila": 1,
+      "vinculoId": "01933f60-....",
+      "email": "a@miempresa.hn",
+      "nombreCompleto": "Ana Ruiz",
+      "cuentaNueva": true,
+      "passwordTemporal": "Wn4$hq8Tzc2e"
+    }
+  ],
   "errores": [
     {
       "fila": 2,
       "email": "correo-invalido",
-      "codigo": "vinculo.email_invalido",
+      "codigo": "vinculos.email_invalido",
       "mensaje": "El correo no es válido."
     }
   ]
 }
 ```
+
+`fila` es la posición en la lista enviada, desde 1. `passwordTemporal` solo viene en las cuentas nuevas y se muestra una única vez.
+
+| `codigo` de error por fila | Cuándo |
+|---|---|
+| `vinculos.email_invalido` | Falta el correo o no es válido |
+| `vinculos.datos_invalidos` | Falta el primer nombre o el primer apellido, o exceden 80 caracteres |
+| `vinculos.duplicado_en_lote` | El correo ya aparece en una fila anterior del mismo lote |
+| `vinculos.duplicado` | La persona ya tiene acceso a esta empresa |
+| `vinculos.fila_invalida` | La fila es `null` |
+
+El lote completo responde **400** solo si `filas` está vacío o tiene más de 500 elementos.
 
 ---
 
