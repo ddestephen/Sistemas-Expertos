@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-15 | Equipo (redactado con Claude Code) | **HU-021** implementada: listar los accesos de la empresa y cambiar rol o estado con motivo e historial, sin dejar a la empresa sin administrador | [Ver cambio](#cambio-2026-11-15-hu-021) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-020** implementada: `POST /api/vinculos` agrega una persona a la empresa de la sesión, creando su cuenta con contraseña temporal o reutilizando la existente | [Ver cambio](#cambio-2026-11-15-hu-020) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-114** implementada y **modificada**: la contraseña ahora exige al menos una mayúscula, un número y un carácter especial (antes no exigía combinaciones); endpoint `POST /api/auth/contrasena/establecer` | [Ver cambio](#cambio-2026-11-15-hu-114) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-023** implementada: el staff de plataforma mantiene rubros, categorías, peligros, preguntas (con tipo y opciones) y plantillas de documento en `api/<recurso>` (sin prefijo `plataforma`), con `PATCH` parcial y `PATCH …/estado` | [Ver cambio](#cambio-2026-11-15-hu-023) |
@@ -29,6 +30,54 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-15-hu-021` {#cambio-2026-11-15-hu-021}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 15 de noviembre de 2026 |
+| **Alcance** | Código de la rama `feature/hu-021` (slices `ListarVinculos`, `ObtenerVinculo`, `ActualizarVinculo` y 3 permisos) y contrato en `18-contratos-api-mvp.md`. No cambia el modelo de datos ni las reglas |
+
+### El problema (por qué hubo que cambiar)
+
+1. Una vez dado el acceso (HU-020), el administrador no podía verlo, cambiar el rol ni suspenderlo.
+2. El contrato no decía qué pasa con las sesiones abiertas al suspender, si reactivar pide motivo, ni cómo se aplica RN-08.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Un solo `PATCH` para rol y estado** | Se envía solo lo que cambia | Coincide con el contrato de `18` |
+| **Motivo al suspender o dar de baja** | Obligatorio en esos casos; al reactivar, por defecto `decision_admin` | La columna `MotivoCodigo` del historial es obligatoria (RN-59) y reactivar no necesita justificación |
+| **Efecto inmediato** | Se borran los refresh de ese vínculo; el middleware ya rechaza el token de un vínculo no activo | "La persona deja de poder usar Norvia para esa empresa" sin esperar a que venza el token |
+| **Solo esta empresa** | Los vínculos y sesiones de la persona en otras empresas no cambian | Criterio de HU-021 |
+| **Último administrador** | Quitar el rol o suspender al último `admin_empresa` activo da 409, aunque sea uno mismo | RN-08 |
+
+### Cómo quedó (resumen)
+
+- `GET /api/vinculos` (filtros `estado` y `rolCodigo`), `GET /api/vinculos/{id}` y `PATCH /api/vinculos/{id}`, solo para `admin_empresa`.
+- Un vínculo de otra empresa responde 404, por el filtro global.
+- Cada cambio de estado deja una fila en `HistorialEstadoVinculo` con el vínculo que lo registró.
+
+### Trabajo hecho
+
+- Slices en `Features/Vinculos/` y el `VinculoResponseDto` compartido del módulo.
+- Permisos `vinculo.listar`, `vinculo.leer` y `vinculo.actualizar`.
+- `18`: contrato y anexo de las 3 rutas.
+- Se probaron 26 casos con dos empresas en una base temporal:
+  - filtros y aislamiento entre empresas;
+  - cambio de rol, y suspensión con token, refresh y login bloqueados solo en esa empresa;
+  - reactivación e historial;
+  - último administrador y permisos.
+
+### Antes y ahora por historia
+
+| HU | Antes | Ahora |
+|----|-------|-------|
+| HU-021 | Contrato 🚧 | ✅ Listar, ver y cambiar rol o estado con motivo, historial y protección del último administrador |
 
 ---
 

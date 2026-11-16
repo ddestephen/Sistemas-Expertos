@@ -102,13 +102,15 @@ Transacción: `Empresa` + `Persona` + `Acceso` + `VinculoEmpresa` con `admin_emp
 
 **CrearVinculoRequestDto:** `email`, `primerNombre`, `segundoNombre?`, `primerApellido`, `segundoApellido?`, `rolCodigo`, `passwordTemporal?`. Detalle en el [anexo](#anexo-vinculos).
 
-### HU-021 | Gestionar acceso (rol / estado)
+### HU-021 | Gestionar acceso (rol / estado) — ✅
 
 | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|
-| PATCH | `api/vinculos/{id}` | `ActualizarVinculoRequestDto` | `VinculoResponseDto` | `vinculo.actualizar` | `admin_empresa` | 🚧 |
+| GET | `api/vinculos?estado=&rolCodigo=` | — | `VinculoResponseDto[]` | `vinculo.listar` | `admin_empresa` | ✅ |
+| GET | `api/vinculos/{id}` | — | `VinculoResponseDto` | `vinculo.leer` | `admin_empresa` | ✅ |
+| PATCH | `api/vinculos/{id}` | `ActualizarVinculoRequestDto` | `VinculoResponseDto` | `vinculo.actualizar` | `admin_empresa` | ✅ |
 
-**ActualizarVinculoRequestDto:** `rolCodigo?`, `estado?`, `motivoCodigo?` (si suspende/baja).
+**ActualizarVinculoRequestDto:** `rolCodigo?`, `estado?`, `motivoCodigo?` (obligatorio al suspender o dar de baja), `motivoDetalle?`. Detalle en el [anexo](#anexo-vinculos).
 
 ### HU-115 | Cuentas encuestados (Must)
 
@@ -310,7 +312,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-026 | GET | `/api/empresas/perfil` | — | `PerfilEmpresaResponseDto` | Perfil |
 | HU-026 | PUT | `/api/empresas/perfil` | JSON | `PerfilEmpresaResponseDto` | Perfil |
 | HU-020 | POST | `/api/vinculos` | JSON | `CrearVinculoResponseDto` (201) | Vínculos |
-| HU-021 | GET | `/api/vinculos` | — | array | Vínculos |
+| HU-021 | GET | `/api/vinculos` | — | `VinculoResponseDto[]` | Vínculos |
 | HU-021 | GET | `/api/vinculos/{id}` | — | `VinculoResponseDto` | Vínculos |
 | HU-021 | PATCH | `/api/vinculos/{id}` | JSON | `VinculoResponseDto` | Vínculos |
 | HU-115 | POST | `/api/vinculos/encuestados` | JSON | `VinculoResponseDto` | Vínculos |
@@ -597,7 +599,7 @@ Cambia la contraseña de la sesión actual. Sirve también para el primer ingres
 
 ---
 
-### M1 — Vínculos (HU-020 ✅, HU-021 y HU-115 🚧) {#anexo-vinculos}
+### M1 — Vínculos (HU-020 y HU-021 ✅, HU-115 🚧) {#anexo-vinculos}
 
 **Auth:** Bearer (sesión **empresa**), rol `admin_empresa`.
 
@@ -654,9 +656,35 @@ Da acceso a la **empresa de la sesión** (sale del token, RN-06) a una persona i
 | 403 | `permiso.prohibido` | El rol de la sesión no es `admin_empresa`, o es una sesión de staff |
 | 409 | `vinculos.duplicado` | La persona ya tiene un vínculo con esta empresa, en cualquier estado. Para cambiarlo se usa HU-021 |
 
-#### `PATCH /api/vinculos/{id}` — `ActualizarVinculoRequestDto`
+#### `GET /api/vinculos` (HU-021) — ✅
 
-Todos los campos opcionales; enviar solo lo que cambia.
+Personas con acceso a la **empresa de la sesión** (las de otras empresas nunca aparecen). Ordenadas por apellido y nombre.
+
+**Query opcional:** `estado=activo|suspendido|baja`, `rolCodigo=admin_empresa|responsable_sst|colaborador|encuestado`.
+
+**Response 200** — `VinculoResponseDto[]`
+
+```json
+[
+  {
+    "id": "01933f40-....",
+    "personaId": "01933f41-....",
+    "email": "colaborador@miempresa.hn",
+    "nombreCompleto": "Juan Pérez",
+    "rolCodigo": "colaborador",
+    "estado": "activo",
+    "creadoEn": "2026-11-16T02:30:00Z"
+  }
+]
+```
+
+#### `GET /api/vinculos/{id}` (HU-021) — ✅
+
+**Response 200:** un `VinculoResponseDto`. **404** `vinculos.no_encontrado` si no existe o es de otra empresa.
+
+#### `PATCH /api/vinculos/{id}` — `ActualizarVinculoRequestDto` (HU-021) — ✅
+
+Edición parcial: se envía solo lo que cambia (al menos `rolCodigo` o `estado`).
 
 ```json
 {
@@ -667,33 +695,29 @@ Todos los campos opcionales; enviar solo lo que cambia.
 }
 ```
 
-| `estado` | `activo` \| `suspendido` \| `baja` |
-| `motivoCodigo` | Obligatorio si `estado` ≠ `activo` |
+| Campo | Notas |
+|---|---|
+| `rolCodigo` | `admin_empresa`, `responsable_sst`, `colaborador` o `encuestado` (RN-03) |
+| `estado` | `activo`, `suspendido` o `baja` |
+| `motivoCodigo` | `decision_admin`, `baja_laboral`, `falta_pago_empresa` u `otro`. **Obligatorio** al suspender o dar de baja; al reactivar, si falta se registra `decision_admin` |
+| `motivoDetalle` | Obligatorio si `motivoCodigo` es `otro`; máx. 1000 |
+
+**Reglas:**
+
+- Cada cambio de estado agrega una fila a `HistorialEstadoVinculo` en la misma transacción, con estado anterior, nuevo, motivo y el vínculo que lo registró (RN-59). El cambio de rol no genera historial.
+- Al suspender o dar de baja, la persona pierde el acceso **de inmediato**: el middleware rechaza su token con 403, se borran sus refresh de **esta** empresa y el login a esta empresa falla. Sus vínculos con otras empresas no cambian.
+- La empresa debe conservar al menos un `admin_empresa` activo (RN-08). Quitar el rol o suspender al último responde **409**, aunque sea uno mismo.
 
 **Response 200:** `VinculoResponseDto` actualizado.
 
-#### `GET /api/vinculos`
+**Errores:**
 
-**Query opcional:** `estado=activo|suspendido|baja`, `rolCodigo=...`
-
-**Response 200:**
-
-```json
-[
-  {
-    "id": "01933f40-....",
-    "email": "colaborador@miempresa.hn",
-    "nombreCompleto": "Juan Pérez",
-    "rolCodigo": "colaborador",
-    "estado": "activo",
-    "creadoEn": "2026-11-16T02:30:00Z"
-  }
-]
-```
-
-#### `GET /api/vinculos/{id}`
-
-**Response 200:** un `VinculoResponseDto` (mismo shape que POST).
+| HTTP | `codigo` | Cuándo |
+|---|---|---|
+| 400 | `ValidationProblemDetails` | Sin cambios pedidos, falta el motivo, o `otro` sin detalle |
+| 400 | `vinculos.rol_invalido` | `rolCodigo` no existe |
+| 404 | `vinculos.no_encontrado` | El vínculo no existe o es de otra empresa |
+| 409 | `vinculos.ultimo_administrador` | El cambio dejaría a la empresa sin administrador activo |
 
 #### `POST /api/vinculos/encuestados` — `CrearEncuestadoRequestDto`
 
