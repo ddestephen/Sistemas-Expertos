@@ -94,13 +94,13 @@ Los nombres de propiedad en `errors` coinciden con el **nombre de la propiedad d
 
 Transacción: `Empresa` + `Persona` + `Acceso` + `VinculoEmpresa` con `admin_empresa` (D2).
 
-### HU-020 | Alta de vínculos
+### HU-020 | Alta de vínculos — ✅
 
 | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|
-| POST | `api/vinculos` | `CrearVinculoRequestDto` | `VinculoResponseDto` | `vinculo.crear` | `admin_empresa` | 🚧 |
+| POST | `api/vinculos` | `CrearVinculoRequestDto` | 201 `CrearVinculoResponseDto` | `vinculo.crear` | `admin_empresa` | ✅ |
 
-**CrearVinculoRequestDto:** `email`, `nombrePersona`, `rolCodigo`, …
+**CrearVinculoRequestDto:** `email`, `primerNombre`, `segundoNombre?`, `primerApellido`, `segundoApellido?`, `rolCodigo`, `passwordTemporal?`. Detalle en el [anexo](#anexo-vinculos).
 
 ### HU-021 | Gestionar acceso (rol / estado)
 
@@ -309,7 +309,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-017 | POST | `/api/empresas` | JSON | `RegistrarEmpresaResponseDto` | Empresas |
 | HU-026 | GET | `/api/empresas/perfil` | — | `PerfilEmpresaResponseDto` | Perfil |
 | HU-026 | PUT | `/api/empresas/perfil` | JSON | `PerfilEmpresaResponseDto` | Perfil |
-| HU-020 | POST | `/api/vinculos` | JSON | `VinculoResponseDto` | Vínculos |
+| HU-020 | POST | `/api/vinculos` | JSON | `CrearVinculoResponseDto` (201) | Vínculos |
 | HU-021 | GET | `/api/vinculos` | — | array | Vínculos |
 | HU-021 | GET | `/api/vinculos/{id}` | — | `VinculoResponseDto` | Vínculos |
 | HU-021 | PATCH | `/api/vinculos/{id}` | JSON | `VinculoResponseDto` | Vínculos |
@@ -597,28 +597,37 @@ Cambia la contraseña de la sesión actual. Sirve también para el primer ingres
 
 ---
 
-### M1 — Vínculos (HU-020, HU-021, HU-115) — 🚧
+### M1 — Vínculos (HU-020 ✅, HU-021 y HU-115 🚧) {#anexo-vinculos}
 
 **Auth:** Bearer (sesión **empresa**), rol `admin_empresa`.
 
-#### `POST /api/vinculos` — `CrearVinculoRequestDto`
+#### `POST /api/vinculos` — `CrearVinculoRequestDto` (HU-020) — ✅
+
+Da acceso a la **empresa de la sesión** (sale del token, RN-06) a una persona identificada por su correo.
 
 ```json
 {
   "email": "colaborador@miempresa.hn",
   "primerNombre": "Juan",
+  "segundoNombre": null,
   "primerApellido": "Pérez",
+  "segundoApellido": null,
   "rolCodigo": "colaborador",
-  "passwordTemporal": "Temporal123456"
+  "passwordTemporal": "Temporal#2026"
 }
 ```
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| `rolCodigo` | string | `admin_empresa`, `responsable_sst`, `colaborador`, `encuestado` |
-| `passwordTemporal` | string? | Si la cuenta es nueva; encuestados suelen requerir cambio en primer login |
+| `email` | string | Obligatorio, máx. 254. No distingue mayúsculas |
+| `primerNombre`, `primerApellido` | string | Obligatorios, máx. 80 |
+| `segundoNombre`, `segundoApellido` | string? | Opcionales, máx. 80 |
+| `rolCodigo` | string | `admin_empresa`, `responsable_sst`, `colaborador` o `encuestado` |
+| `passwordTemporal` | string? | **Obligatoria solo si el correo no tiene cuenta.** Cumple la política de HU-114. La cuenta nueva queda con `DebeCambiarPassword = true` |
 
-**Response 201** — `VinculoResponseDto`
+**Cuenta existente (RN-02, RN-65):** si el correo ya tiene cuenta en Norvia, se reutilizan la cuenta y su persona. Los nombres y la `passwordTemporal` enviados se ignoran, y la persona entra con su contraseña de siempre. Si la cuenta existe pero no tiene persona (por ejemplo, una cuenta del staff), se crea la persona con los nombres enviados.
+
+**Response 201** — `CrearVinculoResponseDto`
 
 ```json
 {
@@ -628,9 +637,22 @@ Cambia la contraseña de la sesión actual. Sirve también para el primer ingres
   "nombreCompleto": "Juan Pérez",
   "rolCodigo": "colaborador",
   "estado": "activo",
-  "creadoEn": "2026-11-16T02:30:00Z"
+  "creadoEn": "2026-11-16T02:30:00Z",
+  "cuentaNueva": true
 }
 ```
+
+`cuentaNueva`: `true` si se creó la cuenta con la contraseña temporal; `false` si se reutilizó una existente.
+
+**Errores:**
+
+| HTTP | `codigo` | Cuándo |
+|---|---|---|
+| 400 | `ValidationProblemDetails` | Datos con formato inválido o `passwordTemporal` que no cumple HU-114 |
+| 400 | `vinculos.password_temporal_requerida` | El correo no tiene cuenta y no se envió `passwordTemporal` |
+| 400 | `vinculos.rol_invalido` | `rolCodigo` no existe |
+| 403 | `permiso.prohibido` | El rol de la sesión no es `admin_empresa`, o es una sesión de staff |
+| 409 | `vinculos.duplicado` | La persona ya tiene un vínculo con esta empresa, en cualquier estado. Para cambiarlo se usa HU-021 |
 
 #### `PATCH /api/vinculos/{id}` — `ActualizarVinculoRequestDto`
 

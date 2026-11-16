@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-15 | Equipo (redactado con Claude Code) | **HU-020** implementada: `POST /api/vinculos` agrega una persona a la empresa de la sesión, creando su cuenta con contraseña temporal o reutilizando la existente | [Ver cambio](#cambio-2026-11-15-hu-020) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-114** implementada y **modificada**: la contraseña ahora exige al menos una mayúscula, un número y un carácter especial (antes no exigía combinaciones); endpoint `POST /api/auth/contrasena/establecer` | [Ver cambio](#cambio-2026-11-15-hu-114) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-023** implementada: el staff de plataforma mantiene rubros, categorías, peligros, preguntas (con tipo y opciones) y plantillas de documento en `api/<recurso>` (sin prefijo `plataforma`), con `PATCH` parcial y `PATCH …/estado` | [Ver cambio](#cambio-2026-11-15-hu-023) |
 | 2026-11-15 | Jonathan | Doc **18**: anexo JSON (request/response) por endpoint MVP | Auth ✅ alineado a DTOs; resto 🚧 según modelo §4 |
@@ -28,6 +29,50 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-15-hu-020` {#cambio-2026-11-15-hu-020}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 15 de noviembre de 2026 |
+| **Alcance** | Código de la rama `feature/hu-020` (slice `Vinculos/CrearVinculo` y permiso `vinculo.crear`) y contrato en `18-contratos-api-mvp.md`. No cambia el modelo de datos ni las reglas |
+
+### El problema (por qué hubo que cambiar)
+
+1. Solo existía el primer vínculo de cada empresa, creado al registrarla (HU-017). El administrador no podía dar acceso a nadie más.
+2. El contrato de `18` no decía qué pasa si el correo ya tiene cuenta, ni cuándo es obligatoria la contraseña temporal.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **El correo identifica la cuenta** | Si existe, se reutilizan la cuenta y su persona; se ignoran los nombres y la contraseña enviados | Una cuenta para varias empresas, sin duplicados (RN-02, RN-65) |
+| **Contraseña temporal solo para cuentas nuevas** | Obligatoria si el correo no tiene cuenta; cumple HU-114; queda `DebeCambiarPassword = true` | Todavía no hay correo de invitación (HU-118, E2) |
+| **Duplicado en cualquier estado** | Un vínculo suspendido o dado de baja también impide crear otro (409) | Reactivar o cambiar el rol es tarea de HU-021, con su historial |
+| **La empresa sale del token** | El interceptor de HU-093 pone `EmpresaId` | El cliente no puede dar acceso a otra empresa (RN-06) |
+| **Respuesta con `cuentaNueva`** | Indica si se usó la contraseña temporal | El front sabe si debe comunicarla a la persona |
+
+### Cómo quedó (resumen)
+
+- `POST /api/vinculos`, solo para `admin_empresa`. Responde 201 con el vínculo y `cuentaNueva`.
+- Se puede asignar cualquiera de los 4 roles, incluido `encuestado`. HU-115 agregará el alta específica y en lote.
+- La búsqueda de la persona de una cuenta existente salta el filtro por empresa, con un comentario que lo justifica: solo lee la identidad global.
+
+### Trabajo hecho
+
+- Slice `Features/Vinculos/CrearVinculo/` y su repositorio.
+- `VinculosController` y la fila `vinculo.crear` en `CatalogoPermisos`.
+- `18`: contrato y anexo de `POST /api/vinculos`.
+- Se probaron 15 casos con dos empresas en una base temporal: cuenta nueva, cuenta reutilizada en otra empresa, duplicado (sin importar mayúsculas), cuenta de staff sin persona, contraseña débil o ausente, rol inválido y permisos (401, y 403 para staff y colaborador).
+
+### Antes y ahora por historia
+
+| HU | Antes | Ahora |
+|----|-------|-------|
+| HU-020 | Contrato 🚧 sin reglas para cuentas existentes | ✅ `POST /api/vinculos` con creación o reutilización de la cuenta |
 
 ---
 
