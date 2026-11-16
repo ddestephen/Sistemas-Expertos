@@ -12,7 +12,7 @@ Las historias detalladas de cada módulo están en [historias de usuario](10-his
 
 - Registrar una empresa e iniciar sesión con **Acceso** (correo institucional) y el vínculo de esa empresa.
 - Agregar vínculos (`Persona` + **Acceso** + rol) y gestionar su estado.
-- Crear las cuentas de los **encuestados**, una a una o en lote: vínculos con el rol `encuestado`, que solo responden encuestas, ven sus notificaciones y consultan las políticas vigentes.
+- Crear las cuentas de los **encuestados**, una a una o en lote: vínculos con el rol `encuestado`, que solo responden encuestas, ven sus notificaciones, consultan las políticas vigentes y reportan eventos de forma anónima.
 - Trabajar en otra empresa: nuevo inicio de sesión con el vínculo de esa empresa (no hay “cambiar empresa” en la misma sesión).
 - Administrar los contenidos comunes de la plataforma: rubros, categorías de riesgo, preguntas (con su tipo), peligros y plantillas.
 
@@ -77,8 +77,8 @@ Un peligro es lo que puede causar daño, como una escalera en mal estado. El rie
 
 **Propósito:** registrar lo ocurrido, entender por qué pasó y evitar que se repita.
 
-- Reportar accidentes, incidentes (lo que estuvo a punto de causar daño) y enfermedades profesionales, sospechosas o diagnosticadas, con su lugar en texto libre.
-- Investigar causas y definir medidas correctivas, que se convierten en tareas.
+- Reportar de forma anónima accidentes, incidentes (lo que estuvo a punto de causar daño), enfermedades profesionales (sospechosas o diagnosticadas) y condiciones inseguras, con su lugar en texto libre y adjuntos opcionales.
+- Investigar causas y definir medidas correctivas, que se convierten en tareas, o descartar reportes inválidos o duplicados.
 - Revisar la matriz de riesgos a partir de lo aprendido.
 - Consultar estadísticas de eventos por tipo, gravedad y periodo.
 

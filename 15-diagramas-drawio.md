@@ -111,7 +111,6 @@ erDiagram
     PlantillaTarea |o--o{ Tarea : "modela"
     Accidente ||--o| InvestigacionAccidente : "se investiga en"
     Accidente |o--o{ Tarea : "genera medidas"
-    VinculoEmpresa ||--o{ Accidente : "reporta"
     Tarea |o--o{ Archivo : "tiene evidencia"
     Accidente |o--o{ Archivo : "tiene fotos"
 ```
@@ -184,7 +183,6 @@ erDiagram
     PlantillaTarea |o--o{ Tarea : "modela"
     Accidente ||--o| InvestigacionAccidente : "se investiga en"
     Accidente |o--o{ Tarea : "genera medidas"
-    VinculoEmpresa ||--o{ Accidente : "reporta"
     Tarea |o--o{ Archivo : "tiene evidencia"
     Accidente |o--o{ Archivo : "tiene fotos"
     PlantillaDocumento |o--o{ Documento : "modela"
@@ -615,11 +613,11 @@ erDiagram
     Accidente |o--o{ Tarea : "EmpresaId + AccidenteId"
     VinculoEmpresa ||--o{ Tarea : "EmpresaId + CreadaPorId"
     Empresa ||--o{ Archivo : "EmpresaId"
-    VinculoEmpresa ||--o{ Archivo : "EmpresaId + SubidoPorId"
+    VinculoEmpresa |o--o{ Archivo : "EmpresaId + SubidoPorId"
     Tarea |o--o{ Archivo : "EmpresaId + TareaId"
     Accidente |o--o{ Archivo : "EmpresaId + AccidenteId"
     Empresa ||--o{ Accidente : "EmpresaId"
-    VinculoEmpresa ||--o{ Accidente : "EmpresaId + ReportadoPorId"
+    VinculoEmpresa |o--o{ Accidente : "EmpresaId + DescartadoPorId"
     Empresa ||--o{ InvestigacionAccidente : "EmpresaId"
     Accidente ||--o| InvestigacionAccidente : "EmpresaId + AccidenteId"
     VinculoEmpresa ||--o{ InvestigacionAccidente : "EmpresaId + InvestigadaPorId"
@@ -662,7 +660,7 @@ erDiagram
         varchar_100 TipoContenido "NOT NULL"
         bigint TamanoBytes "NOT NULL"
         varchar_500 ClaveAlmacenamiento UK "NOT NULL"
-        uuid SubidoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        uuid SubidoPorId FK "FK comp → VinculoEmpresa (nulo en adjuntos anónimos)"
         timestamptz SubidoEn "NOT NULL"
         uuid TareaId FK "FK comp → Tarea"
         uuid AccidenteId FK "FK comp → Accidente"
@@ -671,16 +669,18 @@ erDiagram
     Accidente {
         uuid Id PK
         uuid EmpresaId FK "NOT NULL; → Empresa"
-        varchar_25 Tipo "NOT NULL; valores: accidente, incidente, enfermedad_profesional"
+        varchar_25 Tipo "NOT NULL; valores: accidente, incidente, enfermedad_profesional, condicion_insegura"
         varchar_15 EstadoEnfermedad "valores: sospechosa, diagnosticada"
         boolean EsGrave "NOT NULL"
         timestamptz FechaHoraEvento "NOT NULL"
         varchar_200 Lugar
         text Descripcion "NOT NULL"
-        uuid ReportadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
         timestamptz RegistradoEn "NOT NULL"
-        varchar_16 Estado "NOT NULL; valores: abierto, en_investigacion, cerrado"
+        varchar_16 Estado "NOT NULL; valores: abierto, en_investigacion, cerrado, descartado"
         timestamptz CerradoEn
+        uuid DescartadoPorId FK "FK comp → VinculoEmpresa"
+        text MotivoDescarte
+        timestamptz DescartadoEn
     }
 
     InvestigacionAccidente {
@@ -811,11 +811,11 @@ erDiagram
     Accidente |o--o{ Tarea : "EmpresaId + AccidenteId"
     VinculoEmpresa ||--o{ Tarea : "EmpresaId + CreadaPorId"
     Empresa ||--o{ Archivo : "EmpresaId"
-    VinculoEmpresa ||--o{ Archivo : "EmpresaId + SubidoPorId"
+    VinculoEmpresa |o--o{ Archivo : "EmpresaId + SubidoPorId"
     Tarea |o--o{ Archivo : "EmpresaId + TareaId"
     Accidente |o--o{ Archivo : "EmpresaId + AccidenteId"
     Empresa ||--o{ Accidente : "EmpresaId"
-    VinculoEmpresa ||--o{ Accidente : "EmpresaId + ReportadoPorId"
+    VinculoEmpresa |o--o{ Accidente : "EmpresaId + DescartadoPorId"
     Empresa ||--o{ InvestigacionAccidente : "EmpresaId"
     Accidente ||--o| InvestigacionAccidente : "EmpresaId + AccidenteId"
     VinculoEmpresa ||--o{ InvestigacionAccidente : "EmpresaId + InvestigadaPorId"
@@ -1177,7 +1177,7 @@ erDiagram
         varchar_100 TipoContenido "NOT NULL"
         bigint TamanoBytes "NOT NULL"
         varchar_500 ClaveAlmacenamiento UK "NOT NULL"
-        uuid SubidoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
+        uuid SubidoPorId FK "FK comp → VinculoEmpresa (nulo en adjuntos anónimos)"
         timestamptz SubidoEn "NOT NULL"
         uuid TareaId FK "FK comp → Tarea"
         uuid AccidenteId FK "FK comp → Accidente"
@@ -1186,16 +1186,18 @@ erDiagram
     Accidente {
         uuid Id PK
         uuid EmpresaId FK "NOT NULL; → Empresa"
-        varchar_25 Tipo "NOT NULL; valores: accidente, incidente, enfermedad_profesional"
+        varchar_25 Tipo "NOT NULL; valores: accidente, incidente, enfermedad_profesional, condicion_insegura"
         varchar_15 EstadoEnfermedad "valores: sospechosa, diagnosticada"
         boolean EsGrave "NOT NULL"
         timestamptz FechaHoraEvento "NOT NULL"
         varchar_200 Lugar
         text Descripcion "NOT NULL"
-        uuid ReportadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
         timestamptz RegistradoEn "NOT NULL"
-        varchar_16 Estado "NOT NULL; valores: abierto, en_investigacion, cerrado"
+        varchar_16 Estado "NOT NULL; valores: abierto, en_investigacion, cerrado, descartado"
         timestamptz CerradoEn
+        uuid DescartadoPorId FK "FK comp → VinculoEmpresa"
+        text MotivoDescarte
+        timestamptz DescartadoEn
     }
 
     InvestigacionAccidente {

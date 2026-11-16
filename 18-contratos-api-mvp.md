@@ -239,7 +239,7 @@ Regla RN-73: mínimo 3 respuestas para mostrar agregados sensibles.
 
 | HU | Método | Ruta | Notas | Estado |
 |---|---|---|---|---|
-| HU-047 | POST | `api/eventos` | Reportar accidente/incidente | 🚧 |
+| HU-047 | POST | `api/eventos` | Reportar accidente, incidente, enfermedad o condición insegura (anónimo) | 🚧 |
 | HU-039 | POST | `api/riesgos/{id}/controles` | Definir controles | 🚧 |
 | HU-042–045 | varios | `api/plan-trabajo/...` | Plan de acción | 🚧 |
 | HU-075 | GET | `api/riesgos/matriz/pdf` | Impresión matriz (M10) | 🚧 |
@@ -353,8 +353,10 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-045 | POST | `/api/plan-trabajo/tareas/{id}/evidencias` | multipart | JSON | Plan |
 | HU-046 | GET | `/api/plan-trabajo/tareas` | filtros query | array | Plan |
 | HU-047 | POST | `/api/eventos` | JSON | JSON | Eventos |
+| HU-047 | POST | `/api/eventos/{id}/evidencias` | multipart | JSON | Eventos |
 | HU-047 | GET | `/api/eventos` | — | array | Eventos |
 | HU-049 | PATCH | `/api/eventos/{id}/investigacion` | JSON | JSON | Eventos |
+| HU-049 | PATCH | `/api/eventos/{id}/descarte` | JSON | JSON | Eventos |
 | HU-050 | POST | `/api/eventos/{id}/medidas-correctivas` | JSON | JSON | Eventos |
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
 | HU-117 | PATCH | `/api/notificaciones/{id}/lectura` | — | 204 | Notificaciones |
@@ -1541,18 +1543,25 @@ Mismo item que arriba; filtrado por vínculo del JWT.
 
 ### M6 — Eventos y accidentes (HU-047, HU-049, HU-050) — 🚧
 
+Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`): el servidor toma `EmpresaId` del JWT, pero no guarda `ReportadoPorId` ni `SubidoPorId` en los adjuntos del evento (`D11`, `RN-27`).
+
 #### `POST /api/eventos` — `ReportarEventoRequestDto`
 
 ```json
 {
   "tipo": "incidente",
-  "ocurridoEn": "2026-11-14",
-  "descripcion": "Resbalón en pasillo sin señalizar",
-  "severidadAparente": "leve"
+  "estadoEnfermedad": null,
+  "esGrave": false,
+  "fechaHoraEvento": "2026-11-14T15:30:00Z",
+  "lugar": "Pasillo de empaque",
+  "descripcion": "Resbalón en pasillo sin señalizar"
 }
 ```
 
-| `tipo` | `accidente` \| `incidente` \| `casi_accidente` |
+| Campo | Valores / regla |
+|---|---|
+| `tipo` | `accidente` \| `incidente` \| `enfermedad_profesional` \| `condicion_insegura` |
+| `estadoEnfermedad` | `sospechosa` \| `diagnosticada` (obligatorio si y solo si `tipo = enfermedad_profesional`) |
 
 **Response 201:**
 
@@ -1560,31 +1569,51 @@ Mismo item que arriba; filtrado por vínculo del JWT.
 {
   "id": "01935600-....",
   "tipo": "incidente",
-  "estado": "registrado",
-  "ocurridoEn": "2026-11-14",
+  "estado": "abierto",
+  "esGrave": false,
+  "fechaHoraEvento": "2026-11-14T15:30:00Z",
   "registradoEn": "2026-11-15T09:00:00Z"
 }
 ```
 
+#### `POST /api/eventos/{id}/evidencias` (HU-047, opcional)
+
+`multipart/form-data` con imagen o PDF (`Archivo`). Se guarda asociado al evento con `SubidoPorId = null` para preservar el anonimato (`D11`).
+
 #### `GET /api/eventos`
 
-**Response 200:** array resumen (`id`, `tipo`, `estado`, `ocurridoEn`, `descripcion` corta).
+**Response 200:** array resumen (`id`, `tipo`, `estado`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` corta).
 
 #### `GET /api/eventos/{id}`
 
-**Response 200:** detalle completo + investigación si existe.
+**Response 200:** detalle completo + adjuntos (`Archivo`) + investigación si existe (sin datos de quien reportó).
 
 #### `PATCH /api/eventos/{id}/investigacion` (HU-049) — `ActualizarInvestigacionRequestDto`
 
+Roles: `responsable_sst`.
+
 ```json
 {
-  "estado": "en_investigacion",
-  "hallazgos": "Piso mojado sin señalización",
-  "causaRaiz": "Falta de procedimiento de limpieza"
+  "causasInmediatas": "Piso mojado sin señalización",
+  "causasBasicas": "Falta de procedimiento de limpieza",
+  "conclusiones": "Capacitar al personal de limpieza y colocar conos",
+  "fechaInvestigacion": "2026-11-15"
 }
 ```
 
-**Response 200:** evento actualizado.
+**Response 200:** evento actualizado (`estado`: `"en_investigacion"` o `"cerrado"` si cumple `RN-28`).
+
+#### `PATCH /api/eventos/{id}/descarte` (HU-049) — `DescartarEventoRequestDto`
+
+Roles: `responsable_sst`. Marca un reporte inválido o duplicado como `descartado` sin requerir investigación ni medidas (`RN-28`).
+
+```json
+{
+  "motivo": "Reporte duplicado del incidente en empaque"
+}
+```
+
+**Response 200:** evento con `estado`: `"descartado"`, `motivoDescarte` y `descartadoEn`.
 
 #### `POST /api/eventos/{id}/medidas-correctivas` (HU-050)
 
