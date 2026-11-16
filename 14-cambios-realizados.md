@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-15 | Equipo (redactado con Claude Code) | **HU-114** implementada y **modificada**: la contraseña ahora exige al menos una mayúscula, un número y un carácter especial (antes no exigía combinaciones); endpoint `POST /api/auth/contrasena/establecer` | [Ver cambio](#cambio-2026-11-15-hu-114) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-023** implementada: el staff de plataforma mantiene rubros, categorías, peligros, preguntas (con tipo y opciones) y plantillas de documento en `api/<recurso>` (sin prefijo `plataforma`), con `PATCH` parcial y `PATCH …/estado` | [Ver cambio](#cambio-2026-11-15-hu-023) |
 | 2026-11-15 | Jonathan | Doc **18**: anexo JSON (request/response) por endpoint MVP | Auth ✅ alineado a DTOs; resto 🚧 según modelo §4 |
 | 2026-11-15 | Jonathan | Guías **17** (permisos/seed/Postman) y **18** (contratos API MVP Must/Should) | Enlazadas en `README.md`; mapeo HU → endpoint → `CatalogoPermisos` |
@@ -27,6 +28,53 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-15-hu-114` {#cambio-2026-11-15-hu-114}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 15 de noviembre de 2026 |
+| **Alcance** | Criterios de HU-114 en `10-historias-usuario.md`, contrato en `18-contratos-api-mvp.md` y código de la rama `feature/hu-114`. No cambia el modelo de datos ni las reglas de negocio |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-114 decía que el sistema "no exige combinar mayúsculas, minúsculas, números o símbolos". El equipo decidió exigir una combinación mínima.
+2. En el código cada formulario tenía su propia regla. Por ejemplo, el registro de empresa pedía al menos 15 caracteres, y el contrato decía 8 a 64.
+3. No había forma de cambiar la contraseña ni de reemplazar una contraseña temporal (`DebeCambiarPassword`), que necesitan HU-115 y HU-022.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Composición mínima** | 8 a 64 caracteres, con al menos una mayúscula, un número y un carácter especial; el espacio no cuenta | Decisión del equipo |
+| **Rechazo de comunes** | Lista de contraseñas comunes que sí cumplen la composición (`P@ssw0rd`, `Admin123!`…), sin distinguir mayúsculas | La composición sola no evita las contraseñas más adivinadas |
+| **Una sola política** | `PoliticaContrasena` en `Application/Common/Validacion`, que usan todos los validadores que fijan una contraseña | La misma regla en el registro, los vínculos y los encuestados |
+| **El login no valida la política** | Solo compara con lo guardado | Las contraseñas anteriores siguen sirviendo para entrar y cambiarlas |
+| **Cambiar cierra las sesiones** | Se borran todos los refresh del Acceso | La contraseña vale en todas las empresas de esa cuenta (RN-65) |
+
+### Cómo quedó (resumen)
+
+- Cada requisito que falla da su propio mensaje en `errors`, como pide el criterio "indica qué requisito debe corregirse".
+- `POST /api/auth/contrasena/establecer` recibe la contraseña actual y la nueva, y responde 204.
+  - Es para sesiones de empresa: los 4 roles, incluido `encuestado`.
+  - El staff queda fuera por ahora, porque una ruta solo tiene un alcance.
+
+### Trabajo hecho
+
+- `PoliticaContrasena` aplicada en `RegistrarEmpresaValidator` (deja el mínimo de 15).
+- Slice `Auth/EstablecerContrasena`, permiso `auth.contrasena.establecer` y `AccesoId` en `ITenantActual`.
+- `[AllowAnonymous]` pasa de toda la clase `AuthController` a cada acción de login, refresh y logout.
+- Se probaron 22 casos en una base temporal: cada requisito, comunes, varios fallos a la vez, cambio exitoso, refresh revocado y login con la contraseña vieja y la nueva.
+
+### Antes y ahora por historia
+
+| HU | Antes | Ahora |
+|----|-------|-------|
+| HU-114 | 8 a 64 caracteres, frases, sin exigir combinaciones; 🚧 | 8 a 64, con mayúscula, número y carácter especial, sin contraseñas comunes; ✅ con endpoint para cambiar la contraseña |
+| HU-017 | Contraseña de al menos 15 caracteres | Usa la política de HU-114 |
 
 ---
 

@@ -325,8 +325,10 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - El sistema acepta contraseñas de entre 8 y 64 caracteres.
-- El sistema acepta frases y no exige combinar mayúsculas, minúsculas, números o símbolos.
+- La contraseña debe incluir al menos una letra mayúscula, un número y un carácter especial (por ejemplo `!`, `@`, `#`, `$`, `%`); el espacio no cuenta como carácter especial.
 - El sistema rechaza contraseñas comunes o conocidas como comprometidas.
+- La política se aplica cada vez que se crea o se cambia una contraseña, no al iniciar sesión.
+- Al cambiar la contraseña, se cierran las sesiones abiertas de esa cuenta en todas sus empresas.
 - Si la contraseña no cumple la política, el sistema indica qué requisito debe corregirse.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-018 · **Reglas:** ninguna

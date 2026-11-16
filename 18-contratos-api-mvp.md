@@ -263,7 +263,7 @@ Implementación de endpoints: 🚧.
 | HU-096 | FluentValidation + middleware ProblemDetails | ✅ |
 | HU-106 | Dockerfile API | 🚧 |
 | HU-101, 103, 104 | Front React | ➖ |
-| HU-114 | Política contraseñas (validador) | 🚧 parcial (validators 8+ chars) |
+| HU-114 | Política de contraseñas (`PoliticaContrasena` en `Application/Common/Validacion`) y `POST /api/auth/contrasena/establecer` | ✅ |
 
 ---
 
@@ -496,20 +496,40 @@ Mismo contrato que `POST /api/auth/login/empresa`, cambiando solo `idEmpresa` (o
 
 **Response 204.** **Errores:** 400 política HU-114 · 410 token expirado.
 
-##### `POST /api/auth/contrasena/establecer` — `EstablecerContrasenaRequestDto` (primer ingreso / temporal)
+##### `POST /api/auth/contrasena/establecer` — `EstablecerContrasenaRequestDto` (HU-114) — ✅
+
+Cambia la contraseña de la sesión actual. Sirve también para el primer ingreso con contraseña temporal (`DebeCambiarPassword` vuelve a `false`).
+
+**Auth:** Bearer de sesión de **empresa**. Permiso `auth.contrasena.establecer` para los 4 roles de empresa. El staff de plataforma recibe 403, porque una ruta solo tiene un alcance.
 
 **Request:**
 
 ```json
 {
-  "contrasenaActual": "Temporal123456",
-  "contrasenaNueva": "NuevaContraseñaSegura1"
+  "contrasenaActual": "Temporal#2026",
+  "contrasenaNueva": "NuevaClave#2026"
 }
 ```
 
-**Auth:** Bearer obligatorio.
+**Response 204.** El Acceso es único por correo (RN-65), así que la nueva contraseña vale para todas sus empresas. Por eso se borran todos sus refresh: hay que volver a iniciar sesión.
 
-**Response 204.**
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | `contrasenaNueva` no cumple la política (un mensaje por requisito que falla) o es igual a la actual |
+| 400 `auth.contrasena_actual_incorrecta` | La contraseña actual no coincide |
+| 401 | Sin sesión, o sesión inválida |
+
+**Política de contraseñas (HU-114):** se valida al crear o cambiar una contraseña (registro de empresa, vínculos, encuestados, este endpoint); el login solo compara. El front repite las reglas en Zod.
+
+| Requisito | Mensaje |
+|---|---|
+| 8 a 64 caracteres | La contraseña debe tener entre 8 y 64 caracteres. |
+| Al menos una mayúscula | La contraseña debe incluir al menos una letra mayúscula. |
+| Al menos un número | La contraseña debe incluir al menos un número. |
+| Al menos un carácter especial (no letra, número ni espacio) | La contraseña debe incluir al menos un carácter especial (por ejemplo ! @ # $ %). |
+| No es una contraseña común (sin distinguir mayúsculas) | Esa contraseña es muy común o conocida; elija otra. |
 
 ---
 
@@ -534,7 +554,7 @@ Mismo contrato que `POST /api/auth/login/empresa`, cambiando solo `idEmpresa` (o
 | `razonSocial` | string | Obligatorio, máx. 200 |
 | `rtn` | string | Obligatorio, **14 dígitos** (RN-01) |
 | `email` | string | Correo del primer administrador (= `Acceso.Email`) |
-| `password` | string | 8–64 (HU-114 cuando esté completo) |
+| `password` | string | Política HU-114: 8–64 caracteres, al menos una mayúscula, un número y un carácter especial; no puede ser una contraseña común |
 | `primerNombre` | string | Obligatorio |
 | `segundoNombre` | string? | Opcional |
 | `primerApellido` | string | Obligatorio |
