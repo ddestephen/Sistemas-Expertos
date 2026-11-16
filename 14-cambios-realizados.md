@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-16 | Equipo (redactado con Claude Code) | **HU-029** implementada: el Responsable SST ve las categorías de riesgo del rubro de su empresa con la vista previa de sus preguntas | [Ver cambio](#cambio-2026-11-16-hu-029) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-098** implementada: proyecto `Norvia.Tests` con 15 pruebas automáticas de aislamiento entre empresas, por la API y en la base, sobre un PostgreSQL desechable | [Ver cambio](#cambio-2026-11-16-hu-098) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-115** implementada: alta de encuestados individual y por lote, con contraseña temporal generada; el login informa `debeCambiarPassword` | [Ver cambio](#cambio-2026-11-16-hu-115) |
 | 2026-11-15 | Jesús Zepeda | **HU-047 (M6) rediseñada como reporte anónimo:** se elimina `ReportadoPorId`, `Archivo.SubidoPorId` pasa a nullable para adjuntos de eventos, se agrega el tipo `condicion_insegura`, se habilita el estado `descartado` en HU-049 y se permite reportar al rol `encuestado` | [Ver cambio](#cambio-2026-11-15-hu-047-anonimo) |
@@ -33,6 +34,44 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-16-hu-029` {#cambio-2026-11-16-hu-029}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 16 de noviembre de 2026 |
+| **Alcance** | Código de la rama `feature/hu-029` (módulo `Encuestas`: slice `ListarCategoriasDisponibles`, permiso `encuesta.categoria.listar`, 6 pruebas en `Norvia.Tests`) y contrato en `18-contratos-api-mvp.md`. No cambia el modelo de datos ni las reglas |
+
+### El problema (por qué hubo que cambiar)
+
+1. Para armar una encuesta, el Responsable SST necesita ver qué categorías aplican al rubro de su empresa y qué preguntas traería cada una (RN-11).
+2. El contrato de `18` solo mostraba el texto y el tipo de cada pregunta, sin opciones ni obligatoriedad, y no decía qué pasa si la empresa aún no tiene rubro.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Un solo endpoint de lectura** | Categorías y vista previa en la misma respuesta; la elección se envía al crear la encuesta (HU-030) | Coincide con el contrato y no guarda selecciones a medias |
+| **Rubro tomado del token** | El servidor busca el rubro de la empresa de la sesión | El cliente no puede pedir categorías de otro rubro (RN-06) |
+| **Solo lo activo** | Las categorías y preguntas desactivadas en HU-023 no se ofrecen | Lo retirado del catálogo no entra en encuestas nuevas |
+| **Sin rubro, 409** | `encuestas.empresa_sin_rubro` mientras el perfil (HU-026) no tenga rubro | RN-10: sin rubro no hay encuesta |
+| **Sin tablas nuevas** | HU-029 solo lee el catálogo existente | La regla del equipo de convertir enums en tablas sembradas con FK se aplicará desde HU-030, que crea las tablas de encuesta |
+
+### Trabajo hecho
+
+- `Features/Encuestas/ListarCategoriasDisponibles/`, su repositorio y `EncuestasController`.
+- Permiso `encuesta.categoria.listar` para `responsable_sst`.
+- 6 pruebas nuevas en `Norvia.Tests/Encuestas`: solo lo activo y en orden, cada empresa ve su rubro, 409 sin rubro, y 403 para colaborador, encuestado y staff. La suite completa (21) pasa.
+- `18`: contrato y anexo.
+
+### Antes y ahora por historia
+
+| HU | Antes | Ahora |
+|----|-------|-------|
+| HU-029 | Contrato 🚧 | ✅ Categorías del rubro con vista previa de preguntas |
 
 ---
 

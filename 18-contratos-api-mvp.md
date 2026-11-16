@@ -177,13 +177,13 @@ Los filtros (`?rubroId=`, `?categoriaRiesgoId=`) son opcionales. Las listas incl
 
 ## M3 — Encuestas (Must HU-029, 030, 031, 032)
 
-### HU-029 | Categorías por rubro
+### HU-029 | Categorías por rubro — ✅
 
 | Método | Ruta | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|
-| GET | `api/encuestas/categorias-disponibles` | `CategoriaRiesgoResponseDto[]` | `encuesta.categoria.listar` | `responsable_sst` | 🚧 |
+| GET | `api/encuestas/categorias-disponibles` | `CategoriaDisponibleResponseDto[]` | `encuesta.categoria.listar` | `responsable_sst` | ✅ |
 
-Filtrado por `rubroId` de la empresa del tenant (JWT).
+Se filtra por el `RubroId` de la empresa del JWT (RN-09, RN-11). Incluye la vista previa de las preguntas de cada categoría. Detalle en el [anexo](#anexo-hu-029).
 
 ### HU-030 | Crear, editar, publicar encuesta (versiones)
 
@@ -323,7 +323,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-023 | GET/POST/PATCH | `/api/preguntas`… | JSON | ver catálogos | Catálogos |
 | HU-023 | GET/POST/PATCH | `/api/plantillas`… | JSON | ver catálogos | Catálogos |
 | HU-024 | GET | `/api/plataforma/empresas` | — | array | Catálogos |
-| HU-029 | GET | `/api/encuestas/categorias-disponibles` | — | array | Encuestas |
+| HU-029 | GET | `/api/encuestas/categorias-disponibles` | — | `CategoriaDisponibleResponseDto[]` | Encuestas |
 | HU-030 | GET | `/api/encuestas` | — | array | Encuestas |
 | HU-030 | POST | `/api/encuestas` | JSON | `EncuestaResponseDto` | Encuestas |
 | HU-030 | GET | `/api/encuestas/{id}` | — | `EncuestaDetalleResponseDto` | Encuestas |
@@ -1081,23 +1081,53 @@ Mismas encuestas **cerradas** o con versiones anteriores, para comparar periodos
 ]
 ```
 
-#### `GET /api/encuestas/categorias-disponibles` (HU-029)
+#### `GET /api/encuestas/categorias-disponibles` (HU-029) — ✅ {#anexo-hu-029}
 
-Usa el rubro de la empresa del JWT (no enviar `empresaId` en query).
+**Auth:** Bearer de sesión de empresa, rol `responsable_sst`.
 
-**Response 200:**
+Devuelve las categorías **activas** del rubro de la empresa del JWT. No se envía `empresaId` ni `rubroId`. Cada categoría trae la vista previa de sus preguntas **activas**, ordenadas por `orden` y con sus opciones, para mostrar lo que incluirá la encuesta antes de crearla. La elección se envía en `POST /api/encuestas` (HU-030); este endpoint no guarda nada.
+
+**Response 200** — `CategoriaDisponibleResponseDto[]`, ordenadas por nombre.
 
 ```json
 [
   {
     "id": "01934000-....",
     "nombre": "Riesgos ergonómicos",
+    "descripcion": null,
     "preguntasPreview": [
-      { "id": "...", "texto": "¿Mantienes posturas forzadas?", "tipoRespuesta": "seleccion_unica" }
+      {
+        "id": "01934150-....",
+        "texto": "¿Levantas cargas de más de 25 kg?",
+        "tipoRespuesta": "seleccion_unica",
+        "obligatoria": true,
+        "orden": 1,
+        "opciones": [
+          { "texto": "Sí, a menudo", "orden": 1 },
+          { "texto": "No", "orden": 2 }
+        ]
+      },
+      {
+        "id": "01934151-....",
+        "texto": "Comentarios",
+        "tipoRespuesta": "respuesta_breve",
+        "obligatoria": false,
+        "orden": 2,
+        "opciones": []
+      }
     ]
   }
 ]
 ```
+
+La vista previa no muestra qué opción indica exposición ni el peligro asociado: es lo que verá el encuestado.
+
+**Errores:**
+
+| HTTP | `codigo` | Cuándo |
+|---|---|---|
+| 403 | `permiso.prohibido` | La sesión no es de `responsable_sst`, o es de staff |
+| 409 | `encuestas.empresa_sin_rubro` | La empresa todavía no tiene rubro en su perfil (HU-026). Sin rubro no se puede generar una encuesta (RN-10) |
 
 #### `POST /api/encuestas` (HU-030) — `CrearEncuestaRequestDto`
 
