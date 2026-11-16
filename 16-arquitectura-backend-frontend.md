@@ -213,11 +213,27 @@ public sealed class AuthController : ControllerBase
 
 ## 6. Multiempresa (aislamiento por `EmpresaId`)
 
-1. **`ITenantActual`** (`Application/Common/Interfaces`) expone `EmpresaId`, `VinculoEmpresaId` y `TipoSesion`. Lo implementa la API (`Seguridad/TenantActual`) descifrando el claim `empresa_id` del JWT.
+1. **`ITenantActual`** (`Application/Common/Interfaces`) expone `EmpresaId`, `VinculoEmpresaId`, `AccesoId` y `TipoSesion`. Lo implementa la API (`Seguridad/TenantActual`) descifrando el claim `empresa_id` del JWT.
 2. **`NorviaDbContext`** aplica `HasQueryFilter(e => e.EmpresaId == tenant.EmpresaId)` a toda entidad que implemente `ITieneEmpresa`.
 3. **`AsignarEmpresaInterceptor`** asigna `EmpresaId` desde `ITenantActual` al insertar. **El request nunca trae `EmpresaId`** (RN-06).
 4. **`IgnoreQueryFilters()`** solo se permite en el login, en los seeders y en operaciones de staff de plataforma, con un comentario que lo justifique.
 5. Las relaciones entre tablas de empresa son **FK compuestas** con `EmpresaId` (ver [modelo de datos](12-modelo-datos.md) §2).
+
+### Pruebas de aislamiento (HU-098)
+
+El proyecto `backend/Norvia.Tests` (xUnit) demuestra con pruebas automáticas que una empresa no accede a datos de otra.
+
+- **Cómo funciona:**
+  - Levanta la API real en memoria (`WebApplicationFactory<Program>`).
+  - La API usa un PostgreSQL desechable en Docker (Testcontainers, `postgres:16-alpine`) con las migraciones aplicadas.
+  - No usa el `.env` ni la base de desarrollo, y el contenedor se borra al terminar.
+- **Cómo correrlas:** desde `backend/`, `dotnet test`. Requiere Docker.
+- **Organización:**
+  - `Infraestructura/`: `NorviaApiFactory` (contenedor, configuración, migraciones), `Escenario` (crea empresas con su administrador y abre sesiones) y `TenantFijo` (DbContext con una empresa de sesión fija).
+  - `Aislamiento/AislamientoApiTests`: por HTTP, consultar, registrar, editar y retirar datos de otra empresa (RN-05, RN-06).
+  - `Aislamiento/AislamientoBaseDatosTests`: filtro global, interceptor y FK compuestas (RN-07, D15).
+- **Regla:** cada prueba crea sus propias empresas con correos y RTN únicos, así no depende de otras ni del orden.
+- **Al agregar un módulo de empresa** (riesgos, encuestas…), se agrega al menos una prueba que intente leerlo y modificarlo desde otra empresa.
 
 ## 7. Validación y errores
 
@@ -286,6 +302,7 @@ src/
 - [ ] Ningún servicio lee `IConfiguration`.
 - [ ] El controller no tiene lógica: llama al servicio y convierte el `Resultado`.
 - [ ] En el frontend, el esquema Zod coincide con el validador.
+- [ ] Si el PR agrega datos de empresa, incluye una prueba de aislamiento en `Norvia.Tests` y `dotnet test` pasa.
 
 ---
 

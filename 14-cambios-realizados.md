@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-16 | Equipo (redactado con Claude Code) | **HU-098** implementada: proyecto `Norvia.Tests` con 15 pruebas automáticas de aislamiento entre empresas, por la API y en la base, sobre un PostgreSQL desechable | [Ver cambio](#cambio-2026-11-16-hu-098) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-115** implementada: alta de encuestados individual y por lote, con contraseña temporal generada; el login informa `debeCambiarPassword` | [Ver cambio](#cambio-2026-11-16-hu-115) |
 | 2026-11-15 | Jesús Zepeda | **HU-047 (M6) rediseñada como reporte anónimo:** se elimina `ReportadoPorId`, `Archivo.SubidoPorId` pasa a nullable para adjuntos de eventos, se agrega el tipo `condicion_insegura`, se habilita el estado `descartado` en HU-049 y se permite reportar al rol `encuestado` | [Ver cambio](#cambio-2026-11-15-hu-047-anonimo) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-021** implementada: listar los accesos de la empresa y cambiar rol o estado con motivo e historial, sin dejar a la empresa sin administrador | [Ver cambio](#cambio-2026-11-15-hu-021) |
@@ -32,6 +33,63 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-16-hu-098` {#cambio-2026-11-16-hu-098}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 16 de noviembre de 2026 |
+| **Alcance** | Proyecto nuevo `backend/Norvia.Tests` (rama `feature/hu-098`), `public partial class Program` en la API, sección de pruebas y checklist en `16-arquitectura-backend-frontend.md`, y estado de HU-098 en `18`. No cambia el modelo de datos ni las reglas |
+
+### El problema (por qué hubo que cambiar)
+
+1. El aislamiento multiempresa es lo que más pesa en la rúbrica, y hasta ahora solo se había probado a mano en bases temporales.
+2. Sin pruebas automáticas, un cambio futuro (un `IgnoreQueryFilters` de más, una FK sin `EmpresaId`) podía abrir una fuga sin que nadie lo notara.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **API real en memoria** | `WebApplicationFactory<Program>` con todo el pipeline: JWT, middleware de permisos, filtro de validación | Se prueba lo mismo que usa el front, no una simulación |
+| **PostgreSQL desechable** | Testcontainers levanta `postgres:16-alpine`, aplica las migraciones y lo borra al terminar | No toca la base de desarrollo ni depende del `.env`; corre igual en CI |
+| **Datos preparados en la base** | Las empresas de prueba se crean con los servicios reales de hash y cifrado; lo que se prueba se hace por HTTP | No depende del registro público de HU-017, que sigue pendiente |
+| **Dos niveles** | Por la API (RN-05, RN-06) y en la capa de datos (filtro, interceptor y FK compuestas: RN-07, D15) | Si la aplicación falla, la base todavía impide mezclar empresas |
+| **Pruebas independientes** | Cada una crea sus empresas con correos y RTN únicos | Se pueden correr en cualquier orden |
+
+### Cómo quedó (resumen)
+
+15 pruebas, todas en verde, en unos 30 segundos:
+
+- **Consultar:** la lista de vínculos solo trae los de la empresa de la sesión; ver uno de otra empresa responde 404.
+- **Registrar:**
+  - el alta usa la empresa del token aunque el cliente envíe otra;
+  - dar acceso en A a una persona de B no cambia nada en B.
+- **Editar y retirar:**
+  - cambiar el rol, suspender o dar de baja un vínculo de otra empresa responde 404 y no lo modifica;
+  - suspender a alguien en A no le quita el acceso a B.
+- **Sesión:**
+  - no se abre sesión en una empresa sin vínculo, ni con un identificador alterado;
+  - el staff no accede a datos de empresas.
+- **Base de datos:**
+  - el filtro global solo muestra la empresa de la sesión, y nada sin sesión;
+  - el interceptor impone la empresa de la sesión al insertar e impide cambiarla;
+  - la FK compuesta rechaza un historial de A que apunta a un vínculo de B.
+
+### Trabajo hecho
+
+- `Norvia.Tests` agregado a `Norvia.slnx` (xUnit, `Microsoft.AspNetCore.Mvc.Testing` 10.0.14, `Testcontainers.PostgreSql`).
+- `public partial class Program;` al final de `Program.cs`.
+- `16`: sección "Pruebas de aislamiento (HU-098)" y una línea en el checklist de PR.
+- `18`: HU-098 en ✅.
+
+### Antes y ahora por historia
+
+| HU | Antes | Ahora |
+|----|-------|-------|
+| HU-098 | 🚧 Solo pruebas manuales | ✅ 15 pruebas automáticas (`dotnet test`) |
 
 ---
 

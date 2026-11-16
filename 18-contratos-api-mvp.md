@@ -75,7 +75,7 @@ Los nombres de propiedad en `errors` coinciden con el **nombre de la propiedad d
 | HU-095 | GET | `api/prueba/empresa` | — | texto | `prueba.empresa` | `admin_empresa` | ✅ |
 | HU-095 | — | (cualquier nueva ruta) | — | — | ver §3 doc 17 | según HU | 🚧 |
 | HU-102 | — | — | — | — | — | — | ➖ Front (react-router) |
-| HU-098 | — | pruebas integración | — | — | — | — | 🚧 |
+| HU-098 | — | pruebas de integración (`backend/Norvia.Tests`, `dotnet test`) | — | — | — | — | ✅ |
 
 `SesionResponseDto`: `{ accessToken, refreshToken, expiresIn, debeCambiarPassword }`.
 
