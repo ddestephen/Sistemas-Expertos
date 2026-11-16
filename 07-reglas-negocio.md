@@ -75,9 +75,9 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 
 | Código | Regla |
 |---|---|
-| RN-26 | Cada evento se clasifica como accidente, incidente o enfermedad profesional. Una enfermedad profesional se marca como sospechosa o diagnosticada |
-| RN-27 | Cualquier vínculo activo de la empresa puede reportar un evento |
-| RN-28 | Un evento no se cierra sin causas y medidas correctivas registradas (art. 46.1.a) |
+| RN-26 | Cada evento se clasifica como accidente, incidente, enfermedad profesional o condición insegura. Una enfermedad profesional se marca como sospechosa o diagnosticada |
+| RN-27 | Cualquier vínculo activo de la empresa (incluido `encuestado`) puede reportar un evento de forma anónima; el sistema no almacena el vínculo que lo reportó ni el autor de sus archivos adjuntos |
+| RN-28 | Un evento no se cierra sin causas y medidas correctivas registradas (art. 46.1.a). Un evento inválido o duplicado puede marcarse como `descartado` (con motivo opcional) sin investigación ni medidas, y queda excluido de las estadísticas |
 | RN-29 | **Fuera de alcance (recorte 13-11-2026).** Un accidente grave genera una convocatoria a reunión extraordinaria (art. 32). Depende de M7 |
 | RN-30 | **Fuera de alcance (recorte 13-11-2026).** Los datos de las personas afectadas solo son visibles para el Responsable SST y la comisión. Ya no se registran personas afectadas (D11) |
 | RN-31 | La fecha de registro la fija el servidor; la fecha del evento la indica quien reporta |
@@ -143,7 +143,7 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-71 | Cada vínculo responde una misma encuesta una sola vez |
 | RN-72 | La respuesta es anónima: no guarda el vínculo de quien respondió ni la hora, solo la fecha. La participación se guarda aparte, sin relación con la respuesta |
 | RN-73 | El reporte de una encuesta solo se muestra cuando tiene al menos 3 respuestas, para que no se pueda deducir quién respondió qué |
-| RN-74 | El rol `encuestado` solo puede responder encuestas, ver sus notificaciones y consultar las políticas vigentes |
+| RN-74 | El rol `encuestado` solo puede responder encuestas, ver sus notificaciones, consultar las políticas vigentes y reportar eventos de forma anónima |
 
 ## Notificaciones
 

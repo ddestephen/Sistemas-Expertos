@@ -52,7 +52,7 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Con `EmpresaId` | Control | Medidas de cada riesgo | M4 |
 | Con `EmpresaId` | Tarea | Tareas de todos los orígenes | M5 |
 | Con `EmpresaId` | Archivo | Datos y enlace de evidencias de tareas | M5 |
-| Con `EmpresaId` | Accidente | Accidentes, incidentes y enfermedades profesionales | M6 |
+| Con `EmpresaId` | Accidente | Reportes anónimos de accidentes, incidentes, enfermedades profesionales y condiciones inseguras | M6 |
 | Con `EmpresaId` | InvestigacionAccidente | Causas y conclusiones | M6 |
 | Con `EmpresaId` | Documento | Políticas y procedimientos de la empresa | M9 |
 | Con `EmpresaId` | VersionDocumento | Cada versión | M9 |

@@ -12,6 +12,7 @@
 | Ausentismo | Ausencias del trabajo por accidentes o enfermedades. Norvia no lo registra desde el 13-11-2026 |
 | Categoría de riesgo | Grupo de riesgos de un rubro, como trabajo en alturas o alto voltaje |
 | Comisión Mixta | Comisión Mixta de Higiene y Seguridad: grupo con representantes del empleador y de los trabajadores que vigila la SST en la empresa. Fuera de alcance desde el 13-11-2026 (M7). |
+| Condición insegura | Situación o elemento físico del entorno de trabajo que representa un riesgo potencial antes de causar un accidente |
 | Control | Medida para reducir un riesgo |
 | Días de incapacidad | Días que una persona no puede trabajar por un accidente o enfermedad. Norvia no los registra desde el 13-11-2026 |
 | Enfermedad profesional | Enfermedad causada por el trabajo. Puede estar sospechosa o diagnosticada |
@@ -61,7 +62,7 @@
 | Encargado de área | Responsable de un área. Dejó de usarse junto con las áreas (13-11-2026) |
 | Encuesta | Cuestionario dinámico de Norvia que responden los encuestados para identificar peligros. Estados: `borrador`, `publicada`, `cerrada`. Se edita mediante versiones |
 | Versión de encuesta | Copia de las preguntas de una encuesta en un momento dado. Solo una está publicada a la vez; cada respuesta guarda la versión que se contestó |
-| Encuestado | Trabajador con vínculo y rol `encuestado`: responde encuestas, ve sus notificaciones y consulta políticas vigentes |
+| Encuestado | Trabajador con vínculo y rol `encuestado`: responde encuestas, ve sus notificaciones, consulta políticas vigentes y puede reportar eventos de forma anónima |
 | Encuestador | Quien crea, publica y aplica la encuesta. En Norvia es el Responsable SST; no es un rol aparte |
 | Formulario dinámico | Formulario que Norvia arma con los datos de la encuesta: cada pregunta se muestra con el control de su tipo |
 | Entrega | Etapa de construcción que deja algo demostrable |

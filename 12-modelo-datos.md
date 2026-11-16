@@ -145,7 +145,6 @@ erDiagram
     PlantillaTarea |o--o{ Tarea : "modela"
     Accidente ||--o| InvestigacionAccidente : "se investiga en"
     Accidente |o--o{ Tarea : "genera medidas"
-    VinculoEmpresa ||--o{ Accidente : "reporta"
     Tarea |o--o{ Archivo : "tiene evidencia"
     Accidente |o--o{ Archivo : "tiene fotos"
 ```
@@ -740,36 +739,39 @@ Datos y enlace de cada archivo guardado en el almacenamiento externo (D14). El a
 | TipoContenido | varchar(100) | No | | Por ejemplo `image/jpeg` o `application/pdf` |
 | TamanoBytes | bigint | No | | CHECK `> 0`. El máximo se define en los requerimientos no funcionales |
 | ClaveAlmacenamiento | varchar(500) | No | UQ | Ubicación en el almacenamiento externo |
-| SubidoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
+| SubidoPorId | uuid | Sí | FK compuesta → VinculoEmpresa | Obligatorio en evidencias de tareas; nulo en adjuntos de reportes anónimos (D11) |
 | SubidoEn | timestamptz | No | | |
 | TareaId | uuid | Sí | FK compuesta → Tarea | Evidencia de una tarea |
-| AccidenteId | uuid | Sí | FK compuesta → Accidente | Foto de un accidente |
+| AccidenteId | uuid | Sí | FK compuesta → Accidente | Foto o documento de un evento |
 
-**Restricciones:** CHECK: como máximo una de las dos columnas de dueño tiene valor. La matriz en PDF se genera al pedirla y no se guarda.
+**Restricciones:** CHECK: como máximo una de las dos columnas de dueño tiene valor. CHECK: si `TareaId` tiene valor, `SubidoPorId` tiene valor; si `AccidenteId` tiene valor, `SubidoPorId` es nulo (preserva el anonimato del reporte). La matriz en PDF se genera al pedirla y no se guarda.
 
 #### Accidente
 
-Accidentes, incidentes y enfermedades profesionales (RN-26). No registra personas afectadas ni días de incapacidad (D11).
+Reportes anónimos de accidentes, incidentes, enfermedades profesionales y condiciones inseguras (D11, RN-26, RN-27). No guarda quién reporta ni registra personas afectadas o días de incapacidad.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
-| Tipo | varchar(25) | No | | `accidente`, `incidente`, `enfermedad_profesional` |
+| Tipo | varchar(25) | No | | `accidente`, `incidente`, `enfermedad_profesional`, `condicion_insegura` |
 | EstadoEnfermedad | varchar(15) | Sí | | `sospechosa`, `diagnosticada` |
 | EsGrave | boolean | No | | Por defecto `false`. Sirve para las estadísticas |
 | FechaHoraEvento | timestamptz | No | | La indica quien reporta (RN-31) |
 | Lugar | varchar(200) | Sí | | Dónde ocurrió, en texto libre (no hay áreas) |
 | Descripcion | text | No | | |
-| ReportadoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | RegistradoEn | timestamptz | No | | Lo fija el servidor (RN-31) |
-| Estado | varchar(16) | No | | `abierto`, `en_investigacion`, `cerrado` |
+| Estado | varchar(16) | No | | `abierto`, `en_investigacion`, `cerrado`, `descartado` |
 | CerradoEn | timestamptz | Sí | | |
+| DescartadoPorId | uuid | Sí | FK compuesta → VinculoEmpresa | Quien descartó un reporte inválido o duplicado |
+| MotivoDescarte | text | Sí | | Motivo opcional al descartar |
+| DescartadoEn | timestamptz | Sí | | Lo fija el servidor al descartar |
 
 **Restricciones:**
 
 - CHECK: `EstadoEnfermedad` tiene valor si y solo si `Tipo = 'enfermedad_profesional'`.
 - CHECK: `CerradoEn` tiene valor si y solo si `Estado = 'cerrado'`.
+- CHECK: `DescartadoPorId` y `DescartadoEn` tienen valor si y solo si `Estado = 'descartado'`; `MotivoDescarte` solo puede tener valor si `Estado = 'descartado'`.
 - Para cerrar debe existir investigación y al menos una medida (RN-28); lo valida la aplicación.
 
 #### InvestigacionAccidente
@@ -969,8 +971,8 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-23 | BD | Columnas de origen con CHECK |
 | RN-24, RN-25 | App | Permisos y conteo de evidencias |
 | RN-26 | BD | CHECK `Tipo` y `EstadoEnfermedad` |
-| RN-27 | App | Permiso de reporte |
-| RN-28 | App | Validación al cerrar |
+| RN-27 | BD y App | Permiso de reporte anónimo para vínculos activos; `Accidente` sin `ReportadoPorId` y `Archivo` con `SubidoPorId` nulo si pertenece a un evento |
+| RN-28 | App y BD | Validación al cerrar (investigación y medida); estado `descartado` con `DescartadoPorId` y excluido de estadísticas |
 | RN-31 | BD | `RegistradoEn DEFAULT now()` |
 | RN-49, RN-50, RN-51 | BD | Estados, UQ parciales y disparador |
 | RN-52 | App | La matriz en PDF se genera desde las tablas |
@@ -980,7 +982,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-71 | BD | PK `(EncuestaId, VinculoEmpresaId)` en ParticipacionEncuesta |
 | RN-72 | BD | RespuestaEncuesta sin vínculo y con `FechaRespuesta date`; sin FK entre participación y respuesta |
 | RN-73 | App | Conteo de respuestas antes de mostrar el reporte |
-| RN-74 | BD y App | Rol `encuestado` con sus permisos en RolPermiso |
+| RN-74 | BD y App | Rol `encuestado` con sus permisos en RolPermiso (incluye reporte anónimo) |
 | RN-75 | BD y App | Notificacion por vínculo activo al aprobar la versión; UQ parcial por versión y destinatario |
 | RN-76 | App | Sugerencias leídas de PlantillaTarea del peligro; solo se guarda el Control confirmado |
 | RN-77 | App | Notificacion al asignar responsable |

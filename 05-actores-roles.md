@@ -18,8 +18,8 @@ El cargo en la Comisión Mixta quedó fuera de alcance junto con M7 (recorte del
 | Staff con **RolStaffPlataforma** | Toda la plataforma | Catálogos globales, datos básicos de empresas, suspensión SaaS. Sin acceso SST de clientes ni asignación de `Rol` en vínculos |
 | Administrador de empresa (vínculo `admin_empresa`) | Su empresa | Configurar la empresa, **altas y roles de vínculos** en esa empresa, incluidas las cuentas de encuestados |
 | Responsable SST | Su empresa | Gestionar encuestas (es quien las crea y publica: el **encuestador**), riesgos, plan, accidentes, documentos y la matriz impresa |
-| Colaborador | Su empresa | Atender sus tareas y reportar accidentes |
-| Encuestado | Su empresa | Responder las encuestas publicadas, una vez cada una; ver sus notificaciones y consultar las políticas vigentes |
+| Colaborador | Su empresa | Atender sus tareas y reportar eventos de forma anónima |
+| Encuestado | Su empresa | Responder las encuestas publicadas, una vez cada una; ver sus notificaciones, consultar las políticas vigentes y reportar eventos de forma anónima |
 
 ## Asignaciones
 

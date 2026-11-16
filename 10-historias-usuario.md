@@ -1,4 +1,4 @@
-﻿# Historias de usuario
+# Historias de usuario
 
 **Para qué sirve:** describe todo el trabajo del proyecto, historia por historia. Estas historias se cargan al tablero del equipo.
 
@@ -384,7 +384,7 @@ Cada historia termina con estos datos:
 - Para cada trabajador, Norvia crea una cuenta si no existe o reutiliza la cuenta existente, y concede acceso a esta empresa en el grupo de encuestados.
 - El acceso inicial requiere cambiar la contraseña en el primer ingreso y cumple la política definida en HU-114.
 - En una carga por lote, Norvia informa las filas con correo inválido o acceso ya existente y continúa procesando las demás.
-- El grupo de encuestados solo permite responder encuestas, consultar las notificaciones dirigidas a la cuenta y consultar las políticas vigentes.
+- El grupo de encuestados solo permite responder encuestas, consultar las notificaciones dirigidas a la cuenta, consultar las políticas vigentes y reportar eventos de forma anónima.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-020, HU-114 · **Reglas:** RN-02, RN-65, RN-74, D5
 
@@ -678,16 +678,16 @@ Cada historia termina con estos datos:
 
 ### HU-047 | Reportar un evento
 
-**Como** Colaborador, **quiero** reportar un accidente o incidente desde donde esté, **para** que se atienda de inmediato.
+**Como** trabajador u operador con acceso a la empresa, **quiero** reportar de forma rápida y anónima un accidente, incidente, enfermedad o condición insegura, **para** que se atienda de inmediato sin temor a represalias.
 
 **Criterios de aceptación:**
 
-- Indico tipo, fecha, hora, lugar (texto libre) y descripción.
+- Indico el tipo (`accidente`, `incidente`, `enfermedad_profesional` o `condicion_insegura`), fecha y hora del evento, descripción obligatoria y, de forma opcional, el lugar (texto libre).
 - Una enfermedad profesional se marca como sospechosa o diagnosticada.
-- Puedo indicar si el accidente es grave.
-- Puedo adjuntar fotos.
-- El sistema registra quién reporta y cuándo.
-- Cualquier operador con vínculo activo en la empresa puede reportar.
+- Puedo indicar si el evento es grave.
+- Puedo adjuntar imágenes o documentos PDF de forma opcional.
+- El reporte es anónimo: el sistema registra cuándo se recibió en el servidor, pero **no** guarda qué vínculo lo reportó ni quién subió sus archivos adjuntos.
+- Cualquier operador con vínculo activo en la empresa (incluido `encuestado`) puede enviar un reporte.
 
 **Módulo:** M6 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-026, HU-100 · **Reglas:** arts. 9.j, 46.1.d, RN-26, RN-27, RN-31, D11
 
@@ -707,13 +707,14 @@ Cada historia termina con estos datos:
 
 ### HU-049 | Investigar un evento
 
-**Como** Responsable SST, **quiero** registrar causas y conclusiones, **para** entender por qué ocurrió.
+**Como** Responsable SST, **quiero** registrar causas y conclusiones, o descartar reportes inválidos, **para** entender por qué ocurrió lo reportado y mantener limpio el historial.
 
 **Criterios de aceptación:**
 
 - Registro causas inmediatas y causas de fondo.
 - Registro responsables de la investigación y fecha.
 - El evento no se cierra sin causas y medidas.
+- Si un reporte anónimo es falso, duplicado o inválido, puedo marcarlo como `descartado` (con motivo opcional) sin necesidad de investigarlo ni crear medidas.
 
 **Módulo:** M6 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-047 · **Reglas:** arts. 25.d, 46.1.a, RN-28
 
@@ -746,6 +747,7 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Veo el número de eventos por tipo, gravedad y periodo.
+- Los eventos en estado `descartado` no se incluyen en las cifras.
 - Las cifras se calculan y no muestran datos personales.
 
 **Módulo:** M6 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-047 · **Reglas:** art. 47.e, D11
@@ -1814,7 +1816,7 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
   - **Criterios de aceptación:**
     - Para cada trabajador crea una cuenta si no existe o reutiliza la existente, siguiendo el alta de persona de HU-020, y evita un segundo vínculo a la misma empresa.
     - Concede el grupo encuestado y acceso inicial temporal; en el primer ingreso se debe cambiar la contraseña según HU-114.
-    - Limita las funciones de esa cuenta a responder encuestas, ver sus notificaciones y consultar las políticas vigentes.
+    - Limita las funciones de esa cuenta a responder encuestas, ver sus notificaciones, consultar las políticas vigentes y reportar eventos de forma anónima.
 
 ### HU-021 | Gestionar roles y membresías
 
@@ -2000,16 +2002,16 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
 
 ### HU-047 | Reportar un evento
 
-- **Título:** `HU-047 Front — Reportar un accidente, incidente o enfermedad`
+- **Título:** `HU-047 Front — Reportar un evento o condición insegura de forma anónima`
   - **Criterios de aceptación:**
-    - permite indicar tipo, fecha, hora, lugar en texto libre y descripción
-    - permite marcar enfermedad sospechosa o diagnosticada, accidente grave y adjuntar fotos
-    - confirma el registro del evento.
-- **Título:** `HU-047 Back — Validar y conservar el evento reportado`
+    - permite seleccionar el tipo (`accidente`, `incidente`, `enfermedad_profesional` o `condicion_insegura`), fecha, hora, lugar opcional en texto libre y descripción obligatoria
+    - permite marcar enfermedad sospechosa o diagnosticada, evento grave y adjuntar imágenes o PDF opcionales
+    - confirma el registro anónimo del evento sin mostrar identidad del reportante.
+- **Título:** `HU-047 Back — Validar y conservar el evento anónimo`
   - **Criterios de aceptación:**
-    - registra quién reportó y cuándo, junto con los datos del evento
-    - acepta reportes de cualquier operador con vínculo activo en la empresa
-    - conserva el evento asociado a la empresa correspondiente.
+    - registra la fecha de recepción en el servidor y los datos del evento sin guardar quién reportó ni quién subió los archivos adjuntos
+    - acepta reportes de cualquier operador con vínculo activo en la empresa (incluido `encuestado`)
+    - conserva el evento asociado únicamente a la empresa de la sesión correspondiente.
 
 ### HU-050 | Definir medidas correctivas
 

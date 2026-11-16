@@ -11,6 +11,7 @@
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-115** implementada: alta de encuestados individual y por lote, con contraseña temporal generada; el login informa `debeCambiarPassword` | [Ver cambio](#cambio-2026-11-16-hu-115) |
+| 2026-11-15 | Jesús Zepeda | **HU-047 (M6) rediseñada como reporte anónimo:** se elimina `ReportadoPorId`, `Archivo.SubidoPorId` pasa a nullable para adjuntos de eventos, se agrega el tipo `condicion_insegura`, se habilita el estado `descartado` en HU-049 y se permite reportar al rol `encuestado` | [Ver cambio](#cambio-2026-11-15-hu-047-anonimo) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-021** implementada: listar los accesos de la empresa y cambiar rol o estado con motivo e historial, sin dejar a la empresa sin administrador | [Ver cambio](#cambio-2026-11-15-hu-021) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-020** implementada: `POST /api/vinculos` agrega una persona a la empresa de la sesión, creando su cuenta con contraseña temporal o reutilizando la existente | [Ver cambio](#cambio-2026-11-15-hu-020) |
 | 2026-11-15 | Equipo (redactado con Claude Code) | **HU-114** implementada y **modificada**: la contraseña ahora exige al menos una mayúscula, un número y un carácter especial (antes no exigía combinaciones); endpoint `POST /api/auth/contrasena/establecer` | [Ver cambio](#cambio-2026-11-15-hu-114) |
@@ -83,6 +84,83 @@
 |----|-------|-------|
 | HU-115 | Contrato 🚧 sin contraseña en el lote | ✅ Alta individual y por lote con contraseña temporal generada |
 | HU-018 | La sesión no indicaba contraseña temporal | `debeCambiarPassword` en login y refresh |
+
+---
+
+## Cambio `2026-11-15-hu-047-anonimo` {#cambio-2026-11-15-hu-047-anonimo}
+
+| | |
+|---|---|
+| **Quién documentó** | Jesús Zepeda |
+| **Fecha** | 15 de noviembre de 2026 |
+| **Alcance** | Rediseño documental y de modelo de datos de M6 (**HU-047**, **HU-049**, **HU-052**) y ajuste de permisos de `encuestado` (**RN-74**, **HU-115**). Toca `08`, `07`, `09`, `12`, `10`, `04`, `05`, `15`, `18`, `11` y `14`. **No requiere cambios en código ni migraciones aún**, porque M6 (Entrega E2) todavía no existe en `backend/` |
+
+### El problema (por qué hubo que cambiar)
+
+1. **`HU-047` guardaba la identidad del reportante:** `Accidente.ReportadoPorId` (`NOT NULL`) y `Archivo.SubidoPorId` (`NOT NULL`) dejaban registrado qué vínculo envió el reporte o subió las fotos, lo que desincentiva que los trabajadores reporten accidentes o condiciones peligrosas por temor a represalias.
+2. **Faltaba reportar riesgos preventivos rápidos sin esperar una encuesta:** `RN-26` solo contemplaba `accidente`, `incidente` y `enfermedad_profesional`, dejando fuera el reporte rápido de una condición insegura antes de que ocurra un daño.
+3. **No existía salida para reportes falsos o duplicados:** un reporte anónimo inválido quedaba atrapado en `abierto` porque `RN-28` solo permitía cerrarlo tras investigarlo y crear medidas.
+4. **Contradicción entre `RN-27` y `RN-74`:** `RN-27` habilitaba a cualquier vínculo activo para reportar, pero `RN-74` restringía a `encuestado` solo a encuestas, notificaciones y políticas.
+5. **Desfase en `18-contratos-api-mvp.md`:** el contrato borrador de `POST /api/eventos` usaba campos (`casi_accidente`, `severidadAparente`, `estado: "registrado"`) que no coincidían con `12-modelo-datos.md`.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Anonimato con sesión (patrón `D27`)** | El trabajador reporta autenticado con su vínculo (JWT), pero el servidor **no guarda** `ReportadoPorId` en `Accidente` ni `SubidoPorId` en `Archivo` cuando pertenece a un evento | Protege la identidad en BD, evita spam de internet que tendría un buzón `[AllowAnonymous]` y mantiene intacto el aislamiento por `EmpresaId` del JWT |
+| **Agregar `condicion_insegura` a `Accidente.Tipo`** | Se añade un 4.º tipo de evento en la misma columna `Tipo` (sin tablas puente N:M ni árboles recursivos de casos) | Permite al frontend mostrar una cuadrícula rápida de 4 tipos, habilita reportes preventivos que luego pasan a `RiesgoEmpresa` (HU-051) o `Tarea` (HU-050), y mantiene el alcance MVP |
+| **`Descripcion` obligatoria y evidencias (`Archivo`) opcionales** | `Descripcion` sigue `NOT NULL`; las imágenes o PDF (`Archivo`) son opcionales en `POST /api/eventos/{id}/evidencias` (sin audio/video) | Evita bloquear reportes de emergencia cuando no hay foto disponible, no acopla `POST /api/eventos` al storage externo (`HU-100`) y cuida los límites del plan gratuito |
+| **Moderación simplificada con estado `descartado`** | Se agrega `'descartado'` a `Accidente.Estado` junto con `DescartadoPorId`, `MotivoDescarte` (opcional) y `DescartadoEn` | Permite archivar reportes falsos o duplicados sin crear tablas de moderación por archivo y los excluye de `HU-052` |
+| **Habilitar a `encuestado` en `RN-27` y `RN-74`** | Todos los vínculos activos (incluido `encuestado`) pueden reportar eventos anónimos | En planta/maquila/construcción la mayoría de trabajadores operativos solo tiene rol `encuestado` |
+
+### Cómo quedó (resumen)
+
+- **`Accidente`:** sin `ReportadoPorId`; `Tipo` acepta `accidente`, `incidente`, `enfermedad_profesional`, `condicion_insegura`; `Estado` acepta `abierto`, `en_investigacion`, `cerrado`, `descartado`; agrega `DescartadoPorId`, `MotivoDescarte` y `DescartadoEn` con `CHECK` de consistencia.
+- **`Archivo`:** `SubidoPorId` pasa a nullable (`CHECK`: obligatorio si `TareaId IS NOT NULL`, nulo si `AccidenteId IS NOT NULL`).
+- **Contratos (`18`):** `POST /api/eventos`, `POST /api/eventos/{id}/evidencias` y `PATCH /api/eventos/{id}/descarte` alineados a `12-modelo-datos.md`.
+
+### Qué hizo Jesús Zepeda en la práctica
+
+- Actualizó la cadena documental completa (`08` → `07` → `09` → `12` → `10` → `04`/`05`/`15`/`18` → `11` → `14`).
+- Verificó en `backend/` (rama `development`) que M6 aún no tiene entidades ni migraciones creadas, dejando el diseño listo antes de programar la Entrega E2.
+- *(Pendiente visual)* Reimportar los bloques Mermaid actualizados de `15-diagramas-drawio.md` en `docs/Diagramas.drawio` cuando se regenere el diagrama completo.
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero |
+|----|-------------|---------|
+| HU-047 (reporte anónimo y `condicion_insegura`) | [x] | [ ] |
+| HU-049 (descarte de reportes inválidos) | [x] | [ ] |
+| HU-052 (excluir `descartado` de estadísticas) | [x] | [ ] |
+| HU-115 (rol `encuestado` habilitado para reportar) | [x] | [ ] |
+
+#### HU-047 | Reportar un evento
+
+| | |
+|---|---|
+| **Antes** | Reporte identificado (`ReportadoPorId` obligatorio) de `accidente`, `incidente` o `enfermedad_profesional`; `encuestado` no reportaba. |
+| **Ahora** | Reporte anónimo con sesión (`Accidente` sin `ReportadoPorId`, `Archivo.SubidoPorId` nulo); incluye `condicion_insegura`; `Descripcion` obligatoria y fotos/PDF opcionales; habilitado para todo vínculo activo incluido `encuestado`. |
+| **Tablero** | [ ] |
+| **Referencia oficial** | [10-historias-usuario.md § HU-047](10-historias-usuario.md#hu-047--reportar-un-evento) |
+
+#### HU-049 | Investigar un evento
+
+| | |
+|---|---|
+| **Antes** | Solo permitía investigar y cerrar con causas y medidas (`RN-28`). |
+| **Ahora** | Además permite marcar un reporte falso o duplicado como `descartado` (con motivo opcional) sin exigir investigación ni medidas. |
+| **Tablero** | [ ] |
+| **Referencia oficial** | [10-historias-usuario.md § HU-049](10-historias-usuario.md#hu-049--investigar-un-evento) |
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Decisión D11 | [08-decisiones-bd.md](08-decisiones-bd.md) |
+| Reglas RN-26–RN-28 y RN-74 | [07-reglas-negocio.md](07-reglas-negocio.md) |
+| Diccionario `Accidente` y `Archivo` | [12-modelo-datos.md](12-modelo-datos.md) |
+| Criterios HU-047, HU-049, HU-052, HU-115 | [10-historias-usuario.md](10-historias-usuario.md) |
+| Contratos HTTP M6 | [18-contratos-api-mvp.md](18-contratos-api-mvp.md) |
 
 ---
 
