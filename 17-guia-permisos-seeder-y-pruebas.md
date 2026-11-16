@@ -48,7 +48,7 @@ Empresa("encuesta.publicar", "Publicar encuesta", "POST", "api/encuestas/{id}/ve
     "responsable_sst");
 
 // Plataforma → admin_plataforma, soporte_plataforma, …
-Plataforma("catalogo.rubro.actualizar", "Actualizar rubro", "PATCH", "api/plataforma/rubros/{id}",
+Plataforma("catalogo.rubro.actualizar", "Editar rubro", "PATCH", "api/rubros/{id}",
     "admin_plataforma");
 ```
 

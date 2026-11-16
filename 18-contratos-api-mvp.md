@@ -28,6 +28,7 @@ Alcance funcional del MVP (orden de construcción):
 | Formato | `application/json` |
 | Nombres de propiedad | **camelCase** en JSON (serialización por defecto de ASP.NET) |
 | Identificadores | `uuid` en string (`"550e8400-e29b-41d4-a716-446655440000"`) |
+| Valores de enumeración | Texto en **snake_case**, igual que en la base: `"seleccion_unica"`, `"ergonomico"`, `"politica"`. Un valor desconocido o numérico responde **400** |
 | Fechas | `date`: `"2026-11-15"` · `timestamptz`: ISO-8601 UTC `"2026-11-16T02:30:00Z"` |
 | Rutas protegidas | Header `Authorization: Bearer {accessToken}` |
 | Éxito sin cuerpo | **204 No Content** |
@@ -120,19 +121,38 @@ Rol fijo `encuestado` en servidor.
 
 ---
 
-## M1 — Catálogos plataforma (Should en HU-023, Must en issues Back)
+## M1 — Catálogos plataforma (HU-023, Should) — ✅
 
-Prefijo sugerido: `api/plataforma/...`, alcance **plataforma**, rol típico `admin_plataforma`.
+Rutas **sin prefijo** (`api/rubros`, `api/peligros`…). Son de alcance **plataforma** porque así está cada fila en `CatalogoPermisos`, no por la URL: una sesión de empresa recibe 403. `soporte_plataforma` solo consulta; `admin_plataforma` crea, edita y activa o desactiva.
 
-| Recurso | GET listar | POST crear | PATCH actualizar | Desactivar | Estado |
-|---|---|---|---|---|---|
-| Rubros | `api/plataforma/rubros` | `api/plataforma/rubros` | `api/plataforma/rubros/{id}` | `DELETE` o `PATCH` estado | 🚧 |
-| Categorías riesgo | `.../categorias-riesgo` | … | … | … | 🚧 |
-| Preguntas | `.../preguntas` | … | … | … | 🚧 |
-| Peligros | `.../peligros` | … | … | … | 🚧 |
-| Plantillas | `.../plantillas` | … | … | … | 🚧 |
+- **Editar:** `PATCH {id}` parcial; lo que no se envía se conserva.
+- **Activar o desactivar:** `PATCH {id}/estado` con `{ "activo": false }`. No hay borrado físico.
+- **Plantillas:** `api/plantillas` son las plantillas de **documento** (políticas y procedimientos). Las plantillas de tarea no tienen API en HU-023.
 
-DTOs: `CrearRubroRequestDto`, `RubroResponseDto`, etc. (un par por recurso). Los catálogos fijos iniciales vienen de HU-097 (`CatalogoBase`); estos endpoints son **mantenimiento** autorizado.
+| Método | Ruta | Request | Response | Permiso | Roles | Estado |
+|---|---|---|---|---|---|---|
+| GET | `api/rubros` | — | `RubroResponseDto[]` | `catalogo.rubro.listar` | `admin_plataforma`, `soporte_plataforma` | ✅ |
+| POST | `api/rubros` | `CrearRubroRequestDto` | 201 `RubroResponseDto` | `catalogo.rubro.crear` | `admin_plataforma` | ✅ |
+| PATCH | `api/rubros/{id}` | `ActualizarRubroRequestDto` | `RubroResponseDto` | `catalogo.rubro.actualizar` | `admin_plataforma` | ✅ |
+| PATCH | `api/rubros/{id}/estado` | `CambiarEstadoRubroRequestDto` | `RubroResponseDto` | `catalogo.rubro.estado` | `admin_plataforma` | ✅ |
+| GET | `api/categorias-riesgo?rubroId=` | — | `CategoriaRiesgoResponseDto[]` | `catalogo.categoria.listar` | `admin_plataforma`, `soporte_plataforma` | ✅ |
+| POST | `api/categorias-riesgo` | `CrearCategoriaRiesgoRequestDto` | 201 `CategoriaRiesgoResponseDto` | `catalogo.categoria.crear` | `admin_plataforma` | ✅ |
+| PATCH | `api/categorias-riesgo/{id}` | `ActualizarCategoriaRiesgoRequestDto` | `CategoriaRiesgoResponseDto` | `catalogo.categoria.actualizar` | `admin_plataforma` | ✅ |
+| PATCH | `api/categorias-riesgo/{id}/estado` | `CambiarEstadoCategoriaRiesgoRequestDto` | `CategoriaRiesgoResponseDto` | `catalogo.categoria.estado` | `admin_plataforma` | ✅ |
+| GET | `api/peligros` | — | `PeligroResponseDto[]` | `catalogo.peligro.listar` | `admin_plataforma`, `soporte_plataforma` | ✅ |
+| POST | `api/peligros` | `CrearPeligroRequestDto` | 201 `PeligroResponseDto` | `catalogo.peligro.crear` | `admin_plataforma` | ✅ |
+| PATCH | `api/peligros/{id}` | `ActualizarPeligroRequestDto` | `PeligroResponseDto` | `catalogo.peligro.actualizar` | `admin_plataforma` | ✅ |
+| PATCH | `api/peligros/{id}/estado` | `CambiarEstadoPeligroRequestDto` | `PeligroResponseDto` | `catalogo.peligro.estado` | `admin_plataforma` | ✅ |
+| GET | `api/preguntas?categoriaRiesgoId=` | — | `PreguntaResponseDto[]` | `catalogo.pregunta.listar` | `admin_plataforma`, `soporte_plataforma` | ✅ |
+| POST | `api/preguntas` | `CrearPreguntaRequestDto` | 201 `PreguntaResponseDto` | `catalogo.pregunta.crear` | `admin_plataforma` | ✅ |
+| PATCH | `api/preguntas/{id}` | `ActualizarPreguntaRequestDto` | `PreguntaResponseDto` | `catalogo.pregunta.actualizar` | `admin_plataforma` | ✅ |
+| PATCH | `api/preguntas/{id}/estado` | `CambiarEstadoPreguntaRequestDto` | `PreguntaResponseDto` | `catalogo.pregunta.estado` | `admin_plataforma` | ✅ |
+| GET | `api/plantillas` | — | `PlantillaDocumentoResponseDto[]` | `catalogo.plantilla.listar` | `admin_plataforma`, `soporte_plataforma` | ✅ |
+| POST | `api/plantillas` | `CrearPlantillaDocumentoRequestDto` | 201 `PlantillaDocumentoResponseDto` | `catalogo.plantilla.crear` | `admin_plataforma` | ✅ |
+| PATCH | `api/plantillas/{id}` | `ActualizarPlantillaDocumentoRequestDto` | `PlantillaDocumentoResponseDto` | `catalogo.plantilla.actualizar` | `admin_plataforma` | ✅ |
+| PATCH | `api/plantillas/{id}/estado` | `CambiarEstadoPlantillaDocumentoRequestDto` | `PlantillaDocumentoResponseDto` | `catalogo.plantilla.estado` | `admin_plataforma` | ✅ |
+
+Los filtros (`?rubroId=`, `?categoriaRiesgoId=`) son opcionales. Las listas incluyen los elementos desactivados, porque son pantallas de mantenimiento. Los catálogos iniciales vienen de HU-097 (`CatalogoBase`). Cuerpos JSON en el [anexo](#anexo-catalogos).
 
 ### HU-024 | Listar empresas (Should)
 
@@ -295,11 +315,11 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-021 | PATCH | `/api/vinculos/{id}` | JSON | `VinculoResponseDto` | Vínculos |
 | HU-115 | POST | `/api/vinculos/encuestados` | JSON | `VinculoResponseDto` | Vínculos |
 | HU-115 | POST | `/api/vinculos/encuestados/lote` | JSON | `CrearEncuestadosLoteResponseDto` | Vínculos |
-| HU-023 | GET/POST/PATCH | `/api/plataforma/rubros`… | JSON | ver catálogos | Catálogos |
-| HU-023 | * | `/api/plataforma/categorias-riesgo`… | JSON | ver catálogos | Catálogos |
-| HU-023 | * | `/api/plataforma/preguntas`… | JSON | ver catálogos | Catálogos |
-| HU-023 | * | `/api/plataforma/peligros`… | JSON | ver catálogos | Catálogos |
-| HU-023 | * | `/api/plataforma/plantillas-documento`… | JSON | ver catálogos | Catálogos |
+| HU-023 | GET/POST/PATCH | `/api/rubros`… | JSON | ver catálogos | Catálogos |
+| HU-023 | GET/POST/PATCH | `/api/categorias-riesgo`… | JSON | ver catálogos | Catálogos |
+| HU-023 | GET/POST/PATCH | `/api/peligros`… | JSON | ver catálogos | Catálogos |
+| HU-023 | GET/POST/PATCH | `/api/preguntas`… | JSON | ver catálogos | Catálogos |
+| HU-023 | GET/POST/PATCH | `/api/plantillas`… | JSON | ver catálogos | Catálogos |
 | HU-024 | GET | `/api/plataforma/empresas` | — | array | Catálogos |
 | HU-029 | GET | `/api/encuestas/categorias-disponibles` | — | array | Encuestas |
 | HU-030 | GET | `/api/encuestas` | — | array | Encuestas |
@@ -719,88 +739,103 @@ Todos los campos opcionales; enviar solo lo que cambia.
 
 ---
 
-### M1 — Catálogos plataforma (HU-023 / HU-024) — 🚧
+### M1 — Catálogos plataforma (HU-023 / HU-024) {#anexo-catalogos}
 
-**Auth:** Bearer sesión **plataforma**, rol `admin_plataforma`.
+**Auth:** Bearer de sesión **plataforma**. HU-023 ✅ · HU-024 🚧.
 
-Patrón CRUD (ejemplo **rubros**); el resto de recursos replica la misma forma.
+**Convenciones de los catálogos:**
 
-#### `GET /api/plataforma/rubros`
+- `PATCH {id}` es **parcial**: un campo ausente (o `null`) se conserva. En `descripcion`, el texto vacío `""` la borra.
+- `PATCH {id}/estado` recibe `{ "activo": true | false }` y responde el recurso. Vale igual para los recursos cuya propiedad se llama `activa`.
+- El `codigo` de rubros, peligros y plantillas se fija al crear y no se edita.
 
-```json
-[
-  { "id": 1, "codigo": "industria", "nombre": "Industria", "activo": true },
-  { "id": 2, "codigo": "comercio", "nombre": "Comercio", "activo": true }
-]
-```
+**Errores comunes:**
 
-#### `POST /api/plataforma/rubros` — `CrearRubroRequestDto`
+| HTTP | `codigo` | Cuándo |
+|---|---|---|
+| 400 | `ValidationProblemDetails` | Falla una regla de forma (ver cada recurso) |
+| 400 | `catalogos.rubro_invalido` · `catalogos.categoria_invalida` · `catalogos.peligro_invalido` | La referencia no existe o está desactivada. Al editar solo se exige activa si cambia |
+| 403 | `permiso.prohibido` | `soporte_plataforma` intenta crear o editar, o una sesión de empresa llama a la ruta |
+| 404 | `catalogos.rubro_no_encontrado` · `…categoria_no_encontrada` · `…peligro_no_encontrado` · `…pregunta_no_encontrada` · `…plantilla_no_encontrada` | El `{id}` no existe |
+| 409 | `catalogos.codigo_duplicado` · `catalogos.nombre_duplicado` · `catalogos.orden_ocupado` | Código o nombre repetido, o posición de pregunta ocupada |
 
-```json
-{
-  "codigo": "servicios",
-  "nombre": "Servicios"
-}
-```
+#### Rubros
 
-**Response 201** — `RubroResponseDto`: `{ "id": 3, "codigo": "servicios", "nombre": "Servicios", "activo": true }`
-
-#### `PATCH /api/plataforma/rubros/{id}`
+`GET /api/rubros` → `RubroResponseDto[]`
 
 ```json
-{
-  "nombre": "Servicios y oficios",
-  "activo": false
-}
+[{ "id": 1, "codigo": "oficina", "nombre": "Oficina administrativa", "activo": true }]
 ```
 
-#### `GET /api/plataforma/categorias-riesgo`
-
-**Response 200:**
+`POST /api/rubros` — `CrearRubroRequestDto` (`codigo`: minúsculas, números y `_`, máx. 30; `nombre` máx. 80, único). El `id` lo asigna el servidor.
 
 ```json
-[
-  {
-    "id": "01934000-....",
-    "rubroId": 2,
-    "nombre": "Riesgos ergonómicos",
-    "activo": true
-  }
-]
+{ "codigo": "servicios", "nombre": "Servicios" }
 ```
 
-#### `POST /api/plataforma/categorias-riesgo` — `CrearCategoriaRiesgoRequestDto`
+**201:** `{ "id": 5, "codigo": "servicios", "nombre": "Servicios", "activo": true }`
+
+`PATCH /api/rubros/{id}` — `ActualizarRubroRequestDto`: `{ "nombre": "Servicios y oficios" }`
+
+`PATCH /api/rubros/{id}/estado`: `{ "activo": false }`
+
+#### Categorías de riesgo
+
+`GET /api/categorias-riesgo?rubroId=3` → `CategoriaRiesgoResponseDto[]`
 
 ```json
-{
-  "rubroId": 2,
-  "nombre": "Riesgos químicos"
-}
+[{ "id": "01934000-....", "rubroId": 3, "nombre": "Riesgos ergonómicos", "descripcion": null, "activa": true }]
 ```
 
-**Response 201:** `{ "id": "...", "rubroId": 2, "nombre": "Riesgos químicos", "activo": true }`
-
-#### `PATCH /api/plataforma/categorias-riesgo/{id}`
+`POST /api/categorias-riesgo` — `CrearCategoriaRiesgoRequestDto` (rubro activo; `nombre` máx. 100, único dentro del rubro)
 
 ```json
-{ "nombre": "Riesgos por sustancias", "activo": true }
+{ "rubroId": 3, "nombre": "Riesgos químicos", "descripcion": "Sustancias y vapores" }
 ```
 
-**Response 200:** recurso actualizado.
+`PATCH /api/categorias-riesgo/{id}` — `ActualizarCategoriaRiesgoRequestDto`: `rubroId` (la mueve de rubro), `nombre`, `descripcion`.
 
-#### `GET /api/plataforma/preguntas?categoriaRiesgoId={uuid}`
+```json
+{ "nombre": "Riesgos por sustancias", "descripcion": "" }
+```
 
-**Response 200:**
+`PATCH /api/categorias-riesgo/{id}/estado`: `{ "activo": false }`
+
+#### Peligros
+
+`GET /api/peligros` → `PeligroResponseDto[]`
+
+```json
+[{ "id": "01933000-....", "codigo": "carga_manual", "nombre": "Manipulación manual de cargas",
+   "descripcion": null, "clasificacion": "ergonomico", "activo": true }]
+```
+
+`POST /api/peligros` — `CrearPeligroRequestDto` (`codigo` máx. 20; `clasificacion`: `fisico`, `mecanico`, `electrico`, `quimico`, `biologico`, `ergonomico`, `psicosocial`, `locativo`, `otro`)
+
+```json
+{ "codigo": "contacto_electrico", "nombre": "Contacto eléctrico",
+  "descripcion": "Exposición a energía eléctrica", "clasificacion": "electrico" }
+```
+
+`PATCH /api/peligros/{id}` — `ActualizarPeligroRequestDto`: `nombre`, `descripcion`, `clasificacion`.
+
+`PATCH /api/peligros/{id}/estado`: `{ "activo": false }`
+
+#### Preguntas exploratorias
+
+`GET /api/preguntas?categoriaRiesgoId={uuid}` → `PreguntaResponseDto[]`, ordenadas por `orden`, con sus opciones.
 
 ```json
 [
   {
     "id": "01934150-....",
     "categoriaRiesgoId": "01934000-....",
-    "texto": "¿Mantienes posturas forzadas?",
+    "texto": "¿Levantas cargas de más de 25 kg?",
     "tipoRespuesta": "seleccion_unica",
+    "obligatoria": true,
+    "orden": 1,
     "peligroId": "01933000-....",
-    "activo": true,
+    "activa": true,
     "opciones": [
       { "id": "...", "texto": "Sí, a menudo", "orden": 1, "indicaExposicion": true },
       { "id": "...", "texto": "No", "orden": 2, "indicaExposicion": false }
@@ -809,70 +844,71 @@ Patrón CRUD (ejemplo **rubros**); el resto de recursos replica la misma forma.
 ]
 ```
 
-#### `POST /api/plataforma/preguntas` — `CrearPreguntaRequestDto`
+`POST /api/preguntas` — `CrearPreguntaRequestDto`. La pregunta se agrega al final de su categoría.
 
 ```json
 {
   "categoriaRiesgoId": "01934000-....",
-  "texto": "¿Levantas cargas mayores a 25 kg?",
+  "texto": "¿Levantas cargas de más de 25 kg?",
   "tipoRespuesta": "seleccion_unica",
+  "obligatoria": true,
   "peligroId": "01933000-....",
   "opciones": [
-    { "texto": "Sí", "orden": 1, "indicaExposicion": true },
+    { "texto": "Sí, a menudo", "orden": 1, "indicaExposicion": true },
     { "texto": "No", "orden": 2, "indicaExposicion": false }
   ]
 }
 ```
 
-**Response 201:** pregunta con `id` y `opciones[]` con `id` generados.
+Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front aplica las mismas en su esquema Zod:
 
-#### `PATCH /api/plataforma/preguntas/{id}`
+- `tipoRespuesta` es obligatorio.
+- `respuesta_breve`: `opciones` vacía y sin `peligroId`.
+- `seleccion_unica` y `seleccion_multiple`: de 2 a 20 opciones, sin `orden` ni texto repetidos.
+- Con `peligroId`, al menos una opción con `indicaExposicion: true`; sin `peligroId`, ninguna.
+- Categoría y peligro deben existir y estar activos.
+
+`PATCH /api/preguntas/{id}` — `ActualizarPreguntaRequestDto`. Campos sueltos: `categoriaRiesgoId`, `texto`, `obligatoria`, `orden`. Si `orden` no se envía se conserva (o va al final si cambia de categoría); si otra pregunta ya lo tiene, responde 409 `catalogos.orden_ocupado`.
+
+`tipoRespuesta`, `peligroId` y `opciones` forman **un bloque**: para cambiar cualquiera se envían `tipoRespuesta` y `opciones` juntos, y entonces un `peligroId` ausente significa "sin peligro". Las opciones se reemplazan completas y reciben `id` nuevos. Las encuestas ya generadas no cambian, porque guardan su propia copia (RN-12).
+
+```json
+{ "texto": "¿Con qué frecuencia levantas cargas pesadas?" }
+```
 
 ```json
 {
-  "texto": "Texto actualizado",
-  "activo": false
+  "tipoRespuesta": "seleccion_unica",
+  "peligroId": "01933000-....",
+  "opciones": [
+    { "texto": "Nunca", "orden": 1, "indicaExposicion": false },
+    { "texto": "A veces", "orden": 2, "indicaExposicion": true },
+    { "texto": "Siempre", "orden": 3, "indicaExposicion": true }
+  ]
 }
 ```
 
-**Response 200.**
+`PATCH /api/preguntas/{id}/estado`: `{ "activo": false }`. Una pregunta inactiva no se copia a encuestas nuevas.
 
-#### `GET /api/plataforma/peligros`
+#### Plantillas (de documento)
 
-**Response 200:** `[{ "id": "...", "codigo": "caida_mismo_nivel", "nombre": "Caída al mismo nivel", "activo": true }]`
-
-#### `POST /api/plataforma/peligros` — `CrearPeligroRequestDto`
+`GET /api/plantillas` → `PlantillaDocumentoResponseDto[]`
 
 ```json
-{
-  "codigo": "contacto_electrico",
-  "nombre": "Contacto eléctrico",
-  "descripcion": "Exposición a energía eléctrica"
-}
+[{ "id": "...", "codigo": "politica_sst", "titulo": "Política de SST", "tipoDocumento": "politica",
+   "rubroId": null, "contenido": "{{RazonSocial}} se compromete…", "activa": true }]
 ```
 
-**Response 201.**
-
-#### `PATCH /api/plataforma/peligros/{id}` — body parcial; **Response 200.**
-
-#### `GET /api/plataforma/plantillas-documento`
+`POST /api/plantillas` — `CrearPlantillaDocumentoRequestDto` (`codigo` máx. 30, único; `tipoDocumento`: `politica` o `procedimiento`; `rubroId` nulo = todos los rubros)
 
 ```json
-[{ "id": "...", "rubroId": 2, "tipo": "politica_sst", "nombre": "Política SST base", "activo": true }]
+{ "codigo": "procedimiento_epp", "titulo": "Procedimiento de uso de EPP", "tipoDocumento": "procedimiento",
+  "rubroId": 4, "contenido": "# Uso de EPP en {{RazonSocial}}\n..." }
 ```
 
-#### `POST /api/plataforma/plantillas-documento`
+`PATCH /api/plantillas/{id}` — `ActualizarPlantillaDocumentoRequestDto`: `titulo`, `tipoDocumento`, `rubroId` (`0` = todos los rubros), `contenido`.
 
-```json
-{
-  "rubroId": 2,
-  "tipo": "procedimiento",
-  "nombre": "Procedimiento EPP",
-  "contenidoMarkdown": "# Uso de EPP\n..."
-}
-```
-
-**Response 201:** incluye `id`.
+`PATCH /api/plantillas/{id}/estado`: `{ "activo": false }`
 
 #### `GET /api/plataforma/empresas` (HU-024)
 

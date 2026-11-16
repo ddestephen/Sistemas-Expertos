@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-15 | Equipo (redactado con Claude Code) | **HU-023** implementada: el staff de plataforma mantiene rubros, categorías, peligros, preguntas (con tipo y opciones) y plantillas de documento en `api/<recurso>` (sin prefijo `plataforma`), con `PATCH` parcial y `PATCH …/estado` | [Ver cambio](#cambio-2026-11-15-hu-023) |
 | 2026-11-15 | Jonathan | Doc **18**: anexo JSON (request/response) por endpoint MVP | Auth ✅ alineado a DTOs; resto 🚧 según modelo §4 |
 | 2026-11-15 | Jonathan | Guías **17** (permisos/seed/Postman) y **18** (contratos API MVP Must/Should) | Enlazadas en `README.md`; mapeo HU → endpoint → `CatalogoPermisos` |
 | 2026-11-15 | Jonathan | Auth: `DTOs/` + `Validators/` **por slice**; `Data/` solo `NorviaDbContext`; resto en `Persistence/` | Alineado a HabitForge (contexto en Data; contratos por feature) |
@@ -26,6 +27,61 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-15-hu-023` {#cambio-2026-11-15-hu-023}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 15 de noviembre de 2026 |
+| **Alcance** | Código de la rama `feature/hu-023` (módulo `Catalogos`: 20 casos de uso y 20 permisos) y documentos `18-contratos-api-mvp.md` y `17-guia-permisos-seeder-y-pruebas.md`. No cambia el modelo de datos ni las reglas |
+
+### El problema (por qué hubo que cambiar)
+
+1. Los catálogos globales (D7) solo podían cargarse desde el código (HU-097). HU-023 pide que el Administrador de plataforma los mantenga sin programar.
+2. El contrato de `18` dejaba abiertos varios puntos:
+   - las rutas llevaban el prefijo `api/plataforma/`;
+   - para desactivar ofrecía `DELETE` o `PATCH` sin decidir;
+   - "Plantillas" mezclaba dos tablas distintas.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Sin prefijo `plataforma`** | `api/rubros`, `api/categorias-riesgo`, `api/peligros`, `api/preguntas`, `api/plantillas` | URLs más cortas. El alcance lo define la fila de `CatalogoPermisos`, no la URL (D24) |
+| **`PATCH {id}` parcial** | Lo que no se envía se conserva; `""` borra una descripción | El front envía solo lo que cambió |
+| **`PATCH {id}/estado`** | `{ "activo": false }` desactiva y `true` reactiva | Desactivar es una acción aparte de editar; no hay borrado físico |
+| **Bloque de respuesta en preguntas** | `tipoRespuesta`, `peligroId` y `opciones` se envían juntos; las opciones se reemplazan completas | Esas tres partes dependen entre sí (D26). Las encuestas ya generadas no cambian porque guardan su copia (RN-12) |
+| **`api/plantillas` = plantillas de documento** | Las plantillas de tarea no tienen API en HU-023 | Decisión del equipo para acotar la historia |
+| **Consulta para soporte, cambios solo para admin** | `soporte_plataforma` solo tiene los permisos de listar | Cumple "solo personas autorizadas pueden hacer cambios" |
+| **Referencias activas solo si cambian** | El rubro, la categoría o el peligro deben estar activos al elegirlos, pero no para editar algo que ya los tenía | Se puede corregir un elemento aunque su padre se haya desactivado |
+
+### Cómo quedó (resumen)
+
+- Por recurso: `GET` (lista, con filtros opcionales e incluye los desactivados), `POST` (201), `PATCH {id}` y `PATCH {id}/estado`.
+- Reglas de una pregunta:
+  - el tipo es obligatorio;
+  - `respuesta_breve` va sin opciones ni peligro;
+  - las de selección llevan de 2 a 20 opciones, sin repetir posición ni texto;
+  - con peligro, al menos una opción indica exposición; sin peligro, ninguna.
+- Errores con código propio: `catalogos.*_no_encontrado` (404), `catalogos.*_invalido` (400), `codigo_duplicado`, `nombre_duplicado` y `orden_ocupado` (409).
+
+### Trabajo hecho
+
+- Módulo `Features/Catalogos/` con un slice por caso de uso y `CatalogosController`.
+- 20 filas en `CatalogoPermisos` con alcance `plataforma`.
+- Respuesta 201 para las altas y enums serializados en snake_case.
+- `18`: resumen, índice y anexo JSON de catálogos; `17`: el ejemplo pasa a `PATCH api/rubros/{id}`.
+- Se probaron 52 casos en una base temporal: permisos (401 y 403 para soporte), validaciones, ediciones parciales, estado, conflictos y reemplazo de opciones.
+
+### Antes y ahora por historia
+
+| HU | Antes | Ahora |
+|----|-------|-------|
+| HU-023 | Contrato 🚧 con prefijo `api/plataforma/` y la desactivación sin decidir | ✅ implementada sin prefijo, con `PATCH` parcial, `PATCH …/estado` y permisos por rol de staff |
+| HU-024 | 🚧 | Sin cambios (sigue pendiente, con su ruta `api/plataforma/empresas`) |
 
 ---
 
