@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-16 | Equipo (redactado con Claude Code) | **HU-033** implementada: peligros sugeridos a partir de las respuestas, registrados una sola vez como riesgos `sugerido` y con su respaldo calculado | [Ver cambio](#cambio-2026-11-16-hu-033) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-029** implementada: el Responsable SST ve las categorías de riesgo del rubro de su empresa con la vista previa de sus preguntas | [Ver cambio](#cambio-2026-11-16-hu-029) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-098** implementada: proyecto `Norvia.Tests` con 15 pruebas automáticas de aislamiento entre empresas, por la API y en la base, sobre un PostgreSQL desechable | [Ver cambio](#cambio-2026-11-16-hu-098) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-115** implementada: alta de encuestados individual y por lote, con contraseña temporal generada; el login informa `debeCambiarPassword` | [Ver cambio](#cambio-2026-11-16-hu-115) |
@@ -34,6 +35,55 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-16-hu-033` {#cambio-2026-11-16-hu-033}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 16 de noviembre de 2026 |
+| **Alcance** | Código de la rama `feature/hu-033` (slice `Encuestas/ObtenerPeligrosSugeridos`, permiso `encuesta.peligros_sugeridos`, 7 pruebas en `Norvia.Tests`) y contrato en `18-contratos-api-mvp.md`. No cambia el modelo de datos ni las reglas |
+
+### El problema (por qué hubo que cambiar)
+
+1. Con las respuestas de HU-031 ya guardadas, faltaba convertirlas en peligros sugeridos para construir la matriz (RN-13).
+2. El contrato de `18` no decía:
+   - si las sugerencias se guardan o se calculan;
+   - cómo se evitan duplicados;
+   - qué pasa al cambiar la relación pregunta-peligro;
+   - si aplica el mínimo de respuestas del reporte anónimo.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Se calcula con la copia de cada versión** | Cuentan el peligro de `EncuestaPregunta` y la exposición de `EncuestaOpcion` de la versión contestada | Respeta RN-12; una versión nueva con otro peligro sugiere ese peligro |
+| **Se registra una vez** | Cada peligro nuevo se guarda como `RiesgoEmpresa` `sugerido`, protegido por la UQ `(EncuestaId, PeligroId)` | RN-14 y "sin repetirlas"; HU-035 confirma o descarta esa fila |
+| **El respaldo no se guarda** | `respuestasConExposicion` se calcula al consultar y cuenta respuestas distintas | 3FN ("Datos que no se guardan" en `08`) |
+| **Lo revisado no se toca** | Una sugerencia confirmada o descartada conserva su estado | No se pisa la decisión del Responsable SST |
+| **Mínimo de 3 respuestas** | Con menos, `detalleOculto: true` y no se registra nada | Mismo criterio de anonimato que el reporte (RN-73) |
+| **Respuesta con objeto** | `PeligrosSugeridosResponseDto` en lugar de una lista suelta | Lleva el total de respuestas y el aviso de detalle oculto |
+
+### Trabajo hecho
+
+- Slice `ObtenerPeligrosSugeridos`, su repositorio y la ruta en `EncuestasController`.
+- Permiso `encuesta.peligros_sugeridos` para `admin_empresa` y `responsable_sst`, igual que el reporte.
+- 7 pruebas nuevas, con encuestas y respuestas armadas en la base:
+  - con menos de 3 respuestas no se muestra nada;
+  - conteo en selección única y múltiple;
+  - las mismas respuestas dan el mismo resultado y las nuevas no duplican;
+  - una versión nueva cambia el peligro;
+  - una sugerencia confirmada se conserva;
+  - otra empresa recibe 404 y un colaborador recibe 403.
+- `18`: contrato y anexo.
+
+### Antes y ahora por historia
+
+| HU | Antes | Ahora |
+|----|-------|-------|
+| HU-033 | Contrato 🚧 con una lista sin reglas de registro | ✅ Sugerencias calculadas, registradas una vez y con respaldo por pregunta |
 
 ---
 

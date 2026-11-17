@@ -216,11 +216,13 @@ Ya hay **ejemplo** en catálogo para encuestado:
 
 Regla RN-73: mínimo 3 respuestas para mostrar agregados sensibles.
 
-### HU-033 | Peligros sugeridos (Must en doc / Should en tablero)
+### HU-033 | Peligros sugeridos — ✅
 
 | Método | Ruta | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|
-| GET | `api/encuestas/{id}/peligros-sugeridos` | `PeligroSugeridoResponseDto[]` | `encuesta.peligros_sugeridos` | `responsable_sst` | 🚧 |
+| GET | `api/encuestas/{id}/peligros-sugeridos` | `PeligrosSugeridosResponseDto` | `encuesta.peligros_sugeridos` | `admin_empresa`, `responsable_sst` | ✅ |
+
+Calcula las sugerencias a partir de las respuestas de todas las versiones y registra cada peligro nuevo una sola vez como `RiesgoEmpresa` `sugerido`, que luego se revisa en HU-035. Detalle en el [anexo](#anexo-hu-033).
 
 ---
 
@@ -334,7 +336,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-031 | GET | `/api/encuestas/pendientes` | — | array | Encuestado |
 | HU-031 | POST | `/api/encuestas/{id}/respuestas` | JSON | 204/JSON | Encuestado |
 | HU-032 | GET | `/api/encuestas/{id}/reporte` | — | JSON | Reporte |
-| HU-033 | GET | `/api/encuestas/{id}/peligros-sugeridos` | — | array | Reporte |
+| HU-033 | GET | `/api/encuestas/{id}/peligros-sugeridos` | — | `PeligrosSugeridosResponseDto` | Reporte |
 | HU-035 | POST | `/api/riesgos/sugeridos/{id}/confirmacion` | — | `RiesgoResponseDto` | Riesgos |
 | HU-035 | POST | `/api/riesgos/sugeridos/{id}/descarte` | JSON opc. | `RiesgoResponseDto` | Riesgos |
 | HU-036 | POST | `/api/riesgos` | JSON | `RiesgoResponseDto` | Riesgos |
@@ -1322,19 +1324,53 @@ Solo encuestas `publicada`, no respondidas por este vínculo.
 
 Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distribuciones sensibles (RN-73).
 
-#### `GET /api/encuestas/{id}/peligros-sugeridos`
+#### `GET /api/encuestas/{id}/peligros-sugeridos` (HU-033) — ✅ {#anexo-hu-033}
+
+**Auth:** Bearer de sesión de empresa, rol `admin_empresa` o `responsable_sst`.
+
+**Cómo se calcula (RN-13, RN-14, D9):**
+
+- Se recorren las respuestas de **todas las versiones** de la encuesta. Cada respuesta usa la copia de su versión: el peligro de la pregunta (`EncuestaPregunta.PeligroId`) y la marca de exposición de la opción (`EncuestaOpcion.IndicaExposicion`). No se usa el catálogo actual (RN-12).
+- Un peligro se sugiere si al menos una respuesta eligió una opción de exposición en una pregunta con ese peligro, en selección única o múltiple.
+- Si una versión nueva cambia el peligro de una pregunta, las respuestas a esa versión sugieren el peligro nuevo, y las anteriores siguen respaldando el que tenían.
+- `respuestasConExposicion` cuenta **respuestas distintas**: una respuesta cuenta una sola vez por peligro, aunque lo indique en varias preguntas. Se calcula al consultar; no se guarda.
+
+**Registro de sugerencias:** cada peligro sugerido se guarda una sola vez como `RiesgoEmpresa` con `estado = sugerido` y `EncuestaId`. El índice único `(EncuestaId, PeligroId)` lo garantiza.
+
+- Consultar varias veces con las mismas respuestas da el mismo resultado (RN-14).
+- Las respuestas nuevas actualizan el conteo sin duplicar filas.
+- Una sugerencia ya confirmada o descartada en HU-035 conserva su estado.
+
+**Mínimo de respuestas (RN-73):** con menos de 3 respuestas responde `detalleOculto: true`, sin sugerencias, y no registra nada. Con tan pocas respuestas se podría deducir qué contestó cada persona.
+
+**Response 200** — `PeligrosSugeridosResponseDto`
 
 ```json
-[
-  {
-    "riesgoSugeridoId": "01934200-....",
-    "peligroId": "01933000-....",
-    "peligroNombre": "Caída al mismo nivel",
-    "preguntaId": "01934110-....",
-    "respuestasConExposicion": 8
-  }
-]
+{
+  "encuestaId": "01934100-....",
+  "totalRespuestas": 28,
+  "minimoRespuestas": 3,
+  "detalleOculto": false,
+  "sugerencias": [
+    {
+      "riesgoSugeridoId": "01934200-....",
+      "peligroId": "01933000-....",
+      "peligroNombre": "Manipulación manual de cargas",
+      "estado": "sugerido",
+      "respuestasConExposicion": 8,
+      "preguntas": [
+        { "preguntaId": "01934110-....", "texto": "¿Levantas cargas pesadas?", "respuestasConExposicion": 8 }
+      ]
+    }
+  ]
+}
 ```
+
+- `sugerencias` va ordenada de mayor a menor respaldo.
+- `riesgoSugeridoId` es el `RiesgoEmpresa` que se confirma o descarta en HU-035.
+- `preguntas` indica qué pregunta originó la sugerencia y cuántas respuestas la respaldan en cada una.
+
+**Errores:** 403 `permiso.prohibido` (otro rol o staff) · 404 `encuestas.no_encontrada` (no existe o es de otra empresa).
 
 ---
 
