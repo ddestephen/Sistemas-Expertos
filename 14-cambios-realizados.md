@@ -10,7 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
-| 2026-11-22 | Equipo (redactado con Claude Code) | **Design system** en la documentación: decisiones y variables en `design-system.md`, guía visual publicable en `design-system/` (GitHub Pages) y componentes del MVP definidos (radio, área de texto, select, fecha, modal, confirmación, botón de peligro, badges de estado, estados de pantalla, pregunta de encuesta e íconos) | [Ver cambio](#cambio-2026-11-22-design-system) |
+| 2026-11-22 | Equipo (redactado con Claude Code) | **Design system** en la documentación: decisiones y variables en `design-system.md`, guía visual publicable en `design-system/` (GitHub Pages) y componentes del MVP definidos (radio, área de texto, select, fecha, modal, confirmación, botón de peligro, badges de estado, estados de pantalla, pregunta de encuesta e íconos); el front usará Tailwind v4 sobre esas variables | [Ver cambio](#cambio-2026-11-22-design-system) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-033** implementada: peligros sugeridos a partir de las respuestas, registrados una sola vez como riesgos `sugerido` y con su respaldo calculado | [Ver cambio](#cambio-2026-11-16-hu-033) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-029** implementada: el Responsable SST ve las categorías de riesgo del rubro de su empresa con la vista previa de sus preguntas | [Ver cambio](#cambio-2026-11-16-hu-029) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-098** implementada: proyecto `Norvia.Tests` con 15 pruebas automáticas de aislamiento entre empresas, por la API y en la base, sobre un PostgreSQL desechable | [Ver cambio](#cambio-2026-11-16-hu-098) |
@@ -45,7 +45,7 @@
 |---|---|
 | **Quién documentó** | Equipo (redactado con Claude Code) |
 | **Fecha** | 22 de noviembre de 2026 |
-| **Alcance** | Archivos nuevos `design-system.md` y carpeta `design-system/` (`index.html`, `design-system.css`, `design-system.js`), más el workflow `.github/workflows/pages.yml`. No cambia el modelo de datos, las reglas ni las historias |
+| **Alcance** | Archivos nuevos `design-system.md` y carpeta `design-system/` (`index.html`, `design-system.css`, `design-system.js`), más el workflow `.github/workflows/pages.yml` y el punto 5 (estilos) de §9 en `16-arquitectura-backend-frontend.md`. No cambia el modelo de datos, las reglas ni las historias |
 
 ### El problema (por qué hubo que cambiar)
 
@@ -70,6 +70,7 @@
 | **Badges de estado** | Cinco colores con un solo significado: neutro (sin empezar o fuera de uso), info (en curso), éxito (vigente o completado), advertencia (necesita atención), error (falló o venció); sin badge de marca | Cada estado de empresa, vínculo, encuesta, tarea, accidente y política se lee igual en todo Norvia |
 | **Estados de pantalla** | Vacía al inicio y sin resultados por separado; cargando con skeleton; error al cargar en el lugar del contenido; "sin acceso" y "no existe" muestran el mismo mensaje | El mismo mensaje no confirma que un recurso existe en otra empresa |
 | **Íconos** | Lucide, trazo 1.5px, tamaños 16, 20 y 32px; nunca comunican solos | Un solo estilo y accesible |
+| **Tailwind v4 en el front** | Las variables del design system se declaran en `@theme`; se quitan la paleta, los radios, las sombras y los pasos de espaciado por defecto; sin valores arbitrarios; modo oscuro por `data-theme` | Las clases solo permiten los valores de la guía y la personalización por empresa funciona sin cambiar componentes |
 
 ### Cómo quedó (resumen)
 
@@ -83,6 +84,7 @@
 - Se quitaron de la guía el encabezado, la sección de principios, textos largos de marca, neutros y sombras, la ilustración de espaciado y el badge de marca.
 - Se movió la guía a `design-system/index.html` y se agregó el workflow de GitHub Pages.
 - Se definieron y documentaron los componentes de la tabla anterior, con sus ejemplos en la guía.
+- `16-arquitectura-backend-frontend.md` §9: punto 5 con la configuración de Tailwind.
 
 ---
 

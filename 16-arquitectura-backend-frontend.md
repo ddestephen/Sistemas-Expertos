@@ -289,6 +289,12 @@ src/
 2. **Formularios:** React Hook Form con `zodResolver` y `mode: 'onChange'`. El formulario dinámico de encuestas arma su esquema Zod a partir del tipo de cada pregunta (`respuesta_breve`, `seleccion_unica`, `seleccion_multiple`).
 3. **Axios** adjunta el JWT como `Bearer` en un interceptor, y el extractor convierte cualquier ProblemDetails en mensajes por campo o en uno general.
 4. **Rutas protegidas** con `react-router-dom`: sin sesión se redirige al login, y sin permiso no se muestra la ruta.
+5. **Estilos con Tailwind v4,** sobre las variables de [`design-system.md`](design-system.md), que sigue siendo la fuente de nombres y valores:
+   - las variables se declaran en `@theme`, así `bg-action-primary` o `text-text-secondary` usan el mismo valor que la guía;
+   - se vacían la paleta, los radios y las sombras por defecto de Tailwind (`--color-*: initial` y equivalentes), y el espaciado queda solo con los pasos 1, 2, 3, 4, 6, 8, 12 y 16; así `p-5` o `bg-blue-500` no existen;
+   - no se usan valores arbitrarios (`p-[13px]`); se revisa en code review;
+   - el modo oscuro cambia las variables semánticas con `data-theme`, sin `dark:` en los componentes;
+   - la personalización por empresa sobrescribe `--color-brand-*` al cargar la app, y las clases la toman solas.
 
 ## 10. Checklist para cada PR
 
