@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design System ISO 45001</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="design-system.css">
+</head>
+<body class="show-ann">
+
+<svg class="svg-sprite" width="0" height="0" aria-hidden="true">
+  <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7.25v3.75M8 5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m5.5 8.25 1.75 1.75 3.25-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-warning" viewBox="0 0 16 16"><path d="M7.13 2.5a1 1 0 0 1 1.74 0l5.5 9.75a1 1 0 0 1-.87 1.5H2.5a1 1 0 0 1-.87-1.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5v3M8 11.5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-error" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m6 6 4 4m0-4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 12 12"><path d="m2.5 6.25 2.25 2.25 4.75-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="m4.5 4.5 7 7m0-7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3.5v9M3.5 8h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-home" viewBox="0 0 16 16"><path d="M2.5 7 8 2.5 13.5 7v6a.5.5 0 0 1-.5.5H10V10H6v3.5H3a.5.5 0 0 1-.5-.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-alert-tri" viewBox="0 0 16 16"><path d="M7.13 2.5a1 1 0 0 1 1.74 0l5.5 9.75a1 1 0 0 1-.87 1.5H2.5a1 1 0 0 1-.87-1.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-file" viewBox="0 0 16 16"><path d="M4 1.75h5.25L12.5 5v9.25H4Z M9 1.75V5.25h3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.75 13 3.5v4c0 3.25-2.25 5.5-5 6.75C5.25 13 3 10.75 3 7.5v-4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-users" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.75 13.5c.5-2.25 2.25-3.5 4.25-3.5s3.75 1.25 4.25 3.5M10.5 3.25a2.5 2.5 0 0 1 0 4.75M12 10.25c1.25.5 2 1.75 2.25 3.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v7.5m-3-3 3 3 3-3M3 12.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="guide-controls" role="toolbar" aria-label="Opciones de la guía">
+  <div class="segmented" role="group" aria-label="Tema">
+    <button data-theme-set="light" aria-pressed="false">Claro</button>
+    <button data-theme-set="dark" aria-pressed="false">Oscuro</button>
+    <button data-theme-set="system" aria-pressed="true">Sistema</button>
+  </div>
+  <span class="divider" aria-hidden="true"></span>
+  <label class="toggle">
+    <input type="checkbox" id="ann-toggle" checked>
+    <span class="track"></span>
+    <span class="t-label">Anotaciones</span>
+  </label>
+</div>
+
+<div class="guide">
+  <aside class="guide-nav">
+    <div class="brand"><span class="brand-mark"><svg class="icon"><use href="#i-shield"/></svg></span><span class="t-h3">Design System</span></div>
+    <nav aria-label="Secciones">
+      <a class="nav-item" href="#color">Color</a>
+      <a class="nav-item" href="#tipografia">Tipografía</a>
+      <a class="nav-item" href="#espaciado">Espaciado y layout</a>
+      <a class="nav-item" href="#forma">Radios, bordes y sombras</a>
+      <a class="nav-item" href="#componentes">Componentes y estados</a>
+      <a class="nav-item" href="#ejemplo">Pantalla de ejemplo</a>
+      <a class="nav-item" href="#personalizacion">Personalización por empresa</a>
+    </nav>
+  </aside>
+
+  <main class="guide-main">
+  <div class="guide-content">
+
+    <header class="guide-header">
+      <div>
+        <h1 class="t-display">Design System</h1>
+      </div>
+    </header>
+
+    <!-- ============================================================ -->
+    <section class="block" id="color">
+      <div class="block-head">
+        <h2 class="t-h1">Color</h2>
+        <p class="t-body-lg muted">Dos niveles: <b>primitivas</b> (la paleta cruda) y <b>semánticas</b> (la intención). Los componentes usan solo semánticas.</p>
+      </div>
+
+      <div class="sub"><h3 class="t-h2">Proporción</h3><p class="muted">Cuánto aparece cada grupo en una pantalla típica.</p></div>
+      <div class="proportion">
+        <div class="prop-neutral">Neutros ~90%</div>
+        <div class="prop-brand">Marca</div>
+        <div class="prop-semantic" title="Semánticos">!</div>
+      </div>
+
+      <div class="sub"><h3 class="t-h2">Marca · violeta</h3><p class="muted">Base <code>#5B3FA8</code> (tono 600). Se usa para las acciones.</p></div>
+      <div class="swatches" id="sw-brand"></div>
+
+      <div class="sub"><h3 class="t-h2">Neutros</h3><p class="muted">Levemente teñidos de violeta.</p></div>
+      <div class="swatches" id="sw-neutral"></div>
+
+      <div class="sub"><h3 class="t-h2">Semánticas</h3><p class="muted">Lo que usan los componentes. Cambiar una primitiva actualiza todas las semánticas que la referencian.</p></div>
+      <div class="table-wrap">
+        <table class="spec">
+          <thead><tr><th></th><th>Variable</th><th>Claro</th><th>Oscuro</th><th>Uso</th></tr></thead>
+          <tbody id="semantic-rows"></tbody>
+        </table>
+      </div>
+      <div class="note"><svg class="icon"><use href="#i-info"/></svg><span><b>Modo oscuro:</b> mismas primitivas, distinta columna de semánticas. Usá el selector <b>Claro / Oscuro</b> de arriba para ver toda la guía en cada modo. Regla: toda variable semántica nueva se define en los dos modos a la vez.</span></div>
+
+      <div class="sub"><h3 class="t-h2">Avisos</h3><p class="muted">Fondo muy claro, borde algo más intenso, texto oscuro del mismo tono, ícono en tono medio. No usan la marca ni se personalizan por empresa.</p></div>
+      <div class="semantic-groups">
+        <div>
+          <div class="alert alert-info"><svg class="icon"><use href="#i-info"/></svg><div><div class="t-label">Info</div><div>Hay una nueva versión del procedimiento.</div></div></div>
+          <div class="state-tokens mt-2"><div><span class="tok">--color-info-bg</span><span class="tok">-border</span><span class="tok">-text</span><span class="tok">-icon</span></div></div>
+        </div>
+        <div>
+          <div class="alert alert-success"><svg class="icon"><use href="#i-check-circle"/></svg><div><div class="t-label">Éxito</div><div>Evidencia cargada correctamente.</div></div></div>
+          <div class="state-tokens mt-2"><div><span class="tok">--color-success-bg</span><span class="tok">-border</span><span class="tok">-text</span><span class="tok">-icon</span></div></div>
+        </div>
+        <div>
+          <div class="alert alert-warning"><svg class="icon"><use href="#i-warning"/></svg><div><div class="t-label">Advertencia</div><div>La auditoría interna vence en 5 días.</div></div></div>
+          <div class="state-tokens mt-2"><div><span class="tok">--color-warning-bg</span><span class="tok">-border</span><span class="tok">-text</span><span class="tok">-icon</span></div></div>
+        </div>
+        <div>
+          <div class="alert alert-error"><svg class="icon"><use href="#i-error"/></svg><div><div class="t-label">Error</div><div>No se pudo guardar el incidente.</div></div></div>
+          <div class="state-tokens mt-2"><div><span class="tok">--color-error-bg</span><span class="tok">-border</span><span class="tok">-text</span><span class="tok">-icon</span></div></div>
+        </div>
+      </div>
+      <div class="note"><svg class="icon"><use href="#i-info"/></svg><span><b>Colores de riesgo:</b> pendientes. Se definen cuando esté decidida la cantidad de niveles de la metodología (3, 4 o 5).</span></div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="block" id="tipografia">
+      <div class="block-head">
+        <h2 class="t-h1">Tipografía</h2>
+        <p class="t-body-lg muted"><b>Inter</b> en toda la interfaz. Pesos 400, 500 y 600 (sin bold ni light). Estilos nombrados por función, no por tamaño. Las líneas punteadas marcan el interlineado.</p>
+      </div>
+      <div class="panel" id="type-rows"></div>
+      <div class="grid-4 mt-4">
+        <div class="panel principle"><h3 class="t-h3">Números tabulares</h3><p class="muted mb-3">En tablas, KPIs y fechas, para que las cifras se alineen.</p>
+          <div class="num-compare">
+            <div><div class="t-caption tertiary">Proporcional</div><div class="num-sample">111.111<br>808.080</div></div>
+            <div><div class="t-caption tertiary">Tabular</div><div class="tabular num-sample">111.111<br>808.080</div></div>
+          </div>
+          <div class="mt-3"><span class="tok">font-variant-numeric: tabular-nums</span></div>
+        </div>
+        <div class="panel principle"><h3 class="t-h3">Inputs en celular: 16px</h3><p class="muted">Con texto más chico, iPhone hace zoom al tocar el campo. Los inputs de esta guía cambian a 16px en pantallas angostas.</p></div>
+        <div class="panel principle"><h3 class="t-h3">Largo de línea</h3><p class="muted">Textos largos (procedimientos, políticas): máximo 60–80 caracteres por línea, con <span class="tok">--layout-max-width-narrow</span>.</p></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="block" id="espaciado">
+      <div class="block-head">
+        <h2 class="t-h1">Espaciado y layout</h2>
+        <p class="t-body-lg muted">Unidad base de 4px. Solo estos valores: los saltos (no hay 20, 28 ni 40) son intencionales.</p>
+      </div>
+
+      <div class="panel space-rows" id="space-rows"></div>
+
+      <div class="sub"><h3 class="t-h2">Principio de proximidad</h3><p class="muted">El espacio dentro de un grupo siempre es menor que el espacio entre grupos.</p></div>
+      <div class="panel anatomy">
+        <div class="anatomy-stage left form-demo-stage">
+          <div class="form-demo">
+            <div class="field maxw-none"><label>Fecha del incidente</label><div class="spacer hatch-on h-space-2"><span class="ann ann-label">8</span></div><input class="input" value="12/10/2026"></div>
+            <div class="spacer hatch-on h-space-4"><span class="ann ann-label">16</span></div>
+            <div class="field maxw-none"><label>Lugar</label><div class="spacer hatch-on h-space-2"><span class="ann ann-label">8</span></div><input class="input" value="Planta 2 · Sector envasado"></div>
+            <div class="spacer hatch-on h-space-8"><span class="ann ann-label">32</span></div>
+            <div class="section-title">Personas involucradas</div>
+            <div class="spacer hatch-on h-space-4"><span class="ann ann-label">16</span></div>
+            <div class="field maxw-none"><label>Nombre</label><div class="spacer hatch-on h-space-2"><span class="ann ann-label">8</span></div><input class="input" placeholder="Buscar persona…"></div>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">8</span><span><b>Label → input</b><br><span class="tok">--space-2</span> · elementos muy relacionados</span></li>
+          <li><span class="pin-static">16</span><span><b>Campo → campo</b><br><span class="tok">--space-4</span> · dentro del mismo grupo</span></li>
+          <li><span class="pin-static">32</span><span><b>Grupo → grupo</b><br><span class="tok">--space-8</span> · entre secciones</span></li>
+        </ul>
+      </div>
+
+      <div class="sub"><h3 class="t-h2">Grilla</h3><p class="muted">Columnas, margen lateral y separación por dispositivo. Breakpoints provisorios: 640 y 1024px.</p></div>
+      <div class="grid-demo">
+        <div><div class="t-label mb-2">Escritorio · 12 columnas · margen 32 · separación 24</div><div class="cols cols-12" data-cols="12"></div></div>
+        <div><div class="t-label mb-2">Tablet · 8 columnas · margen 24 · separación 16</div><div class="cols cols-8" data-cols="8"></div></div>
+        <div><div class="t-label mb-2">Celular · 4 columnas · margen 16 · separación 16</div><div class="cols cols-4" data-cols="4"></div></div>
+      </div>
+      <div class="table-wrap mt-6">
+        <table class="spec">
+          <thead><tr><th>Variable</th><th>Valor</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tok">--layout-max-width</span></td><td>1280px</td><td>Ancho máximo de pantallas generales</td></tr>
+            <tr><td><span class="tok">--layout-max-width-narrow</span></td><td>720px</td><td>Formularios y documentos</td></tr>
+            <tr><td><span class="tok">--layout-sidebar-width</span></td><td>240px</td><td>Menú lateral en escritorio</td></tr>
+            <tr><td><span class="tok">--control-height</span></td><td>36px</td><td>Botones e inputs en escritorio</td></tr>
+            <tr><td><span class="tok">--control-height-touch</span></td><td>44px</td><td>Botones e inputs en celular (mínimo táctil)</td></tr>
+            <tr><td><span class="tok">--table-row-height</span></td><td>44px</td><td>Filas de tabla</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="block" id="forma">
+      <div class="block-head">
+        <h2 class="t-h1">Radios, bordes y sombras</h2>
+        <p class="t-body-lg muted">Radios de 4 a 8px: profesional y equilibrado.</p>
+      </div>
+
+      <div class="sub"><h3 class="t-h2">Radios</h3><p class="muted">Más grande el elemento, más radio.</p></div>
+      <div class="radius-grid" id="radius-tiles"></div>
+
+      <div class="sub"><h3 class="t-h2">Esquinas anidadas</h3><p class="muted">El radio interior es menor que el exterior.</p></div>
+      <div class="nested">
+        <div><div class="nested-outer"><div class="nested-inner radius-md"></div></div><p class="mt-2"><span class="badge badge-success">Correcto</span> <span class="muted">exterior 12 · interior 6</span></p></div>
+        <div><div class="nested-outer"><div class="nested-inner radius-xl"></div></div><p class="mt-2"><span class="badge badge-error">Evitar</span> <span class="muted">exterior 12 · interior 12</span></p></div>
+      </div>
+
+      <div class="sub"><h3 class="t-h2">Bordes y foco</h3><p class="muted">1px para todos los bordes. El anillo de foco (navegación con teclado) nunca se elimina.</p></div>
+      <div class="panel anatomy">
+        <div class="anatomy-stage">
+          <div class="focus-demo">
+            <div class="measure"><button class="btn btn-primary is-focus">Guardar</button>
+              <span class="ann pin pin-focus-1">1</span>
+              <span class="ann pin pin-focus-2">2</span>
+            </div>
+            <div class="measure w-160"><input class="input is-focus" value="Planta 2">
+              <span class="ann pin pin-focus-3">3</span>
+            </div>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">1</span><span><b>Anillo de foco 2px</b><br><span class="tok">--focus-ring-width</span> <span class="tok">--color-focus-ring</span></span></li>
+          <li><span class="pin-static">2</span><span><b>Separación 2px</b><br><span class="tok">--focus-ring-offset</span></span></li>
+          <li><span class="pin-static">3</span><span><b>Input con foco</b> <span class="proposal">Propuesta</span><br>borde <span class="tok">--color-focus-ring</span> + halo 3px <span class="tok">--color-focus-halo</span></span></li>
+        </ul>
+      </div>
+
+      <div class="sub"><h3 class="t-h2">Niveles de elevación</h3><p class="muted">Sombras teñidas con neutral-900 y baja opacidad; nunca negro puro.</p></div>
+      <div class="elev-grid">
+        <div><div class="elev-tile elev-0"><div><div class="t-h3">Nivel 0</div><div class="t-caption muted">solo borde</div></div></div><p class="t-caption muted mt-2">Cards, tablas, paneles</p></div>
+        <div><div class="elev-tile elev-1"><div><div class="t-h3">Nivel 1</div><span class="tok">--shadow-1</span></div></div><p class="t-caption muted mt-2">Card clickeable en hover, encabezado fijo</p></div>
+        <div><div class="elev-tile elev-2"><div><div class="t-h3">Nivel 2</div><span class="tok">--shadow-2</span></div></div><p class="t-caption muted mt-2">Menús, popovers, tooltips</p></div>
+        <div><div class="elev-tile elev-3"><div><div class="t-h3">Nivel 3</div><span class="tok">--shadow-3</span></div></div><p class="t-caption muted mt-2">Modales y toasts (dos capas)</p></div>
+      </div>
+
+      <div class="sub"><h3 class="t-h2">Capas apiladas</h3><p class="muted">Tiene que entenderse qué está encima de qué, sin que ninguna sombra llame la atención.</p></div>
+      <div class="stack">
+        <div class="lvl lvl0">
+          <div class="t-h3">Plan de acción #A-112</div>
+          <p class="muted mt-1">Señalizar salida de emergencia del sector B.</p>
+          <div class="mt-4"><button class="btn btn-secondary">Responsable ▾</button></div>
+        </div>
+        <div class="lvl lvl2 elevated hide-sm">
+          <a class="nav-item" href="#forma">Laura Méndez</a>
+          <a class="nav-item is-hover" href="#forma">Jorge Ruiz</a>
+          <a class="nav-item" href="#forma">Ana Torres</a>
+        </div>
+        <div class="overlay"></div>
+        <div class="lvl lvl3">
+          <div class="t-h3">¿Cerrar el plan de acción?</div>
+          <p class="muted mt-2">Se notificará al responsable y quedará registrado en el historial.</p>
+          <div class="dialog-actions"><button class="btn btn-secondary">Cancelar</button><button class="btn btn-primary">Cerrar plan</button></div>
+        </div>
+        <span class="ann ann-label lvl-tag lvl-tag-0">Nivel 0</span>
+        <span class="ann ann-label lvl-tag hide-sm lvl-tag-2">Nivel 2</span>
+        <span class="ann ann-label lvl-tag lvl-tag-3">Nivel 3 + overlay</span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="block" id="componentes">
+      <div class="block-head">
+        <h2 class="t-h1">Componentes y estados</h2>
+        <p class="t-body-lg muted">Cada estado con las variables que cambian. Los marcados como <span class="live">interactivo</span> responden de verdad al mouse y al teclado (Tab).</p>
+        <div class="note"><svg class="icon"><use href="#i-info"/></svg><span>Los valores marcados como <span class="proposal ml-0">Propuesta</span> son decisiones nuevas para los estados: revisalas antes de darlas por cerradas.</span></div>
+      </div>
+
+      <!-- Botón: anatomía -->
+      <div class="sub"><h3 class="t-h2">Botón</h3><p class="muted">Un solo botón principal por pantalla o sección; el resto, secundarios.</p></div>
+      <div class="panel anatomy mb-4">
+        <div class="anatomy-stage">
+          <div class="measure">
+            <button class="btn btn-primary"><svg class="icon"><use href="#i-plus"/></svg>Reportar incidente</button>
+            <span class="ann pad left hatch w-16"></span>
+            <span class="ann pad right hatch w-16"></span>
+            <span class="ann dim-x dim-btn-pad"><span class="ann-label">16</span></span>
+            <span class="ann dim-y dim-height"><span class="ann-label"><span class="only-desktop">36</span><span class="only-mobile">44</span></span></span>
+            <span class="ann pin pin-btn-1">1</span>
+            <span class="ann pin pin-btn-2">2</span>
+            <span class="ann pin pin-btn-3">3</span>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">1</span><span><b>Radio 6px</b><br><span class="tok">--radius-md</span></span></li>
+          <li><span class="pin-static">2</span><span><b>Texto: Label</b> 14/20 Medium<br><span class="tok">--font-size-sm</span> <span class="tok">--font-weight-medium</span></span></li>
+          <li><span class="pin-static">3</span><span><b>Ícono 16px</b>, separado 8px<br><span class="tok">--space-2</span></span></li>
+          <li><span class="pin-static">↔</span><span><b>Padding horizontal 16px</b><br><span class="tok">--space-4</span></span></li>
+          <li><span class="pin-static">↕</span><span><b>Alto 36px</b> (44px en celular)<br><span class="tok">--control-height</span> <span class="tok">--control-height-touch</span></span></li>
+        </ul>
+      </div>
+
+      <div class="panel comp-panel mb-4">
+        <div class="comp-head"><span class="t-h3">Primario</span><span class="muted">Acción principal de la pantalla</span></div>
+        <div class="states">
+          <div class="state"><div class="state-demo"><button class="btn btn-primary">Guardar</button></div><div class="state-name">Por defecto <span class="live">interactivo</span></div><div class="state-tokens"><div>fondo <span class="tok">--color-action-primary</span></div><div>texto <span class="tok">--color-text-on-brand</span></div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-primary is-hover">Guardar</button></div><div class="state-name">Hover</div><div class="state-tokens"><div>fondo <span class="tok">--color-action-primary-hover</span></div><div class="tertiary">Se oscurece, nunca se aclara</div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-primary is-pressed">Guardar</button></div><div class="state-name">Presionado</div><div class="state-tokens"><div>fondo <span class="tok">--color-action-primary-pressed</span></div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-primary is-focus">Guardar</button></div><div class="state-name">Foco (teclado)</div><div class="state-tokens"><div>anillo <span class="tok">--color-focus-ring</span></div><div><span class="tok">--focus-ring-width</span> <span class="tok">--focus-ring-offset</span></div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-primary" disabled>Guardar</button></div><div class="state-name">Deshabilitado</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-disabled</span></div><div>texto <span class="tok">--color-text-disabled</span></div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-primary is-loading" aria-busy="true"><span class="spinner"></span>Guardando…</button></div><div class="state-name">Cargando <span class="proposal ml-0">Propuesta</span></div><div class="state-tokens"><div>mismo fondo que por defecto</div><div class="tertiary">Spinner + texto en gerundio; no clickeable</div></div></div>
+        </div>
+      </div>
+
+      <div class="panel comp-panel">
+        <div class="comp-head"><span class="t-h3">Secundario</span><span class="muted">Resto de las acciones</span></div>
+        <div class="states">
+          <div class="state"><div class="state-demo"><button class="btn btn-secondary">Cancelar</button></div><div class="state-name">Por defecto <span class="live">interactivo</span></div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-surface</span></div><div>borde <span class="tok">--color-border-strong</span></div><div>texto <span class="tok">--color-text-primary</span></div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-secondary is-hover">Cancelar</button></div><div class="state-name">Hover</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-subtle</span></div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-secondary is-pressed">Cancelar</button></div><div class="state-name">Presionado <span class="proposal ml-0">Propuesta</span></div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-pressed</span></div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-secondary is-focus">Cancelar</button></div><div class="state-name">Foco (teclado)</div><div class="state-tokens"><div>anillo <span class="tok">--color-focus-ring</span></div></div></div>
+          <div class="state"><div class="state-demo"><button class="btn btn-secondary" disabled>Cancelar</button></div><div class="state-name">Deshabilitado</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-disabled</span></div><div>borde <span class="tok">--color-border-default</span></div><div>texto <span class="tok">--color-text-disabled</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Link -->
+      <div class="sub"><h3 class="t-h2">Link</h3></div>
+      <div class="panel comp-panel">
+        <div class="states">
+          <div class="state"><div class="state-demo"><a class="link" href="#componentes">Ver procedimiento</a></div><div class="state-name">Por defecto <span class="live">interactivo</span></div><div class="state-tokens"><div>texto <span class="tok">--color-text-link</span></div></div></div>
+          <div class="state"><div class="state-demo"><a class="link is-hover" href="#componentes">Ver procedimiento</a></div><div class="state-name">Hover <span class="proposal ml-0">Propuesta</span></div><div class="state-tokens"><div>texto <span class="tok">--color-text-link-hover</span></div><div class="tertiary">+ subrayado</div></div></div>
+          <div class="state"><div class="state-demo"><a class="link is-focus" href="#componentes">Ver procedimiento</a></div><div class="state-name">Foco (teclado)</div><div class="state-tokens"><div>contorno <span class="tok">--color-focus-ring</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="sub"><h3 class="t-h2">Campo de texto</h3><p class="muted">Label siempre visible arriba (no usar el placeholder como label).</p></div>
+      <div class="panel anatomy mb-4">
+        <div class="anatomy-stage">
+          <div class="measure w-260">
+            <div class="field maxw-none gap-0">
+              <label>Lugar del incidente</label>
+              <div class="spacer hatch-on h-space-2"></div>
+              <div class="measure block-level">
+                <input class="input" placeholder="Ej.: Planta 2">
+                <span class="ann pad left hatch w-12"></span>
+                <span class="ann dim-y dim-height"><span class="ann-label"><span class="only-desktop">36</span><span class="only-mobile">44</span></span></span>
+                <span class="ann pin pin-input-3">3</span>
+                <span class="ann pin pin-input-4">4</span>
+              </div>
+              <div class="spacer h-space-2"></div>
+              <span class="help">Indicá el sector exacto.</span>
+            </div>
+            <span class="ann pin pin-input-1">1</span>
+            <span class="ann pin pin-input-2">2</span>
+            <span class="ann pin pin-input-5">5</span>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">1</span><span><b>Label</b> 14/20 Medium</span></li>
+          <li><span class="pin-static">2</span><span><b>Label → input 8px</b><br><span class="tok">--space-2</span></span></li>
+          <li><span class="pin-static">3</span><span><b>Radio 6px</b>, borde <span class="tok">--color-border-input</span></span></li>
+          <li><span class="pin-static">4</span><span><b>Placeholder</b><br><span class="tok">--color-text-tertiary</span></span></li>
+          <li><span class="pin-static">5</span><span><b>Ayuda</b>: Caption 12/16, 8px debajo<br><span class="tok">--color-text-secondary</span></span></li>
+          <li><span class="pin-static">↔</span><span><b>Padding horizontal 12px</b><br><span class="tok">--space-3</span></span></li>
+          <li><span class="pin-static">↕</span><span><b>Alto 36px</b> (44px y texto 16px en celular)</span></li>
+        </ul>
+      </div>
+      <div class="panel comp-panel">
+        <div class="states">
+          <div class="state"><div class="state-demo"><div class="field"><input class="input" placeholder="Ej.: Planta 2"></div></div><div class="state-name">Por defecto <span class="live">interactivo</span></div><div class="state-tokens"><div>borde <span class="tok">--color-border-input</span></div><div>placeholder <span class="tok">--color-text-tertiary</span></div></div></div>
+          <div class="state"><div class="state-demo"><div class="field"><input class="input is-hover" placeholder="Ej.: Planta 2"></div></div><div class="state-name">Hover <span class="proposal ml-0">Propuesta</span></div><div class="state-tokens"><div>borde <span class="tok">--color-border-input-hover</span></div></div></div>
+          <div class="state"><div class="state-demo"><div class="field"><input class="input is-focus" value="Planta 2"></div></div><div class="state-name">Foco <span class="proposal ml-0">Propuesta</span></div><div class="state-tokens"><div>borde <span class="tok">--color-focus-ring</span></div><div>halo <span class="tok">--color-focus-halo</span></div></div></div>
+          <div class="state"><div class="state-demo"><div class="field"><input class="input" value="Planta 2 · Sector envasado"></div></div><div class="state-name">Completado</div><div class="state-tokens"><div>texto <span class="tok">--color-text-primary</span></div></div></div>
+          <div class="state"><div class="state-demo"><div class="field"><input class="input is-error" value="32/13/2026"><span class="help error"><svg class="icon"><use href="#i-error"/></svg>Fecha inválida</span></div></div><div class="state-name">Error</div><div class="state-tokens"><div>borde <span class="tok">--color-error-icon</span></div><div>mensaje <span class="tok">--color-error-text</span></div><div class="tertiary">Siempre con texto, no solo color</div></div></div>
+          <div class="state"><div class="state-demo"><div class="field"><input class="input" value="Planta 2" disabled></div></div><div class="state-name">Deshabilitado</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-disabled</span></div><div>borde <span class="tok">--color-border-default</span></div><div>texto <span class="tok">--color-text-disabled</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Checkbox -->
+      <div class="sub"><h3 class="t-h2">Checkbox</h3><p class="muted">Caja de 16px con radio 4px. En celular, el área tocable (caja + texto) mide al menos 44px de alto.</p></div>
+      <div class="panel comp-panel">
+        <div class="states">
+          <div class="state"><div class="state-demo"><label class="check"><input type="checkbox"><span class="box"><svg><use href="#i-check"/></svg></span>Requiere investigación</label></div><div class="state-name">Por defecto <span class="live">interactivo</span></div><div class="state-tokens"><div>borde <span class="tok">--color-border-input</span></div><div>radio <span class="tok">--radius-sm</span></div></div></div>
+          <div class="state"><div class="state-demo"><span class="check is-hover"><span class="box"><svg><use href="#i-check"/></svg></span>Requiere investigación</span></div><div class="state-name">Hover</div><div class="state-tokens"><div>borde <span class="tok">--color-border-input-hover</span></div></div></div>
+          <div class="state"><div class="state-demo"><span class="check is-checked"><span class="box"><svg><use href="#i-check"/></svg></span>Requiere investigación</span></div><div class="state-name">Marcado</div><div class="state-tokens"><div>fondo <span class="tok">--color-action-primary</span></div><div>tilde <span class="tok">--color-text-on-brand</span></div></div></div>
+          <div class="state"><div class="state-demo"><span class="check is-checked is-focus"><span class="box"><svg><use href="#i-check"/></svg></span>Requiere investigación</span></div><div class="state-name">Foco (teclado)</div><div class="state-tokens"><div>anillo <span class="tok">--color-focus-ring</span></div></div></div>
+          <div class="state"><div class="state-demo"><span class="check is-disabled"><span class="box"></span>Requiere investigación</span></div><div class="state-name">Deshabilitado</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-disabled</span></div><div>texto <span class="tok">--color-text-disabled</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Menú -->
+      <div class="sub"><h3 class="t-h2">Ítem de menú</h3><p class="muted">Menú lateral de la aplicación.</p></div>
+      <div class="panel comp-panel">
+        <div class="states">
+          <div class="state"><div class="state-demo w-full"><a class="nav-item w-full" href="#componentes"><svg class="icon"><use href="#i-file"/></svg>Documentos</a></div><div class="state-name">Por defecto <span class="live">interactivo</span></div><div class="state-tokens"><div>texto <span class="tok">--color-text-secondary</span></div></div></div>
+          <div class="state"><div class="state-demo w-full"><a class="nav-item is-hover w-full" href="#componentes"><svg class="icon"><use href="#i-file"/></svg>Documentos</a></div><div class="state-name">Hover</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-subtle</span></div><div>texto <span class="tok">--color-text-primary</span></div></div></div>
+          <div class="state"><div class="state-demo w-full"><a class="nav-item is-selected w-full" href="#componentes"><svg class="icon"><use href="#i-file"/></svg>Documentos</a></div><div class="state-name">Seleccionado</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-selected</span></div><div>texto <span class="tok">--color-text-selected</span></div></div></div>
+          <div class="state"><div class="state-demo w-full"><a class="nav-item is-focus w-full" href="#componentes"><svg class="icon"><use href="#i-file"/></svg>Documentos</a></div><div class="state-name">Foco (teclado)</div><div class="state-tokens"><div>contorno interno <span class="tok">--color-focus-ring</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="sub"><h3 class="t-h2">Fila de tabla</h3><p class="muted">Filas de 44px. Encabezado en Caption sobre <span class="tok">--color-bg-subtle</span>.</p></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th class="col-check"></th><th>Incidente</th><th>Estado</th><th>Variables</th></tr></thead>
+          <tbody>
+            <tr><td><label class="check"><input type="checkbox"><span class="box"><svg><use href="#i-check"/></svg></span></label></td><td><b class="t-label">Por defecto</b> <span class="live">interactivo</span></td><td><span class="badge badge-neutral">—</span></td><td><span class="tok">--color-bg-surface</span></td></tr>
+            <tr class="is-hover"><td><span class="check"><span class="box"><svg><use href="#i-check"/></svg></span></span></td><td><b class="t-label">Hover</b></td><td><span class="badge badge-neutral">—</span></td><td><span class="tok">--color-bg-subtle</span></td></tr>
+            <tr class="is-selected"><td><span class="check is-checked"><span class="box"><svg><use href="#i-check"/></svg></span></span></td><td><b class="t-label">Seleccionada</b></td><td><span class="badge badge-neutral">—</span></td><td><span class="tok">--color-bg-selected</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Card -->
+      <div class="sub"><h3 class="t-h2">Card</h3><p class="muted">Sin tamaño fijo: el ancho lo da la grilla. Nivel 0 (solo borde); las clickeables suben a nivel 1 en hover.</p></div>
+      <div class="panel anatomy mb-4">
+        <div class="anatomy-stage">
+          <div class="measure card-demo">
+            <div class="card">
+              <div class="t-caption muted">Auditoría interna</div>
+              <div class="t-h3 mt-1">Revisión de EPP · Planta 2</div>
+              <p class="muted mt-2">Verificación del uso de equipos de protección personal en el turno mañana.</p>
+            </div>
+            <span class="ann pad top hatch h-24"><span class="ann-label">24</span></span>
+            <span class="ann pad bottom hatch h-24"><span class="ann-label">24</span></span>
+            <span class="ann pad left hatch w-24"></span>
+            <span class="ann pad right hatch w-24"></span>
+            <span class="ann pin pin-card-1">1</span>
+            <span class="ann pin pin-card-2">2</span>
+            <span class="ann pin pin-card-3">3</span>
+            <span class="ann pin pin-card-4">4</span>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">1</span><span><b>Radio 8px</b><br><span class="tok">--radius-lg</span></span></li>
+          <li><span class="pin-static">2</span><span><b>Borde 1px</b>, sin sombra<br><span class="tok">--color-border-default</span></span></li>
+          <li><span class="pin-static">3</span><span><b>Título 3</b> 16/24 Semibold</span></li>
+          <li><span class="pin-static">4</span><span><b>Cuerpo</b> 14/20, <span class="tok">--color-text-secondary</span></span></li>
+          <li><span class="pin-static">▦</span><span><b>Padding 24px</b><br><span class="tok">--space-6</span></span></li>
+        </ul>
+      </div>
+      <div class="panel comp-panel">
+        <div class="states states-wide">
+          <div class="state"><div class="state-demo"><button class="card card-click"><div class="t-h3">Matriz IPER</div><div class="muted">Actualizada hace 3 días</div></button></div><div class="state-name">Clickeable <span class="live">interactivo</span></div><div class="state-tokens"><div>borde <span class="tok">--color-border-default</span></div></div></div>
+          <div class="state"><div class="state-demo"><div class="card card-click is-hover"><div class="t-h3">Matriz IPER</div><div class="muted">Actualizada hace 3 días</div></div></div><div class="state-name">Hover</div><div class="state-tokens"><div>sombra <span class="tok">--shadow-1</span></div><div>borde <span class="tok">--color-border-strong</span></div></div></div>
+          <div class="state"><div class="state-demo"><div class="card card-click is-focus"><div class="t-h3">Matriz IPER</div><div class="muted">Actualizada hace 3 días</div></div></div><div class="state-name">Foco (teclado)</div><div class="state-tokens"><div>anillo <span class="tok">--color-focus-ring</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="sub"><h3 class="t-h2">Badge</h3><p class="muted">Sin estados (no es interactivo). Radio 4px, Caption Medium. Siempre con texto.</p></div>
+      <div class="panel demo-row demo-row-center">
+        <span class="badge badge-neutral">Borrador</span>
+        <span class="badge badge-brand">Nuevo</span>
+        <span class="badge badge-info"><span class="bdot"></span>En curso</span>
+        <span class="badge badge-success"><span class="bdot"></span>Cerrado</span>
+        <span class="badge badge-warning"><span class="bdot"></span>Pendiente</span>
+        <span class="badge badge-error"><span class="bdot"></span>Vencido</span>
+        <span class="t-caption muted ml-auto"><span class="tok">--radius-sm</span> <span class="tok">--font-size-xs</span> <span class="tok">--space-2</span></span>
+      </div>
+
+      <!-- Toast -->
+      <div class="sub"><h3 class="t-h2">Toast</h3><p class="muted">Aviso flotante y temporal. Neutro oscuro para no competir con la marca; solo el ícono lleva color.</p></div>
+      <div class="panel demo-row">
+        <div class="toast"><svg class="icon icon-success"><use href="#i-check-circle"/></svg><span>Incidente guardado</span><button class="close" aria-label="Cerrar"><svg class="icon"><use href="#i-x"/></svg></button></div>
+        <div class="toast"><svg class="icon icon-error"><use href="#i-error"/></svg><span>No se pudo subir la evidencia</span><button class="close" aria-label="Cerrar"><svg class="icon"><use href="#i-x"/></svg></button></div>
+        <div class="state-tokens w-full"><div>fondo <span class="tok">--color-neutral-900</span> · radio <span class="tok">--radius-lg</span> · sombra <span class="tok">--shadow-3</span></div></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="block" id="ejemplo">
+      <div class="block-head">
+        <h2 class="t-h1">Pantalla de ejemplo</h2>
+        <p class="t-body-lg muted">Todas las decisiones juntas. Si esta pantalla se ve limpia y profesional, los fundamentos funcionan.</p>
+      </div>
+
+      <div class="app theme-scope">
+        <aside class="app-side">
+          <div class="brand"><span class="brand-mark"><svg class="icon"><use href="#i-shield"/></svg></span>Seguridad 45001</div>
+          <a class="nav-item" href="#ejemplo"><svg class="icon"><use href="#i-home"/></svg>Inicio</a>
+          <a class="nav-item" href="#ejemplo" aria-current="page"><svg class="icon"><use href="#i-alert-tri"/></svg>Incidentes</a>
+          <a class="nav-item" href="#ejemplo"><svg class="icon"><use href="#i-file"/></svg>Documentos</a>
+          <a class="nav-item" href="#ejemplo"><svg class="icon"><use href="#i-check-circle"/></svg>Auditorías</a>
+          <a class="nav-item" href="#ejemplo"><svg class="icon"><use href="#i-users"/></svg>Personas</a>
+        </aside>
+        <div class="app-main">
+          <div class="app-top">
+            <div><p class="t-caption muted">Planta Córdoba</p><h3 class="t-h1">Incidentes</h3></div>
+            <div class="actions">
+              <button class="btn btn-secondary"><svg class="icon"><use href="#i-download"/></svg>Exportar</button>
+              <button class="btn btn-primary"><svg class="icon"><use href="#i-plus"/></svg>Reportar incidente</button>
+            </div>
+          </div>
+
+          <div class="alert alert-warning"><svg class="icon"><use href="#i-warning"/></svg><div><div class="t-label">2 acciones correctivas vencen esta semana</div><div>Revisá los planes de acción asignados. <a class="link link-inherit" href="#ejemplo">Ver planes</a></div></div></div>
+
+          <div class="kpis">
+            <div class="card kpi"><div class="muted">Incidentes abiertos</div><div class="t-display tabular">12</div><div class="t-caption muted delta">3 nuevos este mes</div></div>
+            <div class="card kpi"><div class="muted">Días sin accidentes</div><div class="t-display tabular">48</div><div class="t-caption muted delta">Récord: 112</div></div>
+            <div class="card kpi"><div class="muted">Avance de certificación</div><div class="t-display tabular">72%</div><div class="t-caption muted delta">18 de 25 requisitos</div></div>
+          </div>
+
+          <div class="card table-card">
+            <div class="head"><div class="t-h3">Últimos incidentes</div><div class="search-box"><input class="input" placeholder="Buscar…" aria-label="Buscar"></div></div>
+            <div class="scroll">
+              <table class="data-table tabular">
+                <thead><tr><th>ID</th><th>Fecha</th><th>Descripción</th><th>Área</th><th>Responsable</th><th>Estado</th></tr></thead>
+                <tbody>
+                  <tr><td class="muted">INC-0248</td><td>28/10/2026</td><td class="wrap">Caída al mismo nivel en pasillo</td><td>Envasado</td><td><span class="avatar">LM</span>Laura Méndez</td><td><span class="badge badge-warning"><span class="bdot"></span>Pendiente</span></td></tr>
+                  <tr class="is-selected"><td class="muted">INC-0247</td><td>26/10/2026</td><td class="wrap">Corte leve en mano al manipular chapa</td><td>Corte</td><td><span class="avatar">JR</span>Jorge Ruiz</td><td><span class="badge badge-info"><span class="bdot"></span>En curso</span></td></tr>
+                  <tr><td class="muted">INC-0246</td><td>21/10/2026</td><td class="wrap">Derrame de aceite en zona de carga</td><td>Logística</td><td><span class="avatar">AT</span>Ana Torres</td><td><span class="badge badge-success"><span class="bdot"></span>Cerrado</span></td></tr>
+                  <tr><td class="muted">INC-0245</td><td>17/10/2026</td><td class="wrap">Falta de señalización en salida B</td><td>Mantenimiento</td><td><span class="avatar">LM</span>Laura Méndez</td><td><span class="badge badge-error"><span class="bdot"></span>Vencido</span></td></tr>
+                  <tr><td class="muted">INC-0244</td><td>12/10/2026</td><td class="wrap">Golpe con montacargas sin lesiones</td><td>Logística</td><td><span class="avatar">JR</span>Jorge Ruiz</td><td><span class="badge badge-success"><span class="bdot"></span>Cerrado</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <section class="block" id="personalizacion">
+      <div class="block-head">
+        <h2 class="t-h1">Personalización por empresa</h2>
+        <p class="t-body-lg muted">Cada empresa elige <b>un</b> color. El sistema conserva su <b>tono (H)</b>, fija la <b>luminosidad (L)</b> de cada paso con la tabla medida sobre el violeta y ajusta la <b>intensidad (C)</b>. Las variables semánticas no cambian: solo se reemplaza la escala <span class="tok">--color-brand-*</span>.</p>
+        <div class="note"><svg class="icon"><use href="#i-info"/></svg><span>Demostración para un entregable posterior. El color elegido se aplica a la vista previa de abajo y a la <a class="link" href="#ejemplo">pantalla de ejemplo</a>. Avisos y riesgo nunca cambian.</span></div>
+      </div>
+
+      <div class="panel clip">
+        <div class="tenant-controls">
+          <div>
+            <label class="t-label" for="tenant-hex">Color de marca de la empresa</label>
+            <div class="color-input-row mt-2">
+              <input type="color" id="tenant-picker" value="#5B3FA8" aria-label="Elegir color">
+              <input class="input" id="tenant-hex" value="#5B3FA8" maxlength="7" spellcheck="false">
+              <button class="btn btn-secondary" id="tenant-reset">Volver al violeta</button>
+            </div>
+            <div class="presets" id="tenant-presets"></div>
+            <div class="readout" id="tenant-readout"></div>
+          </div>
+          <div class="tenant-notes" id="tenant-notes"></div>
+        </div>
+
+        <div class="scale-rows">
+          <div class="scale-row" id="row-base"></div>
+          <div class="scale-row" id="row-tenant"></div>
+          <div class="tenant-button" id="tenant-button"></div>
+          <p class="t-caption muted">La fila de luminosidad (L) es la misma en ambas escalas: por eso el contraste se mantiene. ★ = color exacto de la empresa usado como 600.</p>
+        </div>
+
+        <div class="panel-body">
+          <div class="t-h3 mb-3">Validación de contraste</div>
+          <div class="table-wrap">
+            <table class="spec checks"><thead><tr><th>Modo</th><th>Par</th><th>Mínimo</th><th>Resultado</th></tr></thead><tbody id="tenant-checks"></tbody></table>
+          </div>
+        </div>
+
+        <div class="mini-app theme-scope">
+          <aside class="app-side">
+            <div class="brand"><span class="brand-mark"><svg class="icon"><use href="#i-shield"/></svg></span>Empresa</div>
+            <a class="nav-item" href="#personalizacion"><svg class="icon"><use href="#i-home"/></svg>Inicio</a>
+            <a class="nav-item" href="#personalizacion" aria-current="page"><svg class="icon"><use href="#i-alert-tri"/></svg>Riesgos</a>
+            <a class="nav-item is-hover" href="#personalizacion"><svg class="icon"><use href="#i-file"/></svg>Documentos</a>
+          </aside>
+          <div class="mini-main">
+            <div class="mini-row justify-between">
+              <div class="t-h2">Vista previa</div>
+              <div class="mini-row"><button class="btn btn-secondary">Cancelar</button><button class="btn btn-primary"><svg class="icon"><use href="#i-plus"/></svg>Nuevo riesgo</button><button class="btn btn-primary is-hover">Hover</button></div>
+            </div>
+            <div class="mini-row">
+              <a class="link" href="#personalizacion">Ver procedimiento</a>
+              <span class="check is-checked"><span class="box"><svg><use href="#i-check"/></svg></span>Requiere investigación</span>
+              <span class="badge badge-brand">Nuevo</span>
+              <span class="avatar">LM</span>
+            </div>
+            <div class="maxw-280"><input class="input is-focus" value="Input con foco" aria-label="Ejemplo de input con foco"></div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <tbody>
+                  <tr><td>Caída al mismo nivel</td><td><span class="badge badge-warning"><span class="bdot"></span>Pendiente</span></td></tr>
+                  <tr class="is-selected"><td>Corte leve en mano</td><td><span class="badge badge-info"><span class="bdot"></span>En curso</span></td></tr>
+                  <tr><td>Falta de señalización</td><td><span class="badge badge-error"><span class="bdot"></span>Vencido</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="t-caption muted">Los badges de estado (avisos) no cambian con el color de la empresa.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  </main>
+</div>
+
+<script src="design-system.js"></script>
+</body>
+</html>
