@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-22 | Equipo (redactado con Claude Code) | **Design system** en la documentación: decisiones y variables en `design-system.md`, guía visual publicable en `design-system/` (GitHub Pages) y componentes del MVP definidos (radio, área de texto, select, fecha, modal, confirmación, botón de peligro, badges de estado, estados de pantalla, pregunta de encuesta e íconos) | [Ver cambio](#cambio-2026-11-22-design-system) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-033** implementada: peligros sugeridos a partir de las respuestas, registrados una sola vez como riesgos `sugerido` y con su respaldo calculado | [Ver cambio](#cambio-2026-11-16-hu-033) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-029** implementada: el Responsable SST ve las categorías de riesgo del rubro de su empresa con la vista previa de sus preguntas | [Ver cambio](#cambio-2026-11-16-hu-029) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-098** implementada: proyecto `Norvia.Tests` con 15 pruebas automáticas de aislamiento entre empresas, por la API y en la base, sobre un PostgreSQL desechable | [Ver cambio](#cambio-2026-11-16-hu-098) |
@@ -35,6 +36,53 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-22-design-system` {#cambio-2026-11-22-design-system}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 22 de noviembre de 2026 |
+| **Alcance** | Archivos nuevos `design-system.md` y carpeta `design-system/` (`index.html`, `design-system.css`, `design-system.js`), más el workflow `.github/workflows/pages.yml`. No cambia el modelo de datos, las reglas ni las historias |
+
+### El problema (por qué hubo que cambiar)
+
+1. El sistema de diseño (colores, tipografía, espaciado, estados) se definió en una sesión aparte y no estaba en el repositorio, así que el equipo no tenía una referencia común para empezar el front.
+2. La guía visual era un solo HTML con el CSS y el JS adentro y con 115 estilos sueltos en las etiquetas, difícil de mantener.
+3. Faltaban componentes que el MVP necesita: los controles de la encuesta, el select, la fecha, el modal y la confirmación, los estados de los registros y las pantallas vacías o con error.
+4. Algunos textos de la guía no aplicaban a Norvia o sobraban (principios, explicaciones largas, un badge de marca que contradecía la regla "la marca no comunica estados").
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Dos piezas** | `design-system.md` guarda las decisiones y las variables (nombre + valor); `design-system/` es la guía visual con ejemplos | El `.md` es la fuente; la guía se mira y se comparte |
+| **HTML, CSS y JS separados** | La guía no tiene estilos sueltos: todo son clases en `design-system.css` | Se mantiene como el código del front |
+| **Publicación en GitHub Pages** | Un workflow publica solo `design-system/` en cada push a `main` que la cambie | El equipo la abre con un enlace, sin exponer el resto de la documentación |
+| **Radio de la familia del checkbox** | Relleno de marca con punto blanco; opciones siempre en columna; el error va una vez debajo del grupo | Coherencia visual y funciona con la personalización por empresa |
+| **Pregunta de encuesta** | Enunciado numerado, `*` para obligatorias, 12px enunciado → opciones, 32px entre preguntas, una sola card | El front pinta cada pregunta igual según su tipo |
+| **Select** | Se ve como un campo de texto; con 5 opciones o menos se usan radios; búsqueda desde ~10; en celular, hoja inferior | Listas largas usables y sin desplegables tapados por el teclado |
+| **Campo de fecha** | dd/mm/aaaa, se escribe o se elige; semana desde el domingo; hora aparte en 12 horas; el accidente no admite fechas futuras | Formato de Honduras y menos errores de captura |
+| **Modal y confirmación** | Modal de 400 o 560px; la confirmación pregunta con la acción y el objeto y usa un verbo concreto | Acciones como dar de baja quedan claras |
+| **Botón de peligro** | Variables nuevas `--color-action-danger` (`#DC2626`), `-hover` (`#B91C1C`) y `-pressed` (`#991B1B`); solo en diálogos de confirmación | La marca significa "acción", no "cuidado"; no se personaliza por empresa |
+| **Badges de estado** | Cinco colores con un solo significado: neutro (sin empezar o fuera de uso), info (en curso), éxito (vigente o completado), advertencia (necesita atención), error (falló o venció); sin badge de marca | Cada estado de empresa, vínculo, encuesta, tarea, accidente y política se lee igual en todo Norvia |
+| **Estados de pantalla** | Vacía al inicio y sin resultados por separado; cargando con skeleton; error al cargar en el lugar del contenido; "sin acceso" y "no existe" muestran el mismo mensaje | El mismo mensaje no confirma que un recurso existe en otra empresa |
+| **Íconos** | Lucide, trazo 1.5px, tamaños 16, 20 y 32px; nunca comunican solos | Un solo estilo y accesible |
+
+### Cómo quedó (resumen)
+
+- `design-system.md` tiene las secciones nuevas: Íconos, Controles de selección y área de texto, Select, Modal, Diálogo de confirmación, Badges de estado, Campo de fecha, Estados de pantalla y Pregunta de encuesta, más las filas de radio, área de texto y botón de peligro en la tabla de estados.
+- La guía (`design-system/index.html`) muestra un ejemplo de cada uno, en claro y en oscuro, y en celular.
+- Pendientes que siguen abiertos: colores de riesgo (falta definir cuántos niveles tiene la matriz), breakpoints definitivos, revisar las propuestas marcadas "(P)" y la pantalla de configuración de la personalización por empresa.
+
+### Trabajo hecho
+
+- Se separó la guía en tres archivos y se pasaron los 115 estilos sueltos a clases.
+- Se quitaron de la guía el encabezado, la sección de principios, textos largos de marca, neutros y sombras, la ilustración de espaciado y el badge de marca.
+- Se movió la guía a `design-system/index.html` y se agregó el workflow de GitHub Pages.
+- Se definieron y documentaron los componentes de la tabla anterior, con sus ejemplos en la guía.
 
 ---
 

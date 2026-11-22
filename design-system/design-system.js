@@ -40,6 +40,9 @@ const semantic = [
   ['--color-action-primary', 'brand-600', 'brand-600', 'Botón principal (igual en ambos modos)'],
   ['--color-action-primary-hover', 'brand-700', 'brand-700', 'Hover'],
   ['--color-action-primary-pressed', 'brand-800', 'brand-800', 'Presionado'],
+  ['--color-action-danger', '#DC2626', '#DC2626', 'Botón de peligro (igual en ambos modos)'],
+  ['--color-action-danger-hover', '#B91C1C', '#B91C1C', 'Hover del botón de peligro'],
+  ['--color-action-danger-pressed', '#991B1B', '#991B1B', 'Presionado del botón de peligro'],
   ['--color-overlay', 'neutral-950 · 45%', 'negro · 60%', 'Fondo detrás de modales'],
 ];
 document.getElementById('semantic-rows').innerHTML = semantic.map(([v, light, dark, use]) =>
@@ -261,3 +264,15 @@ darkMedia.addEventListener('change', applyTheme);
 applyTheme();
 
 document.getElementById('ann-toggle').addEventListener('change', (e) => document.body.classList.toggle('show-ann', e.target.checked));
+
+// Contador de las áreas de texto con límite (data-max)
+document.querySelectorAll('textarea[data-max]').forEach((ta) => {
+  const counter = ta.parentElement.querySelector('.counter');
+  const max = Number(ta.dataset.max);
+  ta.addEventListener('input', () => {
+    const over = ta.value.length > max;
+    counter.textContent = `${ta.value.length} / ${max}`;
+    counter.classList.toggle('is-over', over);
+    ta.classList.toggle('is-error', over);
+  });
+});

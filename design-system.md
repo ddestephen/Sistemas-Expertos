@@ -90,6 +90,9 @@ El tinte debe sentirse, no verse.
 | `--color-action-primary` | `var(--color-brand-600)` | Botón principal |
 | `--color-action-primary-hover` | `var(--color-brand-700)` | Hover (se oscurece, nunca se aclara) |
 | `--color-action-primary-pressed` | `var(--color-brand-800)` | Presionado |
+| `--color-action-danger` | `#DC2626` (= `--color-error-icon` claro) | Botón de peligro (solo en diálogos de confirmación) |
+| `--color-action-danger-hover` | `#B91C1C` | Hover del botón de peligro |
+| `--color-action-danger-pressed` | `#991B1B` (= `--color-error-text` claro) | Presionado del botón de peligro |
 | `--color-overlay` | `rgba(18, 18, 24, 0.45)` | Fondo detrás de modales (neutral-950 al 45%) |
 
 **Propuestas para estados de componentes** (pendientes de revisión, ver [Estados](#estados-de-componentes)):
@@ -260,6 +263,24 @@ La sombra significa "esto está por encima del resto", no decora. Tono `#1D1D27`
 
 ---
 
+## Íconos
+
+Librería **Lucide**, con trazo de **1.5px** en todos los tamaños (el de Lucide por defecto, 2, se ve
+pesado junto a Inter 400).
+
+| Tamaño | Uso |
+|---|---|
+| 16px | Junto a texto de 14px: botones, inputs, badges, avisos, toasts |
+| 20px | Menú lateral y botones de solo ícono |
+| 32px | Pantallas vacías |
+
+- **Color:** el del texto que acompaña (`currentColor`); en avisos y toasts, `--color-{tipo}-icon`.
+- **Separación del texto:** `--space-1` en badges; `--space-2` en botones y menú.
+- **Nunca comunica solo:** siempre va con texto. Un estado o un riesgo no se distingue solo por ícono ni por color.
+- **Botón de solo ícono:** con etiqueta accesible y tooltip; su área sigue `--control-height` (36px) y `--control-height-touch` (44px en celular).
+
+---
+
 ## Modo oscuro
 
 **Alcance:** valores definidos ahora; se lanza después del primer entregable.
@@ -325,6 +346,8 @@ El patrón se invierte: fondo muy oscuro del mismo tono, texto claro.
 | `--color-{tipo}-text` | `#BFDBFE` | `#BBF7D0` | `#FDE68A` | `#FECACA` |
 | `--color-{tipo}-icon` | `#60A5FA` | `#4ADE80` | `#FBBF24` | `#F87171` |
 
+El botón de peligro (`--color-action-danger` / `-hover` / `-pressed`) es **igual** en ambos modos.
+
 ### Sombras
 
 Misma forma, con negro y más opacidad:
@@ -357,14 +380,159 @@ borde `--color-border-default` (si tiene), cursor no permitido.
 |---|---|---|---|---|
 | Botón primario | fondo `--color-action-primary`, texto `--color-text-on-brand` | `--color-action-primary-hover` | `--color-action-primary-pressed` | Cargando (P): mismo fondo, spinner + texto en gerundio, no clickeable |
 | Botón secundario | fondo `--color-bg-surface`, borde `--color-border-strong`, texto `--color-text-primary` | fondo `--color-bg-subtle` | fondo `--color-bg-pressed` (P) | — |
+| Botón de peligro | fondo `--color-action-danger`, texto blanco (4.8:1) | `--color-action-danger-hover` | `--color-action-danger-pressed` | Solo en diálogos de confirmación; no se personaliza por empresa |
 | Link | `--color-text-link` | `--color-text-link-hover` + subrayado (P) | — | — |
 | Input | borde `--color-border-input`, placeholder `--color-text-tertiary` | borde `--color-border-input-hover` (P) | — | Error: borde `--color-error-icon` + mensaje con ícono en `--color-error-text` |
 | Checkbox | borde `--color-border-input`, caja 16px, `--radius-sm` | borde `--color-border-input-hover` | Marcado: fondo `--color-action-primary`, tilde `--color-text-on-brand` | Área tocable ≥ 44px en celular |
+| Radio | fondo `--color-bg-surface`, borde `--color-border-input`, círculo 16px, `--radius-full` | borde `--color-border-input-hover` | Seleccionado: fondo `--color-action-primary`, punto central 6px `--color-text-on-brand` | Texto Cuerpo a `--space-2`; el texto también selecciona. Área tocable ≥ 44px en celular |
+| Área de texto | igual que el input; padding `--space-3` | igual que el input | — | Mínimo 3 líneas (~80px), crece hasta ~8 y luego desplaza; sin tirador. Contador opcional (ver abajo) |
 | Ítem de menú | texto `--color-text-secondary` | fondo `--color-bg-subtle`, texto `--color-text-primary` | Seleccionado: fondo `--color-bg-selected`, texto `--color-text-selected` | — |
 | Fila de tabla | fondo `--color-bg-surface` | fondo `--color-bg-subtle` | Seleccionada: fondo `--color-bg-selected` | — |
 | Card clickeable | borde `--color-border-default`, sin sombra | `--shadow-1` + borde `--color-border-strong` | — | — |
 
 Badges, avisos y toasts no son interactivos: tienen variantes por tipo, no estados.
+
+### Controles de selección y área de texto
+
+- **Radio y checkbox se ven de la misma familia:** el seleccionado es relleno de marca con la marca
+  interior en `--color-text-on-brand`, así funciona también con la personalización por empresa.
+- **Opciones siempre en columna,** una debajo de otra, con `--space-3` entre ellas, aunque sean
+  dos cortas ("Sí / No").
+- **Error de grupo:** las opciones no se ponen rojas. El mensaje va una sola vez debajo del grupo,
+  igual que el error del input (ícono + `--color-error-text`). Vale para radios y checkboxes.
+- **Contador del área de texto** (solo si hay límite): "120 / 500" abajo a la derecha, Caption en
+  `--color-text-tertiary`; al pasarse, `--color-error-text`.
+- **Celular:** el área de texto usa 16px, como el input, para evitar el zoom del iPhone.
+
+### Select
+
+**Cerrado:** igual que el input (`--control-height`, borde `--color-border-input`, `--radius-md`,
+padding `--space-3`, mismos estados). Ícono `chevron-down` 16px a la derecha en
+`--color-text-secondary`; sin valor, "Selecciona…" en `--color-text-tertiary`.
+
+**Lista abierta:**
+
+| Parte | Decisión |
+|---|---|
+| Contenedor | `--color-bg-elevated`, borde `--color-border-default`, `--radius-xl`, `--shadow-2`; a 4px del campo y con su mismo ancho |
+| Opción | 36px de alto (44px en celular), padding `--space-3`, Cuerpo |
+| Hover / teclado | Fondo `--color-bg-subtle` |
+| Seleccionada | Texto `--color-text-selected` + check 16px a la derecha; sin fondo de marca |
+| Alto máximo | ~8 opciones, luego desplaza |
+
+- **Pocas opciones → radios:** con 5 o menos opciones que conviene ver juntas, se usan radios en vez de select.
+- **Búsqueda:** desde ~10 opciones la lista lleva un campo de búsqueda arriba (peligros, responsables, rubros).
+- **Celular:** la lista se abre como hoja inferior (radio de 16px solo arriba), no como desplegable flotante.
+
+### Modal
+
+| Parte | Decisión |
+|---|---|
+| Fondo de pantalla | `--color-overlay` |
+| Caja | `--color-bg-elevated`, `--radius-xl`, `--shadow-3`, padding `--space-6` |
+| Ancho | Chico 400px (confirmaciones), mediano 560px (formularios). Lo que no cabe va en pantalla propia |
+| Encabezado | Título 3 a la izquierda; cerrar (ícono `x` 20px) a la derecha |
+| Pie | Acciones a la derecha: secundaria y luego principal. En celular, apiladas a todo el ancho, principal arriba |
+| Contenido largo | Encabezado y pie fijos; solo desplaza el medio |
+| Teclado | Esc cierra; el foco queda dentro y al cerrar vuelve al botón que lo abrió |
+| Clic fuera | Cierra solo si no hay cambios sin guardar |
+| Celular | El modal de formulario ocupa toda la pantalla |
+
+### Diálogo de confirmación
+
+Para acciones que no se deshacen o quitan acceso (dar de baja o suspender un vínculo, cerrar una
+encuesta, suspender una empresa).
+
+- **Título:** pregunta con la acción y el objeto ("¿Dar de baja a Ana López?").
+- **Texto:** la consecuencia en una línea ("Ya no podrá entrar a Norvia en esta empresa.").
+- **Botones:** "Cancelar" + verbo concreto ("Dar de baja"), nunca "Aceptar". Si la acción es de
+  peligro, el botón usa `--color-action-danger` y el foco empieza en "Cancelar".
+- **No se cierra con clic fuera.** En celular sale como hoja inferior.
+
+### Badges de estado
+
+Cada color significa siempre lo mismo, sea cual sea la entidad. No hay badge de marca: la marca no
+comunica estados; una etiqueta que no sea un estado usa el neutro.
+
+| Color | Significa | Variables |
+|---|---|---|
+| Neutro | Sin empezar o fuera de uso | `--color-bg-subtle` / `--color-text-secondary` |
+| Info | En curso | `--color-info-*` |
+| Éxito | Vigente, activo o completado | `--color-success-*` |
+| Advertencia | Necesita atención | `--color-warning-*` |
+| Error | Algo salió mal o se pasó la fecha | `--color-error-*` |
+
+| Entidad | Neutro | Info | Éxito | Advertencia | Error |
+|---|---|---|---|---|---|
+| Empresa | Inactiva | — | Activa | Suspendida | — |
+| Vínculo | De baja | — | Activo | Suspendido | — |
+| Encuesta | Borrador · Cerrada | Publicada | — | — | — |
+| Tarea del plan | Pendiente · Cancelada | En progreso | Completada | — | Vencida |
+| Accidente | Cerrado · Descartado | En investigación | — | Abierto | — |
+| Política | Borrador · Reemplazada | — | Vigente | — | — |
+
+- **Accidente cerrado es neutro,** no éxito: que termine el caso no es una buena noticia.
+- **"Vencida" no es un estado guardado:** es una tarea pendiente o en progreso con la fecha límite
+  pasada. Se muestran dos badges ("En progreso" + "Vencida") para no perder el estado.
+
+### Campo de fecha
+
+Usos: fecha y hora del accidente; fecha límite de una tarea (sin hora).
+
+| Parte | Decisión |
+|---|---|
+| Caja | Igual que el input, con ícono `calendar` 16px a la derecha |
+| Formato | dd/mm/aaaa; sin valor, "dd/mm/aaaa" en `--color-text-tertiary` |
+| Entrada | Se escribe (las barras se agregan solas) o se elige en el calendario |
+| Calendario | Como la lista del select: `--color-bg-elevated`, `--radius-xl`, `--shadow-2`. La semana empieza el domingo |
+| Hoy | Borde `--color-border-strong` |
+| Día elegido | Fondo `--color-action-primary`, texto `--color-text-on-brand` |
+| Días no permitidos | Estilo deshabilitado; no se eligen |
+| Celular | El calendario se abre como hoja inferior |
+
+- **Restricciones:** el accidente no admite fechas futuras. La fecha límite no admite fechas pasadas
+  al crear la tarea; al editar se conserva la que tenía, aunque esté vencida.
+- **Hora del accidente:** campo aparte, junto a la fecha, en 12 horas con a. m. / p. m.; se escribe,
+  sin selector de reloj.
+
+### Estados de pantalla
+
+**Vacía:** dos casos distintos, centrados y con `--space-16` arriba y abajo.
+
+| | Vacía al inicio (sin datos) | Sin resultados (búsqueda o filtro) |
+|---|---|---|
+| Ícono | 32px en `--color-text-tertiary`, del módulo | `search` 32px |
+| Título | Título 3 ("Todavía no hay riesgos identificados") | "No hay resultados para «ruido»" |
+| Texto | Cuerpo secundario: qué es y para qué sirve | "Prueba con otra palabra o quita los filtros." |
+| Acción | Botón principal ("Identificar riesgo") solo si el rol puede | Link "Quitar filtros"; sin botón principal |
+
+Si el rol no puede crear, solo el mensaje ("No tienes encuestas pendientes").
+
+**Cargando:** skeleton (bloques `--color-bg-subtle`, `--radius-sm`, con la forma del contenido).
+Aparece solo si la carga pasa de ~300ms; pulso suave que se apaga con reducción de movimiento.
+El spinner queda solo dentro de botones.
+
+**Error al cargar:** en el lugar del contenido, no en un toast. Ícono de error, título ("No se pudo
+cargar la lista de riesgos"), texto ("Revisa tu conexión e inténtalo de nuevo.") y botón
+secundario "Reintentar".
+
+**Sin acceso o no existe:** el mismo mensaje en ambos casos ("No encontramos lo que buscas" + link
+al inicio), para no confirmar que un recurso existe en otra empresa.
+
+### Pregunta de encuesta
+
+Bloque que se repite por pregunta; dentro va el control según el tipo
+(`respuesta_breve` → área de texto, `seleccion_unica` → radios, `seleccion_multiple` → checkboxes).
+
+| Parte | Decisión |
+|---|---|
+| Enunciado | Numerado ("1.", "2."…), Título 3 (16/24), `--color-text-primary` |
+| Obligatoria | Asterisco `*` en `--color-error-text` tras el enunciado; al inicio de la encuesta, "Las preguntas con * son obligatorias" |
+| Ayuda (opcional) | Cuerpo en `--color-text-secondary`, debajo del enunciado |
+| Enunciado → opciones | `--space-3` |
+| Entre preguntas | `--space-8` |
+| Contenedor | Una sola card para toda la encuesta; sin cards por pregunta |
+| Error | Mensaje de grupo debajo de las opciones ("Esta pregunta es obligatoria.") |
 
 **Guía visual:** `documentacion-proyecto-final/design-system/index.html` muestra cada decisión con su ejemplo,
 anotaciones superpuestas (activables) y todos los estados. Usa exactamente estas variables.
@@ -483,5 +651,4 @@ parecido con los colores de riesgo, y un botón para volver al tema por defecto.
 - **Organización en Figma** (paso 2): estructura del archivo y variables.
 - **Breakpoints** exactos de celular / tablet / escritorio.
 - **Modo oscuro:** valores definidos (ver sección); falta revisar todas las pantallas en oscuro antes de lanzarlo, después del primer entregable.
-- **Componentes base:** botón, input, tabla, card, badge, modal…
 - **Personalización por empresa:** estrategia definida (ver sección); falta diseñar la pantalla de configuración. Entregable posterior.
