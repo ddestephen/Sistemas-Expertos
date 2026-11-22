@@ -241,7 +241,10 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 
 | HU | Método | Ruta | Notas | Estado |
 |---|---|---|---|---|
-| HU-047 | POST | `api/eventos` | Reportar accidente, incidente, enfermedad o condición insegura (anónimo) | 🚧 |
+| HU-047 | POST | `api/eventos` | Reportar accidente, incidente, enfermedad o condición insegura (anónimo) | ✅ |
+| HU-047 | GET | `api/eventos` | Listar eventos de la empresa (`admin_empresa`, `responsable_sst`) con filtros | ✅ |
+| HU-047 | GET | `api/eventos/{id}` | Detalle completo de evento (`admin_empresa`, `responsable_sst`) | ✅ |
+| HU-047 | POST | `api/eventos/{id}/evidencias` | Adjuntar evidencias (`Archivo`; pendiente `HU-100` almacenamiento externo) | 🚧 |
 | HU-039 | POST | `api/riesgos/{id}/controles` | Definir controles | 🚧 |
 | HU-042–045 | varios | `api/plan-trabajo/...` | Plan de acción | 🚧 |
 | HU-075 | GET | `api/riesgos/matriz/pdf` | Impresión matriz (M10) | 🚧 |
@@ -355,8 +358,9 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-045 | POST | `/api/plan-trabajo/tareas/{id}/evidencias` | multipart | JSON | Plan |
 | HU-046 | GET | `/api/plan-trabajo/tareas` | filtros query | array | Plan |
 | HU-047 | POST | `/api/eventos` | JSON | JSON | Eventos |
-| HU-047 | POST | `/api/eventos/{id}/evidencias` | multipart | JSON | Eventos |
-| HU-047 | GET | `/api/eventos` | — | array | Eventos |
+| HU-047 | POST | `/api/eventos/{id}/evidencias` | multipart | JSON | Eventos *(pendiente HU-100)* |
+| HU-047 | GET | `/api/eventos` | query opcional | array | Eventos |
+| HU-047 | GET | `/api/eventos/{id}` | — | JSON | Eventos |
 | HU-049 | PATCH | `/api/eventos/{id}/investigacion` | JSON | JSON | Eventos |
 | HU-049 | PATCH | `/api/eventos/{id}/descarte` | JSON | JSON | Eventos |
 | HU-050 | POST | `/api/eventos/{id}/medidas-correctivas` | JSON | JSON | Eventos |
@@ -1657,11 +1661,13 @@ Mismo item que arriba; filtrado por vínculo del JWT.
 
 ---
 
-### M6 — Eventos y accidentes (HU-047, HU-049, HU-050) — 🚧
+### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049, HU-050 🚧)
 
-Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`): el servidor toma `EmpresaId` del JWT, pero no guarda `ReportadoPorId` ni `SubidoPorId` en los adjuntos del evento (`D11`, `RN-27`).
+Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`): el servidor toma `EmpresaId` del JWT, pero no guarda `ReportadoPorId` ni expondrá `SubidoPorId` en los adjuntos del evento (`D11`, `RN-27`, `RN-74`). Los permisos de consulta (`GET`) corresponden a `admin_empresa` y `responsable_sst`.
 
-#### `POST /api/eventos` — `ReportarEventoRequestDto`
+#### `POST /api/eventos` (HU-047 — ✅) — `ReportarEventoRequestDto`
+
+**Auth:** Bearer de empresa (`evento.reportar`: `admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`).
 
 ```json
 {
@@ -1676,33 +1682,50 @@ Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`
 
 | Campo | Valores / regla |
 |---|---|
-| `tipo` | `accidente` \| `incidente` \| `enfermedad_profesional` \| `condicion_insegura` |
-| `estadoEnfermedad` | `sospechosa` \| `diagnosticada` (obligatorio si y solo si `tipo = enfermedad_profesional`) |
+| `tipo` | `accidente` \| `incidente` \| `enfermedad_profesional` \| `condicion_insegura` (obligatorio) |
+| `estadoEnfermedad` | `sospechosa` \| `diagnosticada` (obligatorio si y solo si `tipo = enfermedad_profesional`; `null` en otro caso) |
+| `esGrave` | booleano (opcional, `false` por defecto; aplica a cualquier tipo) |
+| `fechaHoraEvento` | ISO-8601 UTC obligatorio; no puede ser futura (margen de 5 min por desfase de reloj) |
+| `lugar` | string opcional, máx. 200 caracteres |
+| `descripcion` | string obligatorio, no vacío ni solo espacios |
 
-**Response 201:**
+**Response 201 (`ReportarEventoResponseDto`):**
 
 ```json
 {
   "id": "01935600-....",
   "tipo": "incidente",
   "estado": "abierto",
+  "estadoEnfermedad": null,
   "esGrave": false,
   "fechaHoraEvento": "2026-11-14T15:30:00Z",
   "registradoEn": "2026-11-15T09:00:00Z"
 }
 ```
 
-#### `POST /api/eventos/{id}/evidencias` (HU-047, opcional)
+**Errores:** 400 validación · 400 `eventos.fecha_futura` · 401 · 403.
 
-`multipart/form-data` con imagen o PDF (`Archivo`). Se guarda asociado al evento con `SubidoPorId = null` para preservar el anonimato (`D11`).
+#### `POST /api/eventos/{id}/evidencias` (HU-047, opcional — 🚧 pendiente `HU-100`)
 
-#### `GET /api/eventos`
+`multipart/form-data` con imagen o PDF (`Archivo`). Se guardará asociado al evento con `SubidoPorId = null` para preservar el anonimato (`D11`) una vez exista el almacenamiento externo de `HU-100`.
 
-**Response 200:** array resumen (`id`, `tipo`, `estado`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` corta).
+#### `GET /api/eventos` (HU-047 — ✅)
 
-#### `GET /api/eventos/{id}`
+**Auth:** Bearer de empresa (`evento.listar`: `admin_empresa`, `responsable_sst`).
 
-**Response 200:** detalle completo + adjuntos (`Archivo`) + investigación si existe (sin datos de quien reportó).
+**Query opcional (`snake_case`):** `?estado=abierto&tipo=condicion_insegura&esGrave=true`
+
+**Response 200 (`EventoResumenResponseDto[]`):** lista ordenada del más reciente al más antiguo (`registradoEn DESC`, `fechaHoraEvento DESC`) con `id`, `tipo`, `estado`, `estadoEnfermedad`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` (acortada a máx. 200 caracteres) y `registradoEn`.
+
+**Errores:** 400 `eventos.filtro_invalido` (si `estado` o `tipo` no coinciden con los valores válidos en `snake_case`) · 401 · 403.
+
+#### `GET /api/eventos/{id}` (HU-047 — ✅)
+
+**Auth:** Bearer de empresa (`evento.ver`: `admin_empresa`, `responsable_sst`).
+
+**Response 200 (`EventoDetalleResponseDto`):** detalle completo (`id`, `tipo`, `estado`, `estadoEnfermedad`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` completa, `registradoEn`). Adjuntos (`HU-100`) e investigación/cierre (`HU-049`) se integrarán al implementar dichas HUs; nunca incluye datos de quien reportó.
+
+**Errores:** 404 `eventos.no_encontrado` · 401 · 403.
 
 #### `PATCH /api/eventos/{id}/investigacion` (HU-049) — `ActualizarInvestigacionRequestDto`
 

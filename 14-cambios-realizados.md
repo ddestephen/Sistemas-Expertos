@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-22 | Jesús Zepeda | **HU-047 (backend)** implementada: reporte anónimo de eventos (`POST /api/eventos` para los 4 roles activos) y consulta con filtros para `admin_empresa` y `responsable_sst` (`GET /api/eventos`, `GET /api/eventos/{id}`), dejando evidencias marcadas como pendientes de `HU-100` | [Ver cambio](#cambio-2026-11-22-hu-047-backend) |
 | 2026-11-22 | Equipo (redactado con Claude Code) | **Design system** en la documentación: decisiones y variables en `design-system.md`, guía visual publicable en `design-system/` (GitHub Pages) y componentes del MVP definidos (radio, área de texto, select, fecha, modal, confirmación, botón de peligro, badges de estado, estados de pantalla, pregunta de encuesta e íconos); el front usará Tailwind v4 sobre esas variables | [Ver cambio](#cambio-2026-11-22-design-system) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-033** implementada: peligros sugeridos a partir de las respuestas, registrados una sola vez como riesgos `sugerido` y con su respaldo calculado | [Ver cambio](#cambio-2026-11-16-hu-033) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-029** implementada: el Responsable SST ve las categorías de riesgo del rubro de su empresa con la vista previa de sus preguntas | [Ver cambio](#cambio-2026-11-16-hu-029) |
@@ -36,6 +37,23 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-22-hu-047-backend` {#cambio-2026-11-22-hu-047-backend}
+
+| | |
+|---|---|
+| **Quién documentó** | Jesús Zepeda |
+| **Fecha** | 22 de noviembre de 2026 |
+| **Alcance** | Backend en rama `feature/hu-047` (entidad `Accidente`, migración `EventosM6Hu047`, slices `ReportarEvento`, `ListarEventos` y `ObtenerEvento`, `EventosController`, 3 permisos en `CatalogoPermisos`, pruebas funcionales y de aislamiento en `Norvia.Tests`) y contratos de `18-contratos-api-mvp.md` |
+
+### Qué se implementó y por qué se acotó así
+
+1. **Núcleo de `HU-047` desacoplado de `HU-100`:** la subida de evidencias (`POST /api/eventos/{id}/evidencias`) requiere la tabla `Archivo` y el almacenamiento externo gratuito (`HU-100`), todavía inexistentes en el backend. Para no mezclar dos HUs ni bloquear `HU-047` esperando credenciales cloud, se implementó el registro y consulta de `Accidente` y se dejó el endpoint de evidencias marcado explícitamente como pendiente de `HU-100`.
+2. **Esquema `Accidente` completo desde esta migración:** la tabla `Accidente` ya incluye las columnas y `CHECK` reservados para cierre/descarte (`CerradoEn`, `DescartadoPorId`, `MotivoDescarte`, `DescartadoEn` y FK compuesta a `VinculoEmpresa`), comentados como pendientes de `HU-049` para evitar migraciones conflictivas después.
+3. **Permisos alineados a `RN-27` y `RN-74`:** cualquier vínculo activo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`) puede reportar de forma anónima en `POST /api/eventos`, pero solo `admin_empresa` y `responsable_sst` pueden listar y ver el detalle (`GET /api/eventos`, `GET /api/eventos/{id}`).
+4. **Filtros `snake_case` en query y validaciones:** `GET /api/eventos` acepta `?estado=&tipo=&esGrave=` validando explícitamente el formato `snake_case` de la API y devolviendo orden descendente por `registradoEn`; `POST /api/eventos` rechaza fechas futuras (> 5 min con `eventos.fecha_futura`) y hace cumplir la regla de `estadoEnfermedad` (`RN-26`).
 
 ---
 
