@@ -120,6 +120,20 @@ Patrón: fondo muy claro, borde algo más intenso, texto oscuro del mismo tono, 
 **Toasts:** fondo `--color-neutral-900`, texto blanco, solo el ícono con el color del tipo.
 En modo oscuro: fondo `--color-bg-elevated` con borde `--color-border-strong`.
 
+### Semánticas: datos (gráficos)
+
+Para las barras de los gráficos (por ahora, los resultados de una encuesta). No salen de la marca ni de los avisos: el violeta significa "acción" y los avisos comunican estados. El azul viene de la paleta de referencia de visualización de datos y está validado contra `--color-bg-surface` en los dos modos (contraste ≥ 3:1, banda de luminosidad y croma).
+
+| Variable | Claro | Oscuro | Uso |
+|---|---|---|---|
+| `--color-dato-serie` | `#2A78D6` | `#3987E5` | La barra (el dato) |
+| `--color-dato-pista` | `#CDE2FB` | `#0D366B` | El fondo de la barra (pista): un paso del mismo azul que se aleja del dato |
+
+- **Una sola serie, un solo tono y sin leyenda:** el título de la pregunta dice qué se mide.
+- **Las cifras van impresas en color de texto** (`--color-text-secondary`), nunca en el color del dato.
+- **En oscuro la pista es más oscura que la barra:** con un tono cercano, una opción con 0 % parecía una barra llena.
+- **Si un gráfico necesita varias series,** se agregan colores de la misma paleta de visualización en orden fijo, se validan y se documentan aquí antes de usarlos.
+
 ### Reglas de color
 
 1. Un solo botón principal (violeta) por pantalla o sección; el resto, secundarios.
@@ -348,6 +362,13 @@ El patrón se invierte: fondo muy oscuro del mismo tono, texto claro.
 
 El botón de peligro (`--color-action-danger` / `-hover` / `-pressed`) es **igual** en ambos modos.
 
+### Datos
+
+| Variable | Claro | Oscuro |
+|---|---|---|
+| `--color-dato-serie` | `#2A78D6` | `#3987E5` |
+| `--color-dato-pista` | `#CDE2FB` | `#0D366B` |
+
 ### Sombras
 
 Misma forma, con negro y más opacidad:
@@ -421,6 +442,7 @@ padding `--space-3`, mismos estados). Ícono `chevron-down` 16px a la derecha en
 | Alto máximo | ~8 opciones, luego desplaza |
 
 - **Pocas opciones → radios:** con 5 o menos opciones que conviene ver juntas, se usan radios en vez de select.
+- **Excepción: el control se repite por fila.** En un editor donde cada elemento lleva el mismo control (el tipo de respuesta de cada pregunta de una encuesta), se usa select aunque haya 5 opciones o menos: repetir los radios en cada fila alarga la pantalla y esconde lo que se edita.
 - **Búsqueda:** desde ~10 opciones la lista lleva un campo de búsqueda arriba (peligros, responsables, rubros).
 - **Celular:** la lista se abre como hoja inferior (radio de 16px solo arriba), no como desplegable flotante.
 
@@ -533,6 +555,24 @@ Bloque que se repite por pregunta; dentro va el control según el tipo
 | Entre preguntas | `--space-8` |
 | Contenedor | Una sola card para toda la encuesta; sin cards por pregunta |
 | Error | Mensaje de grupo debajo de las opciones ("Esta pregunta es obligatoria.") |
+
+### Resultados de encuesta
+
+Los resultados anónimos de una encuesta: indicadores arriba y, debajo, una sola card con el resultado de cada pregunta.
+
+| Parte | Decisión |
+|---|---|
+| Indicadores | Tres: participantes, respuestas de la versión vigente y periodo analizado (primera y última respuesta). Valor en Display (30/36), etiqueta y aclaración en Caption `--color-text-secondary` |
+| Pregunta de selección | Lista de medidores, una fila por opción: nombre, barra y cifra "cantidad · %" |
+| Barra | 8px de alto, extremos redondeados, `--color-dato-serie` sobre la pista `--color-dato-pista`. Todas las barras de una pregunta miden lo mismo (la columna de la cifra tiene ancho fijo) |
+| Orden | El de la encuesta, no por cantidad: las opciones suelen tener un orden propio (por ejemplo, de menos a más horas) |
+| Selección múltiple | Se aclara que se podía elegir más de una opción y que los porcentajes pueden sumar más de 100 % |
+| Respuestas breves | En bloques `--color-bg-subtle` con `--radius-md`, sin autor y en **orden alfabético**, no en el orden en que se guardaron (ese orden podría identificar a quien respondió). Con más de 8 se muestran las primeras y "Ver las N respuestas" |
+| Menos de 3 respuestas | Solo los indicadores y un aviso info que explica que el detalle se oculta para proteger el anonimato y cuántas respuestas van |
+| Teclado | Cada fila es enfocable y se anuncia con su cifra ("Siempre: 6 respuestas, 50 %"); el hover y el foco la resaltan con `--color-bg-subtle` |
+| Celular | La barra baja debajo del nombre y la cifra, a todo el ancho |
+
+No se usan tortas ni donas: las barras sobre una misma base se comparan mejor.
 
 **Guía visual:** `documentacion-proyecto-final/design-system/index.html` muestra cada decisión con su ejemplo,
 anotaciones superpuestas (activables) y todos los estados. Usa exactamente estas variables.

@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** colores para datos (`--color-dato-serie` y `--color-dato-pista`, en claro y oscuro), cómo se muestran los **resultados de una encuesta** (lista de medidores, respuestas breves en orden alfabético) y una excepción del select para controles que se repiten por fila | [Ver cambio](#cambio-2026-11-23-design-system-datos) |
 | 2026-11-22 | Jesús Zepeda | **HU-047 (backend)** implementada: reporte anónimo de eventos (`POST /api/eventos` para los 4 roles activos) y consulta con filtros para `admin_empresa` y `responsable_sst` (`GET /api/eventos`, `GET /api/eventos/{id}`), dejando evidencias marcadas como pendientes de `HU-100` | [Ver cambio](#cambio-2026-11-22-hu-047-backend) |
 | 2026-11-22 | Equipo (redactado con Claude Code) | **Design system** en la documentación: decisiones y variables en `design-system.md`, guía visual publicable en `design-system/` (GitHub Pages) y componentes del MVP definidos (radio, área de texto, select, fecha, modal, confirmación, botón de peligro, badges de estado, estados de pantalla, pregunta de encuesta e íconos); el front usará Tailwind v4 sobre esas variables | [Ver cambio](#cambio-2026-11-22-design-system) |
 | 2026-11-16 | Equipo (redactado con Claude Code) | **HU-033** implementada: peligros sugeridos a partir de las respuestas, registrados una sola vez como riesgos `sugerido` y con su respaldo calculado | [Ver cambio](#cambio-2026-11-16-hu-033) |
@@ -39,6 +40,43 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-design-system-datos` {#cambio-2026-11-23-design-system-datos}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `design-system.md` (secciones Color, Modo oscuro, Select y Resultados de encuesta) y la guía visual (`design-system/index.html`, `design-system.css`, `design-system.js`). No cambia el modelo de datos, las reglas de negocio ni las historias |
+
+### El problema (por qué hubo que cambiar)
+
+1. Al construir la pantalla de resultados de una encuesta (HU-032) hacían falta colores para las barras de un gráfico, y el design system no los tenía. Usar el violeta de marca rompía la regla "el violeta significa acción", y usar el azul de los avisos mezclaba un dato con un mensaje.
+2. No estaba definido cómo mostrar la distribución de respuestas por pregunta ni las respuestas breves, y las respuestas breves llegan en el orden en que se guardaron: alguien que sepa quién respondió primero podría deducir quién escribió cada una.
+3. En el editor de encuestas (HU-030), la regla "con 5 opciones o menos, radios" obligaba a repetir tres radios en cada pregunta para elegir su tipo, lo que alargaba mucho la pantalla.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Colores para datos** | Variables nuevas `--color-dato-serie` (claro `#2A78D6`, oscuro `#3987E5`) y `--color-dato-pista` (claro `#CDE2FB`, oscuro `#0D366B`), tomadas de la paleta de referencia de visualización y validadas contra el fondo de las cards en los dos modos | Los gráficos no usan la marca ni los colores de aviso, y se leen bien en claro y en oscuro |
+| **Pista oscura en modo oscuro** | El fondo de la barra es un paso del mismo azul que se aleja del dato | Con un tono cercano, una opción con 0 % parecía una barra llena |
+| **Una serie, un tono, sin leyenda** | Las cifras van impresas en color de texto, nunca en el color del dato | La identidad no depende del color y no hace falta leyenda |
+| **Resultados como lista de medidores** | Por opción: nombre, barra de 8px y "cantidad · %"; en el orden de la encuesta; todas las barras de una pregunta del mismo largo; sin tortas | Las barras sobre una misma base se comparan mejor que las porciones de una torta |
+| **Respuestas breves en orden alfabético** | Se muestran sin autor y ordenadas alfabéticamente, no en el orden en que se guardaron | El orden no permite deducir quién escribió cada respuesta (anonimato, RN-72) |
+| **Menos de 3 respuestas** | Solo los indicadores y un aviso que explica por qué se oculta el detalle | Aplica RN-73 en la pantalla y la persona entiende por qué no ve el detalle |
+| **Excepción del select** | Si el mismo control se repite en cada fila de un editor (el tipo de respuesta de cada pregunta), se usa select aunque haya 5 opciones o menos | El editor no se alarga y lo que se edita sigue a la vista |
+
+### Cómo quedó (resumen)
+
+- `design-system.md`: secciones nuevas "Semánticas: datos (gráficos)" (en Color), "Datos" (en Modo oscuro) y "Resultados de encuesta" (en Estados de componentes), más la excepción en Select.
+- La guía visual muestra las dos variables nuevas en la tabla de semánticas y un ejemplo de resultados de encuesta con sus anotaciones, en claro, en oscuro y en celular.
+
+### Trabajo hecho
+
+- Se validaron los colores de datos contra `--color-bg-surface` en claro y en oscuro (contraste, luminosidad y croma).
+- Se documentaron las decisiones de la tabla anterior en `design-system.md`.
+- Se agregaron a la guía las variables, las filas de la tabla semántica y el ejemplo de resultados, y se comprobó que en los tres anchos las barras de una pregunta midan lo mismo y que las cifras no se partan.
 
 ## Cambio `2026-11-22-hu-047-backend` {#cambio-2026-11-22-hu-047-backend}
 

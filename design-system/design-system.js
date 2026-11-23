@@ -44,6 +44,8 @@ const semantic = [
   ['--color-action-danger-hover', '#B91C1C', '#B91C1C', 'Hover del botón de peligro'],
   ['--color-action-danger-pressed', '#991B1B', '#991B1B', 'Presionado del botón de peligro'],
   ['--color-overlay', 'neutral-950 · 45%', 'negro · 60%', 'Fondo detrás de modales'],
+  ['--color-dato-serie', '#2a78d6', '#3987e5', 'Barra de un gráfico (una sola serie); no es la marca'],
+  ['--color-dato-pista', '#cde2fb', '#0d366b', 'Fondo de la barra (pista); en oscuro se aleja para no parecer un dato'],
 ];
 document.getElementById('semantic-rows').innerHTML = semantic.map(([v, light, dark, use]) =>
   `<tr><td class="col-dot"><span class="dot" style="background: var(${v})"></span></td><td><span class="tok">${v}</span></td><td class="muted">${light}</td><td class="muted">${dark}</td><td>${use}</td></tr>`).join('');

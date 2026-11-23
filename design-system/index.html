@@ -118,6 +118,7 @@
           <div class="state-tokens mt-2"><div><span class="tok">--color-error-bg</span><span class="tok">-border</span><span class="tok">-text</span><span class="tok">-icon</span></div></div>
         </div>
       </div>
+      <div class="note"><svg class="icon"><use href="#i-info"/></svg><span><b>Datos (gráficos):</b> <span class="tok">--color-dato-serie</span> y <span class="tok">--color-dato-pista</span> salen de la paleta de visualización (azul) y no de la marca: el violeta significa "acción". Validados contra <span class="tok">--color-bg-surface</span> en claro y en oscuro. Un gráfico de una sola serie usa un solo tono y no lleva leyenda.</span></div>
       <div class="note"><svg class="icon"><use href="#i-info"/></svg><span><b>Colores de riesgo:</b> pendientes. Se definen cuando esté decidida la cantidad de niveles de la metodología (3, 4 o 5).</span></div>
     </section>
 
@@ -601,6 +602,33 @@
           <li><span class="pin-static">!</span><span><b>Error de grupo</b>: una sola vez debajo de las opciones; las opciones no se ponen rojas</span></li>
           <li><span class="pin-static">↕</span><span><b>Enunciado → opciones 12px</b>, <b>entre preguntas 32px</b><br><span class="tok">--space-3</span> <span class="tok">--space-8</span></span></li>
           <li><span class="pin-static">▦</span><span><b>Una sola card</b> para toda la encuesta</span></li>
+        </ul>
+      </div>
+
+      <!-- Resultados de encuesta -->
+      <div class="sub"><h3 class="t-h2">Resultados de encuesta</h3><p class="muted">Distribución por pregunta como lista de medidores: nombre, barra y cifra por opción, en el orden de la encuesta. Las respuestas breves, sin autor y en orden alfabético.</p></div>
+      <div class="panel anatomy">
+        <div class="anatomy-stage">
+          <div class="card survey">
+            <div class="t-h3">1. ¿Usa protección auditiva en su puesto?</div>
+            <p class="muted mt-1 t-caption">12 personas respondieron</p>
+            <ul class="meter-list">
+              <li class="meter-row"><span class="meter-name">Siempre</span><span class="meter-track"><span class="meter-fill" style="width: 50%"></span></span><span class="meter-fig tabular">6 · 50 %</span></li>
+              <li class="meter-row"><span class="meter-name">A veces</span><span class="meter-track"><span class="meter-fill" style="width: 33.3%"></span></span><span class="meter-fig tabular">4 · 33.3 %</span></li>
+              <li class="meter-row"><span class="meter-name">Nunca</span><span class="meter-track"><span class="meter-fill" style="width: 16.7%"></span></span><span class="meter-fig tabular">2 · 16.7 %</span></li>
+            </ul>
+            <div class="t-h3 mt-6">2. ¿Qué cambiaría para trabajar más seguro?</div>
+            <p class="short-answer">Más pausas en el turno de noche</p>
+            <p class="short-answer">Señalizar la bodega</p>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">▬</span><span><b>Barra de 8px</b>, extremos redondeados, sobre su pista; todas las barras de una pregunta miden lo mismo<br><span class="tok">--color-dato-serie</span> <span class="tok">--color-dato-pista</span></span></li>
+          <li><span class="pin-static">#</span><span><b>Cifra impresa</b> "cantidad · %", en texto secundario (nunca en el color del dato)<br><span class="tok">--color-text-secondary</span></span></li>
+          <li><span class="pin-static">↓</span><span><b>Orden de la encuesta</b>, no por cantidad; un solo tono, sin leyenda</span></li>
+          <li><span class="pin-static">%</span><span><b>Selección múltiple:</b> se aclara que los porcentajes pueden sumar más de 100 %</span></li>
+          <li><span class="pin-static">A</span><span><b>Respuestas breves</b> sin autor y en orden alfabético<br><span class="tok">--color-bg-subtle</span> <span class="tok">--radius-md</span></span></li>
+          <li><span class="pin-static">3</span><span><b>Menos de 3 respuestas:</b> solo totales y un aviso info que explica el anonimato</span></li>
         </ul>
       </div>
 

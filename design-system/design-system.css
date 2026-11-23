@@ -59,6 +59,10 @@
   --color-action-danger-pressed: #991B1B; /* = --color-error-text claro */
   --color-overlay: rgba(18, 18, 24, 0.45);
 
+  /* Datos (gráficos): azul de la paleta de visualización, no la marca */
+  --color-dato-serie: #2a78d6;
+  --color-dato-pista: #cde2fb;
+
   /* Avisos */
   --color-info-bg: #EFF6FF;    --color-info-border: #BFDBFE;    --color-info-text: #1E40AF;    --color-info-icon: #2563EB;
   --color-success-bg: #F0FDF4; --color-success-border: #BBF7D0; --color-success-text: #166534; --color-success-icon: #16A34A;
@@ -143,6 +147,8 @@
   --color-focus-ring: var(--color-brand-400);
   --color-focus-halo: var(--color-brand-900);
   --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-dato-serie: #3987e5;
+  --color-dato-pista: #0d366b;
 
   --color-info-bg: #172554;    --color-info-border: #1E3A8A;    --color-info-text: #BFDBFE;    --color-info-icon: #60A5FA;
   --color-success-bg: #052E16; --color-success-border: #14532D; --color-success-text: #BBF7D0; --color-success-icon: #4ADE80;
@@ -554,6 +560,21 @@ svg.icon-32 { width: 32px; height: 32px; }
 
 /* Pregunta de encuesta */
 .survey { width: min(520px, 100%); }
+/* Resultados de encuesta: lista de medidores (una barra por opción) */
+.meter-list { display: grid; gap: var(--space-1); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+.meter-row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-2); border-radius: var(--radius-sm); }
+.meter-row:hover { background: var(--color-bg-subtle); }
+.meter-name { width: 33%; flex: none; }
+.meter-track { flex: 1; display: flex; height: 8px; overflow: hidden; border-radius: var(--radius-full); background: var(--color-dato-pista); }
+.meter-fill { height: 100%; border-radius: var(--radius-full); background: var(--color-dato-serie); }
+.meter-fig { flex: none; width: 24%; text-align: right; white-space: nowrap; color: var(--color-text-secondary); }
+@media (max-width: 640px) {
+  .meter-row { flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
+  .meter-name { flex: 1; width: auto; }
+  .meter-fig { width: auto; }
+  .meter-track { order: 3; flex-basis: 100%; }
+}
+.short-answer { margin-top: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-bg-subtle); }
 .question { border: 0; padding: 0; margin: var(--space-8) 0 0; min-width: 0; }
 .question legend { padding: 0; }
 .q-help { color: var(--color-text-secondary); margin-top: var(--space-1); }
