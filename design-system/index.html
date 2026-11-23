@@ -609,6 +609,7 @@
       <div class="sub"><h3 class="t-h2">Resultados de encuesta</h3><p class="muted">Distribución por pregunta como lista de medidores: nombre, barra y cifra por opción, en el orden de la encuesta. Las respuestas breves, sin autor y en orden alfabético.</p></div>
       <div class="panel anatomy">
         <div class="anatomy-stage">
+          <div class="stage-stack">
           <div class="card survey">
             <div class="t-h3">1. ¿Usa protección auditiva en su puesto?</div>
             <p class="muted mt-1 t-caption">12 personas respondieron</p>
@@ -621,6 +622,19 @@
             <p class="short-answer">Más pausas en el turno de noche</p>
             <p class="short-answer">Señalizar la bodega</p>
           </div>
+          <div class="card survey">
+            <div class="t-h3">Peligros sugeridos</div>
+            <p class="muted mt-1">Salen de las respuestas que indican exposición a un peligro, en todas las versiones de la encuesta.</p>
+            <div class="sugerencia">
+              <div class="sugerencia-head"><b>Ruido</b><span class="badge badge-neutral">Por revisar</span></div>
+              <p class="muted">Lo indican 9 de 12 respuestas · 75 %</p>
+              <span class="meter-track meter-track-full"><span class="meter-fill" style="width: 75%"></span></span>
+              <p class="t-caption muted">Preguntas que lo originaron</p>
+              <div class="sugerencia-pregunta"><span>¿Usa protección auditiva en su puesto?</span><span class="muted tabular">6 respuestas</span></div>
+              <div class="sugerencia-pregunta"><span>¿Trabaja cerca de máquinas ruidosas?</span><span class="muted tabular">5 respuestas</span></div>
+            </div>
+          </div>
+          </div>
         </div>
         <ul class="legend">
           <li><span class="pin-static">▬</span><span><b>Barra de 8px</b>, extremos redondeados, sobre su pista; todas las barras de una pregunta miden lo mismo<br><span class="tok">--color-dato-serie</span> <span class="tok">--color-dato-pista</span></span></li>
@@ -629,6 +643,7 @@
           <li><span class="pin-static">%</span><span><b>Selección múltiple:</b> se aclara que los porcentajes pueden sumar más de 100 %</span></li>
           <li><span class="pin-static">A</span><span><b>Respuestas breves</b> sin autor y en orden alfabético<br><span class="tok">--color-bg-subtle</span> <span class="tok">--radius-md</span></span></li>
           <li><span class="pin-static">3</span><span><b>Menos de 3 respuestas:</b> solo totales y un aviso info que explica el anonimato</span></li>
+          <li><span class="pin-static">!</span><span><b>Peligros sugeridos:</b> card propia entre los indicadores y el detalle; por peligro, badge de estado (Por revisar · En la matriz · Descartado), respaldo "N de T respuestas · %" con la misma barra y las preguntas que lo originaron; orden por respaldo</span></li>
         </ul>
       </div>
 

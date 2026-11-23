@@ -568,6 +568,12 @@ svg.icon-32 { width: 32px; height: 32px; }
 .meter-track { flex: 1; display: flex; height: 8px; overflow: hidden; border-radius: var(--radius-full); background: var(--color-dato-pista); }
 .meter-fill { height: 100%; border-radius: var(--radius-full); background: var(--color-dato-serie); }
 .meter-fig { flex: none; width: 24%; text-align: right; white-space: nowrap; color: var(--color-text-secondary); }
+.stage-stack { display: grid; gap: var(--space-4); width: 100%; }
+.meter-track-full { flex: none; width: 100%; }
+.sugerencia { display: grid; gap: var(--space-2); margin-top: var(--space-4); }
+.sugerencia-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.sugerencia-pregunta { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+.sugerencia-pregunta .tabular { white-space: nowrap; font-size: var(--font-size-sm); }
 @media (max-width: 640px) {
   .meter-row { flex-wrap: wrap; gap: var(--space-1) var(--space-4); }
   .meter-name { flex: 1; width: auto; }

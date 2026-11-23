@@ -489,6 +489,7 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 | Empresa | Inactiva | — | Activa | Suspendida | — |
 | Vínculo | De baja | — | Activo | Suspendido | — |
 | Encuesta | Borrador · Cerrada | Publicada | — | — | — |
+| Peligro sugerido | Por revisar · Descartado | — | En la matriz | — | — |
 | Tarea del plan | Pendiente · Cancelada | En progreso | Completada | — | Vencida |
 | Accidente | Cerrado · Descartado | En investigación | — | Abierto | — |
 | Política | Borrador · Reemplazada | — | Vigente | — | — |
@@ -571,6 +572,7 @@ Los resultados anónimos de una encuesta: indicadores arriba y, debajo, una sola
 | Menos de 3 respuestas | Solo los indicadores y un aviso info que explica que el detalle se oculta para proteger el anonimato y cuántas respuestas van |
 | Teclado | Cada fila es enfocable y se anuncia con su cifra ("Siempre: 6 respuestas, 50 %"); el hover y el foco la resaltan con `--color-bg-subtle` |
 | Celular | La barra baja debajo del nombre y la cifra, a todo el ancho |
+| Peligros sugeridos | Card propia entre los indicadores y el detalle. Por peligro: nombre, badge de estado, "Lo indican N de T respuestas · %" con la misma barra, y las preguntas que lo originaron con su cifra. Orden por respaldo. Con menos de 3 respuestas, una línea en `--color-text-secondary` (no un segundo aviso). Si falla su carga, el resto de los resultados se sigue viendo |
 
 No se usan tortas ni donas: las barras sobre una misma base se comparan mejor.
 

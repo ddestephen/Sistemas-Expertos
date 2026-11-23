@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** cómo se muestran los **peligros sugeridos** de una encuesta (HU-033) en la pantalla de resultados y qué badge lleva cada sugerencia | [Ver cambio](#cambio-2026-11-23-design-system-peligros-sugeridos) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** colores para datos (`--color-dato-serie` y `--color-dato-pista`, en claro y oscuro), cómo se muestran los **resultados de una encuesta** (lista de medidores, respuestas breves en orden alfabético) y una excepción del select para controles que se repiten por fila | [Ver cambio](#cambio-2026-11-23-design-system-datos) |
 | 2026-11-22 | Jesús Zepeda | **HU-047 (backend)** implementada: reporte anónimo de eventos (`POST /api/eventos` para los 4 roles activos) y consulta con filtros para `admin_empresa` y `responsable_sst` (`GET /api/eventos`, `GET /api/eventos/{id}`), dejando evidencias marcadas como pendientes de `HU-100` | [Ver cambio](#cambio-2026-11-22-hu-047-backend) |
 | 2026-11-22 | Equipo (redactado con Claude Code) | **Design system** en la documentación: decisiones y variables en `design-system.md`, guía visual publicable en `design-system/` (GitHub Pages) y componentes del MVP definidos (radio, área de texto, select, fecha, modal, confirmación, botón de peligro, badges de estado, estados de pantalla, pregunta de encuesta e íconos); el front usará Tailwind v4 sobre esas variables | [Ver cambio](#cambio-2026-11-22-design-system) |
@@ -40,6 +41,40 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-design-system-peligros-sugeridos` {#cambio-2026-11-23-design-system-peligros-sugeridos}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `design-system.md` (Badges de estado y Resultados de encuesta) y la guía visual (`design-system/index.html` y `design-system.css`). No cambia el modelo de datos, las reglas de negocio ni las historias |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-033 sugiere peligros a partir de las respuestas, pero el design system no decía dónde mostrarlos ni cómo indicar cuántas respuestas respaldan cada uno.
+2. Cada sugerencia queda registrada como un riesgo con estado (sugerido, confirmado o descartado), y la tabla de badges no tenía esa entidad.
+3. Las sugerencias se calculan con las respuestas de todas las versiones, mientras que el detalle por pregunta usa solo la versión vigente: con menos de 3 respuestas, mostrar dos avisos seguidos confundía.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Card propia en los resultados** | Los peligros sugeridos van en una card entre los indicadores y el detalle por pregunta | Es lo que más sirve para armar la matriz de riesgos, y queda a la vista sin bajar por todas las preguntas |
+| **Respaldo con la misma barra** | Por peligro: "Lo indican N de T respuestas · %" con la barra de los resultados y las preguntas que lo originaron con su cifra; orden por respaldo | Se comparan los peligros sobre la misma base y se sabe de dónde salió cada uno |
+| **Badge "Peligro sugerido"** | Por revisar y Descartado en neutro; En la matriz en éxito | Sigue el significado fijo de cada color: sin empezar o fuera de uso es neutro, vigente es éxito |
+| **Menos de 3 respuestas** | Una línea de texto secundario dentro de la card, no un segundo aviso | No se repiten dos avisos de anonimato seguidos |
+| **Carga independiente** | Si fallan las sugerencias, la card muestra el error con "Reintentar" y el resto de los resultados se sigue viendo | Un fallo en una parte no deja la pantalla vacía |
+
+### Cómo quedó (resumen)
+
+- `design-system.md`: fila "Peligro sugerido" en la tabla de badges por entidad y fila "Peligros sugeridos" en la sección "Resultados de encuesta".
+- La guía visual agrega el ejemplo de la card de peligros sugeridos, con su anotación, debajo del ejemplo de resultados.
+
+### Trabajo hecho
+
+- Se documentaron las decisiones de la tabla anterior en `design-system.md`.
+- Se agregó el ejemplo a la guía y se revisó en claro y en oscuro, sin errores en la consola.
 
 ## Cambio `2026-11-23-design-system-datos` {#cambio-2026-11-23-design-system-datos}
 
