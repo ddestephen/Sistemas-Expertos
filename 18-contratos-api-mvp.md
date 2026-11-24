@@ -256,7 +256,10 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-042 | GET | `api/plan-trabajo/propuesta` | Vista previa del plan (permiso `plan.propuesta`) | ✅ |
 | HU-042 | POST | `api/plan-trabajo/generacion` | Confirmar el plan (permiso `plan.generar`) | ✅ |
 | HU-042 | GET | `api/plan-trabajo/tareas` | Tareas del plan, sin filtros todavía (permiso `tarea.listar`) | ✅ |
-| HU-043–045 | varios | `api/plan-trabajo/...` | Asignar, atender y adjuntar evidencia | 🚧 |
+| HU-043 | POST | `api/plan-trabajo/tareas` | Crear una tarea manual, ya asignada (permiso `tarea.crear`) | ✅ |
+| HU-043 | PUT | `api/plan-trabajo/tareas/{id}/asignacion` | Asignar o reasignar responsable y fecha límite (permiso `tarea.asignar`) | ✅ |
+| HU-043 | GET | `api/plan-trabajo/responsables` | A quién se le puede asignar una tarea (permiso `tarea.responsables`) | ✅ |
+| HU-044–045 | varios | `api/plan-trabajo/...` | Atender tareas y adjuntar evidencia | 🚧 |
 | HU-075 | GET | `api/riesgos/matriz/pdf` | Impresión matriz (M10) | 🚧 |
 
 ---
@@ -365,7 +368,9 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-039 | GET | `/api/riesgos/{id}/controles/sugeridos` | — | array | Riesgos |
 | HU-042 | GET | `/api/plan-trabajo/propuesta` | — | JSON | Plan |
 | HU-042 | POST | `/api/plan-trabajo/generacion` | JSON | JSON | Plan |
-| HU-043 | PATCH | `/api/plan-trabajo/tareas/{id}` | JSON | `TareaResponseDto` | Plan |
+| HU-043 | POST | `/api/plan-trabajo/tareas` | JSON | `TareaResponseDto` | Plan |
+| HU-043 | PUT | `/api/plan-trabajo/tareas/{id}/asignacion` | JSON | `TareaResponseDto` | Plan |
+| HU-043 | GET | `/api/plan-trabajo/responsables` | — | array | Plan |
 | HU-044 | GET | `/api/plan-trabajo/tareas/mias` | — | array | Plan |
 | HU-044 | GET | `/api/plan-trabajo/tareas` | query | array | Plan |
 | HU-045 | POST | `/api/plan-trabajo/tareas/{id}/evidencias` | multipart | JSON | Plan |
@@ -1788,9 +1793,9 @@ Confirma el plan con las tareas elegidas de la propuesta. Las que se desmarcaron
 
 *(Antes el contrato tenía `incluirControlesPropuestos`, `incluirPlantillasRubro` y devolvía un `planId`. No hay entidad de plan ni plantillas por rubro: el plan son las tareas de la empresa.)*
 
-#### `GET /api/plan-trabajo/tareas` (HU-042; filtros en HU-043 y HU-046) — ✅
+#### `GET /api/plan-trabajo/tareas` (HU-042; filtros en HU-046) — ✅
 
-Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro de cada riesgo, controles por efectividad y luego tareas modelo. Los filtros (`estado`, `prioridad`, `responsableId`) llegan con HU-043 y HU-046.
+Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro de cada riesgo, controles por efectividad y luego tareas modelo. Los filtros (`estado`, `prioridad`, `responsableId`) llegan con HU-046.
 
 **Response 200:**
 
@@ -1824,18 +1829,66 @@ Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro d
 
 Mismo item que arriba; filtrado por vínculo del JWT.
 
-#### `PATCH /api/plan-trabajo/tareas/{id}` — `ActualizarTareaRequestDto`
+#### `GET /api/plan-trabajo/responsables` (HU-043) — ✅
+
+A quién se le puede asignar una tarea: los vínculos **activos** de la empresa con rol `admin_empresa`, `responsable_sst` o `colaborador` (RN-07). Los encuestados no entran: sus cuentas son solo para responder encuestas (HU-115). Orden: por nombre.
+
+```json
+[ { "id": "01933f40-....", "nombreCompleto": "Carlos Colaborador", "rolCodigo": "colaborador" } ]
+```
+
+#### `PUT /api/plan-trabajo/tareas/{id}/asignacion` — `AsignarTareaRequestDto` (HU-043) — ✅
+
+Asigna o reasigna el responsable y la fecha límite. El estado no cambia: iniciarla es HU-044. Avisar al responsable (RN-77) es HU-081.
+
+```json
+{ "responsableId": "01933f40-....", "fechaLimite": "2026-12-15" }
+```
+
+- **Los dos son obligatorios** (RN-22).
+- **Responsable:** uno de `GET …/responsables`.
+- **Fecha límite:** no puede ser anterior a hoy (fecha de Honduras), salvo que se conserve la que ya tenía, aunque esté vencida (design-system § Campo de fecha).
+
+**Response 200:** `TareaResponseDto` (el mismo item de `GET …/tareas`).
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta el responsable o la fecha límite |
+| 400 `plan.responsable_invalido` | No es un vínculo activo de la empresa, o es encuestado |
+| 400 `plan.fecha_pasada` | La fecha es anterior a hoy y no es la que ya tenía |
+| 404 `plan.tarea_no_encontrada` | La tarea no existe o es de otra empresa |
+| 409 `plan.tarea_cerrada` | La tarea está completada o cancelada |
+
+#### `POST /api/plan-trabajo/tareas` — `CrearTareaManualRequestDto` (HU-043) — ✅
+
+Tarea manual: no sale de un riesgo ni de un accidente (origen `manual`, RN-23). Nace `pendiente` y **ya asignada**.
 
 ```json
 {
-  "estado": "en_progreso",
+  "titulo": "Recargar los extintores",
+  "descripcion": "Los dos de la bodega",
+  "prioridad": 2,
   "responsableId": "01933f40-....",
-  "fechaLimite": "2026-12-15",
-  "prioridad": 2
+  "fechaLimite": "2026-12-04",
+  "requiereEvidencia": true
 }
 ```
 
-**Response 200:** `TareaResponseDto`.
+| Campo | Regla |
+|---|---|
+| `titulo` | Obligatorio, hasta 200 caracteres |
+| `descripcion` | Opcional, hasta 2000 |
+| `prioridad` | Obligatoria: 1 alta, 2 media, 3 baja |
+| `responsableId`, `fechaLimite` | Obligatorios, con las mismas reglas que al asignar |
+| `requiereEvidencia` | Opcional; por defecto `false` (RN-25, HU-045) |
+
+**Response 201:** `TareaResponseDto` con `origen: "manual"`. **Errores:** 400 `ValidationProblemDetails`, `plan.responsable_invalido` o `plan.fecha_pasada`.
+
+#### Cambiar el estado de una tarea (HU-044) — 🚧
+
+El `PATCH /api/plan-trabajo/tareas/{id}` genérico del contrato anterior se reemplaza por rutas por acción: asignar es `PUT …/asignacion` (HU-043), y cambiar el estado lo define HU-044, con sus propios permisos (el colaborador solo cambia sus tareas, RN-24).
 
 #### `POST /api/plan-trabajo/tareas/{id}/evidencias` (HU-045)
 

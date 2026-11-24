@@ -973,7 +973,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-20 | BD | Una fila por evaluación |
 | RN-80 | App | Escalas con su explicación en la pantalla de evaluación; el valor guardado es solo el número del 1 al 5 |
 | RN-21 | BD | CHECK `Control.Tipo` |
-| RN-22 | BD | CHECK en Tarea |
+| RN-22 | BD y App | CHECK en Tarea; al asignar, la aplicación exige responsable activo de la empresa (no encuestado) y fecha límite no anterior a hoy (HU-043) |
 | RN-23 | BD | Columnas de origen con CHECK |
 | RN-24, RN-25 | App | Permisos y conteo de evidencias |
 | RN-26 | BD | CHECK `Tipo` y `EstadoEnfermedad` |

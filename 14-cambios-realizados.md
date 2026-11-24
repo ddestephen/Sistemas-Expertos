@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-043 implementada:** asignar responsable y fecha límite a cada tarea (solo personas activas de la empresa, sin encuestados), crear tareas manuales y marcar las vencidas; primer **campo de fecha** del design system en el código | [Ver cambio](#cambio-2026-11-24-hu-043-asignar) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-042 implementada:** generar el plan de trabajo desde los riesgos evaluados y sus controles (y las tareas modelo del peligro), revisarlo desmarcando tareas y confirmarlo sin duplicar; tabla `Tarea` creada en el código | [Ver cambio](#cambio-2026-11-24-hu-042-plan) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-040 implementada:** evaluación residual (con los controles aplicados) guardada aparte de la inicial y mostrada a su lado, con la comparación de niveles | [Ver cambio](#cambio-2026-11-23-hu-040-residual) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-039 implementada:** controles de un riesgo sugeridos desde las plantillas del peligro (aceptar, editar o descartar) o propios, y señal de los riesgos altos y críticos sin control (**RN-19**); `Control` gana `PlantillaTareaId` | [Ver cambio](#cambio-2026-11-23-hu-039-controles) |
@@ -51,6 +52,70 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-043-asignar` {#cambio-2026-11-24-hu-043-asignar}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (HU-043; el `PATCH` genérico de tareas se reemplaza por rutas por acción), `12-modelo-datos.md` §9 (RN-22), `design-system.md` (Campo de fecha: posición y teclado). En el código: slices `AsignarTarea`, `CrearTareaManual` y `ListarResponsables`, el modal de asignación, la página de tarea nueva y el componente `CampoFecha` en la web |
+
+### El problema (por qué hubo que cambiar)
+
+1. Las tareas del plan (HU-042) nacían sin dueño. HU-043 pide asignarlas solo a vínculos activos de la empresa, con fecha límite, y poder crear tareas manuales.
+2. El contrato tenía un solo `PATCH /api/plan-trabajo/tareas/{id}` para estado, responsable, fecha y prioridad. Los permisos se asignan por ruta, así que darle ese `PATCH` al colaborador para HU-044 (cambiar el estado de sus tareas) también le permitiría reasignarlas.
+3. El design system definía el campo de fecha (dd/mm/aaaa, barras automáticas, calendario), pero no existía en el código.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Rutas por acción** | `PUT …/tareas/{id}/asignacion` (gestión) y, en HU-044, una ruta aparte para el estado | Cada permiso cubre una sola cosa: el colaborador no podrá reasignar |
+| **Quién puede ser responsable** | Vínculos activos de la empresa con rol `admin_empresa`, `responsable_sst` o `colaborador`; **no** los encuestados | RN-07 y RN-22. Los encuestados son cuentas solo para responder encuestas (HU-115) |
+| **Fecha límite obligatoria y no pasada** | Al asignar o crear, no puede ser anterior a hoy. Al reasignar, se puede conservar la que ya tenía aunque esté vencida | Lo que dice el design system (§ Campo de fecha); reasignar una tarea atrasada no obliga a inventar otra fecha |
+| **"Hoy" es el de Honduras** | El backend usa la hora del servidor menos 6 horas (Honduras no tiene horario de verano); la web usa `America/Tegucigalpa` | La regla no cambia según la zona del servidor o del navegador |
+| **Tarea manual ya asignada** | `POST …/tareas` exige título, prioridad, responsable y fecha; origen manual (RN-23), estado pendiente | "Cada tarea tenga dueño" desde que existe |
+| **Completadas y canceladas no se reasignan** | 409 `plan.tarea_cerrada` | Ya no hay nada que asignar |
+| **"Vencida" se calcula** | Pendiente o en progreso con fecha límite pasada: badge de error junto al estado, como define el design system | No es un estado guardado |
+| **Notificación aparte** | Avisar al responsable (RN-77) queda para HU-081 (E2) | HU-043 no depende de M11 |
+
+### Cómo quedó (resumen)
+
+- **Backend:**
+  - `GET /api/plan-trabajo/responsables`, `PUT /api/plan-trabajo/tareas/{id}/asignacion` y `POST /api/plan-trabajo/tareas`;
+  - permisos `tarea.responsables`, `tarea.asignar` y `tarea.crear` para `admin_empresa` y `responsable_sst`.
+- **Web:**
+  - **Plan de trabajo:** cada tarea abierta tiene "Asignar" o "Reasignar", que abre un modal con el responsable (select con búsqueda) y la fecha límite. La tabla muestra la fecha límite y el badge "Vencida". "Nueva tarea" lleva a `/plan-de-trabajo/nueva`.
+  - **Campo de fecha (`CampoFecha`):** se escribe con barras automáticas o se elige en el calendario, que empieza el domingo, marca hoy, deshabilita los días pasados y se maneja con teclado. Abre debajo o encima del campo sin que lo recorte el modal; en celular es una hoja inferior.
+
+### Trabajo hecho
+
+- Se implementó el backend con 15 pruebas nuevas:
+  - asignar y reasignar, conservando una fecha vencida;
+  - campos obligatorios y fecha pasada;
+  - responsable suspendido, encuestado o de otra empresa;
+  - tarea cerrada;
+  - tarea manual y sus validaciones;
+  - lista de responsables, aislamiento entre empresas y permisos.
+
+  Pasan las 167 pruebas del backend.
+- Se construyó la web y se probó de punta a punta contra la API real (8 casos):
+  - tabla sin asignar;
+  - responsables posibles;
+  - validaciones de la fecha;
+  - asignar;
+  - calendario con teclado y Esc dentro del modal;
+  - tarea vencida reasignada;
+  - tarea manual;
+  - modo oscuro y celular (hoja inferior).
+
+  Siguen pasando los e2e de HU-042.
+- **Hallazgo:** dentro del modal, el cuerpo con desplazamiento recortaba el calendario. Ahora se coloca con posición fija junto al campo.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-043 | Contrato con un `PATCH` genérico; tareas sin responsable | Asignar y reasignar con reglas de responsable y fecha, tareas manuales ya asignadas, badge "Vencida" y campo de fecha del design system |
 
 ## Cambio `2026-11-24-hu-042-plan` {#cambio-2026-11-24-hu-042-plan}
 

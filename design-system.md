@@ -538,6 +538,10 @@ Usos: fecha y hora del accidente; fecha límite de una tarea (sin hora).
 | Días no permitidos | Estilo deshabilitado; no se eligen |
 | Celular | El calendario se abre como hoja inferior |
 
+- **Posición:** el calendario se abre a 4px debajo del campo; si no cabe, encima. Queda fijo respecto a la pantalla,
+  así no lo recorta un contenedor con desplazamiento, como el cuerpo de un modal.
+- **Teclado:** flechas (día y semana), Inicio/Fin (semana), RePág/AvPág (mes), Enter elige y Esc cierra solo el
+  calendario y devuelve el foco a su botón. "Hoy" es la fecha de Honduras, sin importar la zona del navegador.
 - **Restricciones:** el accidente no admite fechas futuras. La fecha límite no admite fechas pasadas
   al crear la tarea; al editar se conserva la que tenía, aunque esté vencida.
 - **Hora del accidente:** campo aparte, junto a la fecha, en 12 horas con a. m. / p. m.; se escribe,
