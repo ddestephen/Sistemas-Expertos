@@ -262,6 +262,7 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-049 | POST | `api/eventos/{id}/cierre` | Cerrar con investigación y medidas, `RN-28` (`evento.cerrar`: `responsable_sst`) | ✅ |
 | HU-049 | PATCH | `api/eventos/{id}/descarte` | Descartar un reporte inválido (`evento.descartar`: `responsable_sst`) | ✅ |
 | HU-050 | POST | `api/eventos/{id}/medidas-correctivas` | Agregar una medida, que es una tarea del plan con origen `accidente` (`evento.medida.crear`: `responsable_sst`) | ✅ |
+| HU-052 | GET | `api/eventos/estadisticas?desde&hasta` | Cuántos eventos hubo por tipo, gravedad y mes; sin descartados ni datos de personas (`evento.estadisticas`: `admin_empresa`, `responsable_sst`) | ✅ |
 | HU-051 | GET | `api/eventos/{id}/riesgos` | Riesgos que el evento reveló o hizo reevaluar (`evento.riesgos`: `admin_empresa`, `responsable_sst`); los enlaces se crean con `accidenteId` en `POST api/riesgos` y `POST api/riesgos/{id}/evaluaciones` | ✅ |
 | HU-050 | GET | `api/eventos/{id}/medidas-correctivas` | Medidas del evento con su avance (`evento.medida.listar`: `admin_empresa`, `responsable_sst`) | ✅ |
 | HU-042 | GET | `api/plan-trabajo/propuesta` | Vista previa del plan (permiso `plan.propuesta`) | ✅ |
@@ -398,6 +399,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-050 | POST | `/api/eventos/{id}/medidas-correctivas` | JSON | JSON | Eventos |
 | HU-050 | GET | `/api/eventos/{id}/medidas-correctivas` | — | array | Eventos |
 | HU-051 | GET | `/api/eventos/{id}/riesgos` | — | array | Eventos |
+| HU-052 | GET | `/api/eventos/estadisticas?desde&hasta` | query | JSON | Eventos |
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
 | HU-117 | PATCH | `/api/notificaciones/{id}/lectura` | — | 204 | Notificaciones |
 | encuestado | GET | `/api/politicas/vigentes` | — | array | Políticas |
@@ -2037,7 +2039,7 @@ Pasa una tarea por `pendiente`, `en_progreso` y `completada`, en cualquier orden
 
 ---
 
-### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049 ✅; HU-050 ✅; HU-051 ✅)
+### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049 ✅; HU-050 ✅; HU-051 ✅; HU-052 ✅)
 
 Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`): el servidor toma `EmpresaId` del JWT, pero no guarda `ReportadoPorId` ni expondrá `SubidoPorId` en los adjuntos del evento (`D11`, `RN-27`, `RN-74`). Los permisos de consulta (`GET`) corresponden a `admin_empresa` y `responsable_sst`.
 
@@ -2094,6 +2096,44 @@ Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`
 **Response 200 (`EventoResumenResponseDto[]`):** lista ordenada del más reciente al más antiguo (`registradoEn DESC`, `fechaHoraEvento DESC`) con `id`, `tipo`, `estado`, `estadoEnfermedad`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` (acortada a máx. 200 caracteres) y `registradoEn`.
 
 **Errores:** 400 `eventos.filtro_invalido` (si `estado` o `tipo` no coinciden con los valores válidos en `snake_case`) · 401 · 403.
+
+#### `GET /api/eventos/estadisticas` (HU-052 — ✅)
+
+**Auth:** Bearer de empresa (`evento.estadisticas`: `admin_empresa`, `responsable_sst`).
+
+Cuántos eventos hubo en un periodo, para detectar patrones (art. 47.e). **Solo cifras:** no trae quién reportó (no se guarda, D11), ni descripciones ni lugares. **No cuenta los descartados** (RN-28).
+
+**Query (obligatoria):** `?desde=2025-12-01&hasta=2026-11-24`
+
+- Fechas de Honduras (aaaa-mm-dd), incluidas, sobre **cuándo ocurrió** el evento (`fechaHoraEvento`), no cuándo se reportó.
+- `hasta` no puede ser anterior a `desde`, y el periodo abarca como máximo 24 meses.
+
+**Response 200 (`EstadisticasEventosResponseDto`):**
+
+```json
+{
+  "desde": "2025-12-01",
+  "hasta": "2026-11-24",
+  "total": 4,
+  "graves": 1,
+  "porTipo": [
+    { "tipo": "accidente", "cantidad": 2, "graves": 1 },
+    { "tipo": "incidente", "cantidad": 1, "graves": 0 },
+    { "tipo": "enfermedad_profesional", "cantidad": 0, "graves": 0 },
+    { "tipo": "condicion_insegura", "cantidad": 1, "graves": 0 }
+  ],
+  "porMes": [
+    { "anio": 2025, "mes": 12, "cantidad": 0, "graves": 0 },
+    "…",
+    { "anio": 2026, "mes": 11, "cantidad": 2, "graves": 1 }
+  ]
+}
+```
+
+- `porTipo`: los cuatro tipos en orden fijo, también con 0.
+- `porMes`: todos los meses del periodo (mes de Honduras), del primero al último, también con 0, para compararlos sobre la misma base.
+
+**Errores:** 400 validación (faltan las fechas, `hasta` antes de `desde` o más de 24 meses) · 401 · 403.
 
 #### `GET /api/eventos/{id}` (HU-047 — ✅)
 
@@ -2298,7 +2338,7 @@ Recorte 13-11-2026 y prioridad WONT: **no se define contrato HTTP** (el front no
 | HU-025, HU-027, HU-028 | Calendario Google, áreas, comisión |
 | HU-053–061, HU-079, HU-082–086 | Comisión, actas, calendario externo |
 | HU-062–069, HU-088 | Equipos, EPP, inventario |
-| HU-052, HU-077–078, HU-080 | Estadísticas e informes fuera del MVP actual |
+| HU-077–078, HU-080 | Informes fuera del MVP actual (HU-052, las estadísticas de eventos, sí está en E2 y tiene contrato) |
 | HU-105, HU-112, HU-113 | App móvil, distribución, Google Forms/Calendar |
 | HU-101–104, HU-102 | Solo frontend / infra local |
 | HU-098 | Pruebas automatizadas, no endpoint público |

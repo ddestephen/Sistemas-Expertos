@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-052 completada:** estadísticas de eventos por tipo, gravedad y mes en un periodo, sin descartados y solo con cifras; con ella queda completo M6 (sin evidencias, que esperan a HU-100) | [Ver cambio](#cambio-2026-11-24-hu-052) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-051 completada:** desde un evento se agrega un riesgo nuevo que queda **revelado** por él o se **reevalúa** uno de la matriz; la evaluación guarda el evento (columna nueva `EvaluacionRiesgo.AccidenteId`, D10) y el evento muestra el nivel de antes y el de después | [Ver cambio](#cambio-2026-11-24-hu-051) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-050 completada:** el Responsable SST agrega medidas correctivas a un evento; cada una es una **tarea del plan** con origen "accidente", y desde el evento se ve su avance (completadas, vencidas). Con esto un evento ya se puede cerrar desde la web | [Ver cambio](#cambio-2026-11-24-hu-050) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-049 completada:** el Responsable SST registra y corrige la investigación de un evento (causas inmediatas y de fondo, conclusiones, quién investigó y cuándo), lo **cierra** solo con investigación y al menos una medida correctiva (RN-28) y descarta reportes inválidos con motivo opcional; el admin solo consulta | [Ver cambio](#cambio-2026-11-24-hu-049) |
@@ -61,6 +62,61 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-052` {#cambio-2026-11-24-hu-052}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (contrato nuevo y corrección de la lista "Fuera de alcance"), `design-system.md` (sección "Estadísticas de eventos"). En el código: un caso de uso y un permiso, pruebas, la página de estadísticas y los componentes compartidos `Indicador` y `ListaMedidores`. El modelo de datos no cambia |
+
+### El problema (por qué hubo que cambiar)
+
+1. El Responsable SST no tenía cómo ver patrones en los eventos (art. 47.e): solo una lista.
+2. El contrato decía que HU-052 estaba fuera del MVP, pero la historia es de E2 (Should) en `10-historias-usuario.md`, que manda.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Solo cifras** | `GET /api/eventos/estadisticas` devuelve totales por tipo, gravedad y mes; nada de descripciones, lugares ni personas | Cumple "no muestran datos personales" y el anonimato de los reportes (D11) |
+| **Sin descartados** | Los reportes descartados no cuentan | RN-28 |
+| **Periodo por cuándo ocurrió** | Fechas de Honduras, incluidas, sobre la fecha del evento y no la del reporte; como máximo 24 meses | Un evento reportado tarde cuenta en el mes en que pasó; el desglose por mes se lee de un vistazo |
+| **Todos los meses y tipos, también con 0** | La API completa los huecos | Se comparan sobre la misma base; un mes sin eventos también es un dato |
+| **Las piezas de los resultados de encuesta** | Indicadores y lista de medidores, ahora en `shared/components/datos` | El mismo lenguaje visual (sin tortas, una sola serie) y sin duplicar código |
+| **Admin y Responsable SST** | Igual que la lista de eventos | Son quienes gestionan |
+
+### Cómo quedó (resumen)
+
+- **`/eventos/estadisticas`** (enlace "Estadísticas" en la lista de eventos):
+  - Desde y Hasta, que se aplican al cambiar, y los atajos "Últimos 12 meses" (por defecto), "Este año" y "El año pasado";
+  - indicadores de eventos, graves y tipo más frecuente;
+  - una card con los medidores por tipo (con cuántos fueron graves), por gravedad y por mes.
+- **Periodo no válido:** si "hasta" es anterior a "desde" o el periodo pasa de 24 meses, el error sale junto al campo y se siguen viendo las cifras anteriores.
+
+### Trabajo hecho
+
+- 5 pruebas nuevas en el backend:
+  - conteos sin descartados;
+  - límites del periodo en hora de Honduras;
+  - solo los campos de cifras y todos los meses;
+  - validaciones;
+  - permisos y aislamiento entre empresas.
+
+  Pasan las 220 pruebas.
+- La web se probó de punta a punta contra la API real (5 casos):
+  - cifras por defecto, comprobando que no aparece ningún texto de los reportes;
+  - atajos y periodo escrito;
+  - validaciones que conservan las cifras;
+  - admin sí y colaborador no;
+  - celular y modo oscuro.
+
+  Siguen pasando los e2e de resultados de encuesta (HU-033, HU-035), que ahora usan los componentes compartidos.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-052 | Sin construir; el contrato la marcaba fuera del MVP | Estadísticas por tipo, gravedad y mes, sin descartados ni datos personales |
 
 ## Cambio `2026-11-24-hu-051` {#cambio-2026-11-24-hu-051}
 

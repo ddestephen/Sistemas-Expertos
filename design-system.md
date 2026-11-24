@@ -620,6 +620,18 @@ Los resultados anónimos de una encuesta: indicadores arriba y, debajo, una sola
 
 No se usan tortas ni donas: las barras sobre una misma base se comparan mejor.
 
+### Estadísticas de eventos
+
+Cuántos eventos hubo en un periodo. Usa las mismas piezas que los resultados de encuesta: indicadores arriba y listas de medidores en una sola card.
+
+| Parte | Decisión |
+|---|---|
+| Periodo | Dos campos de fecha (Desde, Hasta) que se aplican al cambiar, sin botón, y atajos de texto: "Últimos 12 meses" (por defecto), "Este año" y "El año pasado". Mientras el periodo no es válido, se ven las cifras anteriores y el error junto al campo |
+| Indicadores | Eventos (con el periodo), Graves (con su %) y Tipo más frecuente |
+| Desglose | Por tipo (los cuatro, en orden fijo), por gravedad y por mes (todos los meses, también con 0). Cada fila: nombre, barra y "cantidad · %" sobre el total del periodo; si hubo graves, "N graves" debajo del nombre |
+| Sin eventos | Los indicadores en 0 y un estado vacío en lugar de las listas |
+| Privacidad | Solo cifras: ni descripciones, ni lugares, ni quién reportó |
+
 ### Etiqueta de riesgo
 
 Muestra la clasificación de un riesgo en listas, tablas y detalle.
