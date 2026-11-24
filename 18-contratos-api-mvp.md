@@ -129,7 +129,7 @@ Rutas **sin prefijo** (`api/rubros`, `api/peligros`…). Son de alcance **plataf
 
 - **Editar:** `PATCH {id}` parcial; lo que no se envía se conserva.
 - **Activar o desactivar:** `PATCH {id}/estado` con `{ "activo": false }`. No hay borrado físico.
-- **Plantillas:** `api/plantillas` son las plantillas de **documento** (políticas y procedimientos). Las plantillas de tarea no tienen API en HU-023.
+- **Plantillas:** `api/plantillas` son las plantillas de **documento** (políticas y procedimientos). Las plantillas de **tarea** de cada peligro van en `api/plantillas-tarea` (agregadas el 24-11-2026: sugieren los controles de HU-039 y las tareas modelo de HU-042).
 
 | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|
@@ -153,8 +153,12 @@ Rutas **sin prefijo** (`api/rubros`, `api/peligros`…). Son de alcance **plataf
 | POST | `api/plantillas` | `CrearPlantillaDocumentoRequestDto` | 201 `PlantillaDocumentoResponseDto` | `catalogo.plantilla.crear` | `admin_plataforma` | ✅ |
 | PATCH | `api/plantillas/{id}` | `ActualizarPlantillaDocumentoRequestDto` | `PlantillaDocumentoResponseDto` | `catalogo.plantilla.actualizar` | `admin_plataforma` | ✅ |
 | PATCH | `api/plantillas/{id}/estado` | `CambiarEstadoPlantillaDocumentoRequestDto` | `PlantillaDocumentoResponseDto` | `catalogo.plantilla.estado` | `admin_plataforma` | ✅ |
+| GET | `api/plantillas-tarea?peligroId=` | — | `PlantillaTareaResponseDto[]` | `catalogo.plantilla_tarea.listar` | `admin_plataforma`, `soporte_plataforma` | ✅ |
+| POST | `api/plantillas-tarea` | `CrearPlantillaTareaRequestDto` | 201 `PlantillaTareaResponseDto` | `catalogo.plantilla_tarea.crear` | `admin_plataforma` | ✅ |
+| PATCH | `api/plantillas-tarea/{id}` | `ActualizarPlantillaTareaRequestDto` | `PlantillaTareaResponseDto` | `catalogo.plantilla_tarea.actualizar` | `admin_plataforma` | ✅ |
+| PATCH | `api/plantillas-tarea/{id}/estado` | `CambiarEstadoPlantillaTareaRequestDto` | `PlantillaTareaResponseDto` | `catalogo.plantilla_tarea.estado` | `admin_plataforma` | ✅ |
 
-Los filtros (`?rubroId=`, `?categoriaRiesgoId=`) son opcionales. Las listas incluyen los elementos desactivados, porque son pantallas de mantenimiento. Los catálogos iniciales vienen de HU-097 (`CatalogoBase`). Cuerpos JSON en el [anexo](#anexo-catalogos).
+Los filtros (`?rubroId=`, `?categoriaRiesgoId=`, `?peligroId=`) son opcionales. Las listas incluyen los elementos desactivados, porque son pantallas de mantenimiento. Los catálogos iniciales vienen de HU-097 (`CatalogoBase` y `CatalogoSst`). Cuerpos JSON en el [anexo](#anexo-catalogos).
 
 ### HU-024 | Listar empresas (Should)
 
@@ -997,7 +1001,8 @@ El lote completo responde **400** solo si `filas` está vacío o tiene más de 5
     "id": "01934150-....",
     "categoriaRiesgoId": "01934000-....",
     "texto": "¿Levantas cargas de más de 25 kg?",
-    "tipoRespuesta": "seleccion_unica",
+    "tipoRespuestaCodigo": "seleccion_unica",
+    "instruccionUi": "Seleccione una opción.",
     "obligatoria": true,
     "orden": 1,
     "peligroId": "01933000-....",
@@ -1016,7 +1021,7 @@ El lote completo responde **400** solo si `filas` está vacío o tiene más de 5
 {
   "categoriaRiesgoId": "01934000-....",
   "texto": "¿Levantas cargas de más de 25 kg?",
-  "tipoRespuesta": "seleccion_unica",
+  "tipoRespuestaCodigo": "seleccion_unica",
   "obligatoria": true,
   "peligroId": "01933000-....",
   "opciones": [
@@ -1028,7 +1033,7 @@ El lote completo responde **400** solo si `filas` está vacío o tiene más de 5
 
 Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front aplica las mismas en su esquema Zod:
 
-- `tipoRespuesta` es obligatorio.
+- `tipoRespuestaCodigo` es obligatorio.
 - `respuesta_breve`: `opciones` vacía y sin `peligroId`.
 - `seleccion_unica` y `seleccion_multiple`: de 2 a 20 opciones, sin `orden` ni texto repetidos.
 - Con `peligroId`, al menos una opción con `indicaExposicion: true`; sin `peligroId`, ninguna.
@@ -1036,7 +1041,7 @@ Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front apl
 
 `PATCH /api/preguntas/{id}` — `ActualizarPreguntaRequestDto`. Campos sueltos: `categoriaRiesgoId`, `texto`, `obligatoria`, `orden`. Si `orden` no se envía se conserva (o va al final si cambia de categoría); si otra pregunta ya lo tiene, responde 409 `catalogos.orden_ocupado`.
 
-`tipoRespuesta`, `peligroId` y `opciones` forman **un bloque**: para cambiar cualquiera se envían `tipoRespuesta` y `opciones` juntos, y entonces un `peligroId` ausente significa "sin peligro". Las opciones se reemplazan completas y reciben `id` nuevos. Las encuestas ya generadas no cambian, porque guardan su propia copia (RN-12).
+`tipoRespuestaCodigo`, `peligroId` y `opciones` forman **un bloque**: para cambiar cualquiera se envían `tipoRespuestaCodigo` y `opciones` juntos, y entonces un `peligroId` ausente significa "sin peligro". Las opciones se reemplazan completas y reciben `id` nuevos. Las encuestas ya generadas no cambian, porque guardan su propia copia (RN-12).
 
 ```json
 { "texto": "¿Con qué frecuencia levantas cargas pesadas?" }
@@ -1044,7 +1049,7 @@ Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front apl
 
 ```json
 {
-  "tipoRespuesta": "seleccion_unica",
+  "tipoRespuestaCodigo": "seleccion_unica",
   "peligroId": "01933000-....",
   "opciones": [
     { "texto": "Nunca", "orden": 1, "indicaExposicion": false },
@@ -1075,6 +1080,28 @@ Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front apl
 `PATCH /api/plantillas/{id}` — `ActualizarPlantillaDocumentoRequestDto`: `titulo`, `tipoDocumento`, `rubroId` (`0` = todos los rubros), `contenido`.
 
 `PATCH /api/plantillas/{id}/estado`: `{ "activo": false }`
+
+#### Plantillas de tarea
+
+Tareas modelo de cada peligro. Con `tipoControl`, Norvia la sugiere como **control** al definir los controles de un riesgo con ese peligro, de la más efectiva a la menos (HU-039, RN-76, RN-21). Sin tipo es una **tarea modelo**, que entra a la propuesta del plan (HU-042). Lo ya aceptado o generado en las empresas guarda su copia y no cambia al editar la plantilla.
+
+`GET /api/plantillas-tarea?peligroId={uuid}` → `PlantillaTareaResponseDto[]`. Por peligro: primero los controles por tipo (eliminación → EPP) y luego las tareas modelo, por título. Incluye las desactivadas.
+
+```json
+[{ "id": "...", "peligroId": "...", "tipoControl": "ingenieria", "titulo": "Encerrar o aislar las máquinas más ruidosas",
+   "descripcion": null, "prioridadSugerida": 2, "requiereEvidencia": true, "activa": true }]
+```
+
+`POST /api/plantillas-tarea` — `CrearPlantillaTareaRequestDto`: `peligroId` (activo), `tipoControl` (opcional: `eliminacion`, `sustitucion`, `ingenieria`, `administrativo`, `epp`), `titulo` (máx. 200), `descripcion` (máx. 2000), `prioridadSugerida` (1 alta a 3 baja) y `requiereEvidencia`. **400** `catalogos.peligro_invalido` si el peligro no existe o está inactivo.
+
+```json
+{ "peligroId": "...", "tipoControl": null, "titulo": "Hacer audiometrías al personal expuesto cada año",
+  "prioridadSugerida": 2, "requiereEvidencia": true }
+```
+
+`PATCH /api/plantillas-tarea/{id}` — `ActualizarPlantillaTareaRequestDto`, parcial: `tipoControl`, `quitarTipoControl` (`true` la vuelve tarea modelo; no se combina con `tipoControl`), `titulo`, `descripcion` (`""` la borra), `prioridadSugerida`, `requiereEvidencia`. El peligro no cambia.
+
+`PATCH /api/plantillas-tarea/{id}/estado`: `{ "activo": false }`. Desactivada, deja de sugerirse y de proponerse en el plan.
 
 #### `GET /api/plataforma/empresas` (HU-024)
 

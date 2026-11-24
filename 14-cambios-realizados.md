@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-023 completada en la web:** pantallas del staff para mantener categorías, preguntas (tipo, peligro y opciones de exposición), peligros, rubros y plantillas de documento; se agrega la API de **plantillas de tarea** (controles sugeridos y tareas modelo) y la **navegación de sección** del design system | [Ver cambio](#cambio-2026-11-24-hu-023-web) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-097 completada:** contenido SST inicial (12 categorías en los 4 rubros, 34 preguntas de los 3 tipos, 21 peligros y 94 plantillas de tareas), cargado al arrancar sin duplicar ni pisar lo que edite el staff. **Pendiente: revisión por alguien con conocimiento de SST** | [Ver cambio](#cambio-2026-11-24-hu-097-catalogos) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-041 implementada:** historial de todas las evaluaciones de un riesgo (iniciales y residuales) con fecha y autor, y la vigente de cada tipo marcada | [Ver cambio](#cambio-2026-11-24-hu-041-historial) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-046 implementada:** filtrar el plan por estado, vencidas, responsable, origen, prioridad y fecha límite; las vencidas se cuentan y se filtran con un toque. Los enums de la consulta aceptan snake_case | [Ver cambio](#cambio-2026-11-24-hu-046-filtrar-plan) |
@@ -56,6 +57,70 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-023-web` {#cambio-2026-11-24-hu-023-web}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (plantillas de tarea y corrección de `tipoRespuestaCodigo`), `design-system.md` y la guía visual (Navegación de sección). En el código: 4 casos de uso y 4 permisos de plantillas de tarea, la feature `catalogos` de la web, y los códigos de peligro del contenido de HU-097 en minúsculas |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-023 tenía backend desde el 15-11 (rubros, categorías, peligros, preguntas y plantillas de documento), pero no tenía pantallas: el staff solo podía mantener los catálogos con Postman.
+2. El equipo había dejado las plantillas de tarea sin API "para acotar la historia". Desde HU-097 son las que sugieren los controles (HU-039) y las tareas modelo del plan (HU-042), y solo se podían corregir editando el código.
+3. Los códigos de peligro sembrados en HU-097 (`LOC-CAIDA-NIVEL`) no cumplían la regla de la administración (minúsculas, números y guion bajo).
+4. El contrato de preguntas decía `tipoRespuesta`; la API usa `tipoRespuestaCodigo`.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **API de plantillas de tarea** (decidido por el equipo) | `api/plantillas-tarea` con listar (por peligro), crear, editar (parcial, con `quitarTipoControl` para volverla tarea modelo) y activar o desactivar; permisos `catalogo.plantilla_tarea.*`, consulta también para soporte | El staff corrige el contenido de SST sin programar. Lo ya aceptado o generado en las empresas guarda su copia |
+| **Plantillas dentro de cada peligro** | Desde la lista de peligros se entra al peligro, que muestra sus controles sugeridos (por efectividad) y sus tareas modelo | La plantilla tiene sentido junto a su peligro; la lista dice cuántas tiene cada uno |
+| **Área "Catálogos" con navegación de sección** | Categorías, Preguntas, Peligros y plantillas, Rubros y Plantillas de documento, cada una con su URL. Componente nuevo del design system | Un área de mantenimiento con pantallas hermanas; la URL permite enlazar (por ejemplo, "Preguntas" de una categoría) |
+| **Soporte solo consulta** | `soporte_plataforma` ve todo con un aviso y sin botones de cambio; el formulario de documento se muestra deshabilitado | Igual que los permisos del backend |
+| **Editor de preguntas en página propia** | Tipo con explicación, "Es obligatoria", peligro con búsqueda y opciones con subir, bajar, quitar y "Indica exposición" (solo si hay peligro). Las reglas de RN-68 están también en Zod | Es el formulario más complejo; en un modal no cabe cómodo |
+| **El bloque de respuesta solo se envía si cambió** | Editar solo el texto no reemplaza las opciones | Conservan su id; el backend reemplaza las opciones completas cuando llega el bloque |
+| **Simples en modal** | Rubros, categorías, peligros y plantillas de tarea se crean y editan en un modal; activar o desactivar es una acción directa, sin confirmación | No se borra nada: desactivar se revierte con "Activar" |
+| **Códigos de HU-097 en minúsculas** | `loc_caida_nivel`, etc. Los Id siguen saliendo de la forma anterior del código | Una base ya sembrada no duplica nada |
+
+### Cómo quedó (resumen)
+
+- **Backend:** `GET/POST /api/plantillas-tarea`, `PATCH /api/plantillas-tarea/{id}` y `…/estado`.
+- **Web (`/catalogos`, enlace "Catálogos" en Inicio para el staff):**
+  - **Categorías:** filtro por rubro y enlace a sus preguntas.
+  - **Preguntas:** por categoría, con su tipo, si es obligatoria, el peligro que detecta y las opciones que indican exposición; editor aparte.
+  - **Peligros y plantillas:** búsqueda sin tildes y filtro por clasificación; el detalle del peligro administra sus plantillas.
+  - **Rubros y plantillas de documento,** esta última con un editor de contenido que admite `{{RazonSocial}}`.
+  - **Errores junto al campo:** código o nombre repetidos, y referencias desactivadas.
+
+### Trabajo hecho
+
+- Se implementó la API de plantillas de tarea con 8 pruebas nuevas:
+  - orden por peligro;
+  - edición parcial y cambio entre control y tarea modelo;
+  - una desactivada deja de sugerirse en los riesgos;
+  - validaciones y peligro inactivo;
+  - una sesión de empresa recibe 403.
+
+  Pasan las 200 pruebas del backend (y las de HU-097 con los códigos nuevos).
+- Se construyó la web y se probó de punta a punta contra la API real, con el contenido de HU-097 cargado (8 casos):
+  - categorías por rubro;
+  - categoría nueva y nombre repetido;
+  - pregunta con peligro, opciones repetidas y exposición;
+  - editar el texto sin cambiar las opciones;
+  - plantillas de un peligro (crear, pasar a tarea modelo, desactivar);
+  - rubros y plantillas de documento;
+  - soporte solo consulta;
+  - celular y modo oscuro.
+
+  Siguen pasando los e2e de HU-039 y HU-097.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-023 | Solo backend, sin plantillas de tarea | Pantallas para todo el catálogo, incluidas las plantillas de tarea de cada peligro; soporte en consulta |
 
 ## Cambio `2026-11-24-hu-097-catalogos` {#cambio-2026-11-24-hu-097-catalogos}
 

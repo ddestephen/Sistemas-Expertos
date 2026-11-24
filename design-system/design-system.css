@@ -895,3 +895,9 @@ svg.icon-32 { width: 32px; height: 32px; }
 .link.link-inherit, .link.link-inherit:hover { color: inherit; text-decoration: underline; }
 .search-box { width: 220px; max-width: 100%; }
 .panel-body { padding: 0 var(--space-6) var(--space-6); }
+
+/* Navegación de sección (design-system.md § Navegación de sección) */
+.seccion-demo { display: flex; gap: var(--space-4); overflow-x: auto; width: 100%; border-bottom: 1px solid var(--color-border-default); }
+.seccion-demo a { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: -1px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; white-space: nowrap; }
+.seccion-demo a:hover { color: var(--color-text-primary); }
+.seccion-demo a[aria-current="page"] { color: var(--color-text-selected); border-bottom-color: var(--color-text-selected); }

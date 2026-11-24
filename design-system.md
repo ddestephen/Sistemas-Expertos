@@ -523,6 +523,18 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 - **"Vencida" no es un estado guardado:** es una tarea pendiente o en progreso con la fecha límite
   pasada. Se muestran dos badges ("En progreso" + "Vencida") para no perder el estado.
 
+### Navegación de sección
+
+Para moverse entre las partes de un área con varias pantallas hermanas, como los catálogos del staff (HU-023).
+
+| Parte | Decisión |
+|---|---|
+| Forma | Enlaces en una fila, sobre una línea `--color-border-default`, debajo del título del área. No son botones ni pestañas de contenido: cada uno es una página con su URL |
+| Texto | Label (14px Medium) en `--color-text-secondary`; al pasar el cursor, `--color-text-primary` |
+| Actual | `aria-current="page"`, texto `--color-text-selected` y barra inferior de 2px del mismo color. El color de marca no comunica estados (badges), pero sí indica dónde se está, como en la lista del select |
+| Alto | 44px (`--control-height-touch`), también en escritorio, para que el área de toque sea cómoda |
+| Celular | La fila se desplaza en horizontal si no cabe, sin ensanchar la página ni partir las palabras |
+
 ### Campo de fecha
 
 Usos: fecha y hora del accidente; fecha límite de una tarea (sin hora).
