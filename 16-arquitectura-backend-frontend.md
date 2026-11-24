@@ -259,6 +259,7 @@ Request → ValidacionFiltro → IValidator<Request> (FluentValidation)
    Así se cumple el criterio de la rúbrica: "middleware que intercepta FluentValidation".
 3. **Los fallos de negocio no son excepciones.** El servicio devuelve `Resultado<T>` con un `Error(Codigo, Mensaje, TipoError)`. `TipoError` es uno de `Validacion`, `NoAutorizado`, `Prohibido`, `NoEncontrado`, `Conflicto`, y se traduce a 400/401/403/404/409 en `ResultadoExtensiones`, también como ProblemDetails. `Resultado<T>` tiene conversiones implícitas desde `T` (éxito) y desde `Error` (fallo); por eso el ejemplo de la sección 3 puede hacer `return Errores.CredencialesInvalidas;`. Los errores de cada módulo se declaran como campos estáticos en una clase `Errores` del módulo (`Features/Auth/Errores.cs`), compartida solo por los slices de ese módulo.
 4. **Simetría con el frontend:** cada validador tiene su esquema Zod equivalente en la feature del frontend (sección 9).
+5. **Enums como texto en snake_case, también en la consulta:** el JSON los escribe y lee en snake_case (`en_progreso`, `seleccion_unica`), igual que la BD. Para los filtros que llegan como parámetros (`[FromQuery]`, p. ej. `?estado=en_progreso`), `EnumSnakeCaseBinder` (API, `Binding/`) acepta el mismo formato y rechaza números y valores desconocidos con un 400. Sin él, el binder de ASP.NET Core solo entiende el nombre del enum (`EnProgreso`) y acepta números.
 
 ## 8. Configuración
 

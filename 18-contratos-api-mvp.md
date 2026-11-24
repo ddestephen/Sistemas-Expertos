@@ -255,7 +255,7 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-047 | POST | `api/eventos/{id}/evidencias` | Adjuntar evidencias (`Archivo`; pendiente `HU-100` almacenamiento externo) | 🚧 |
 | HU-042 | GET | `api/plan-trabajo/propuesta` | Vista previa del plan (permiso `plan.propuesta`) | ✅ |
 | HU-042 | POST | `api/plan-trabajo/generacion` | Confirmar el plan (permiso `plan.generar`) | ✅ |
-| HU-042 | GET | `api/plan-trabajo/tareas` | Tareas del plan, sin filtros todavía (permiso `tarea.listar`) | ✅ |
+| HU-042, HU-046 | GET | `api/plan-trabajo/tareas?…` | Tareas del plan con filtros (permiso `tarea.listar`) | ✅ |
 | HU-043 | POST | `api/plan-trabajo/tareas` | Crear una tarea manual, ya asignada (permiso `tarea.crear`) | ✅ |
 | HU-043 | PUT | `api/plan-trabajo/tareas/{id}/asignacion` | Asignar o reasignar responsable y fecha límite (permiso `tarea.asignar`) | ✅ |
 | HU-043 | GET | `api/plan-trabajo/responsables` | A quién se le puede asignar una tarea (permiso `tarea.responsables`) | ✅ |
@@ -376,7 +376,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-044 | GET | `/api/plan-trabajo/tareas/mias` | — | array | Plan |
 | HU-044 | PATCH | `/api/plan-trabajo/tareas/{id}/estado` | JSON | `TareaResponseDto` | Plan |
 | HU-045 | POST | `/api/plan-trabajo/tareas/{id}/evidencias` | multipart | JSON | Plan |
-| HU-046 | GET | `/api/plan-trabajo/tareas` | filtros query | array | Plan |
+| HU-046 | GET | `/api/plan-trabajo/tareas` | filtros query | `TareaResponseDto[]` | Plan |
 | HU-047 | POST | `/api/eventos` | JSON | JSON | Eventos |
 | HU-047 | POST | `/api/eventos/{id}/evidencias` | multipart | JSON | Eventos *(pendiente HU-100)* |
 | HU-047 | GET | `/api/eventos` | query opcional | array | Eventos |
@@ -1795,9 +1795,23 @@ Confirma el plan con las tareas elegidas de la propuesta. Las que se desmarcaron
 
 *(Antes el contrato tenía `incluirControlesPropuestos`, `incluirPlantillasRubro` y devolvía un `planId`. No hay entidad de plan ni plantillas por rubro: el plan son las tareas de la empresa.)*
 
-#### `GET /api/plan-trabajo/tareas` (HU-042; filtros en HU-046) — ✅
+#### `GET /api/plan-trabajo/tareas` (HU-042, HU-046) — ✅
 
-Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro de cada riesgo, controles por efectividad y luego tareas modelo. Los filtros (`estado`, `prioridad`, `responsableId`) llegan con HU-046.
+Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro de cada riesgo, controles por efectividad y luego tareas modelo.
+
+**Filtros (parámetros de la consulta, `FiltrosTareasDto`; todos opcionales y combinables):**
+
+| Parámetro | Valores | Filtra |
+|---|---|---|
+| `estado` | `pendiente`, `en_progreso`, `completada`, `cancelada` | El estado guardado |
+| `vencidas` | `true` | Pendientes o en progreso con la fecha límite antes de hoy (fecha de Honduras). "Vencida" no es un estado guardado |
+| `responsableId` | uuid | Las de esa persona |
+| `sinResponsable` | `true` | Las que todavía no tienen responsable |
+| `origen` | `riesgo`, `accidente`, `manual` | De dónde sale (RN-23) |
+| `prioridad` | 1, 2, 3 | Alta, media, baja |
+| `fechaDesde`, `fechaHasta` | aaaa-mm-dd | Fecha límite en el rango, incluidas; las tareas sin fecha quedan fuera |
+
+**400** si se combinan `vencidas` con `estado` `completada` o `cancelada`, `responsableId` con `sinResponsable`, o `fechaDesde` después de `fechaHasta`; también si un valor no es válido (p. ej. `prioridad=4` u `origen=otro`).
 
 **Response 200:**
 

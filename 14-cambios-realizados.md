@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-046 implementada:** filtrar el plan por estado, vencidas, responsable, origen, prioridad y fecha límite; las vencidas se cuentan y se filtran con un toque. Los enums de la consulta aceptan snake_case | [Ver cambio](#cambio-2026-11-24-hu-046-filtrar-plan) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-044 implementada:** "Mis tareas" para atender las tareas asignadas (pendiente, en progreso, completada y reabrir), solo por su responsable o el Responsable SST (**RN-24**), sin completar las que piden evidencia (**RN-25**) | [Ver cambio](#cambio-2026-11-24-hu-044-mis-tareas) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-043 implementada:** asignar responsable y fecha límite a cada tarea (solo personas activas de la empresa, sin encuestados), crear tareas manuales y marcar las vencidas; primer **campo de fecha** del design system en el código | [Ver cambio](#cambio-2026-11-24-hu-043-asignar) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-042 implementada:** generar el plan de trabajo desde los riesgos evaluados y sus controles (y las tareas modelo del peligro), revisarlo desmarcando tareas y confirmarlo sin duplicar; tabla `Tarea` creada en el código | [Ver cambio](#cambio-2026-11-24-hu-042-plan) |
@@ -53,6 +54,60 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-046-filtrar-plan` {#cambio-2026-11-24-hu-046-filtrar-plan}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (filtros de `GET /api/plan-trabajo/tareas`), `16-arquitectura-backend-frontend.md` §7 (enums de la consulta en snake_case). En el código: filtros de `ListarTareas`, `EnumSnakeCaseBinder` en la API y los filtros del plan en la web |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-046 pide filtrar las tareas del plan por estado, responsable, origen y fecha, y que las vencidas se distingan claramente.
+2. Al probar `?estado=en_progreso`, la API respondía 400. El JSON usa los enums en snake_case, pero el binder de la consulta de ASP.NET Core solo entiende el nombre del enum (`EnProgreso`) y además acepta números. Los filtros de la matriz no lo habían mostrado porque sus valores eran de una sola palabra (`critico`, `locativo`).
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Filtros en el backend** | `estado`, `vencidas`, `responsableId`, `sinResponsable`, `origen`, `prioridad`, `fechaDesde` y `fechaHasta`, validados con FluentValidation | Igual que en la matriz (HU-038): cualquier cliente filtra igual |
+| **"Vencidas" como filtro** | Pendientes o en progreso con la fecha límite antes de hoy en Honduras; en la web es una opción más del filtro de estado | Lo urgente, en un toque. No es un estado guardado (design system) |
+| **Las vencidas se ven** | Además del badge "Vencida" (HU-043), junto al total de la lista va "N vencidas" en rojo, que filtra al tocarlo | "Se distinguen claramente" sin buscarlas |
+| **"Sin responsable" y prioridad** | Se agregaron también: el primero para encontrar lo que falta asignar; la prioridad la pedía el contrato anterior | Completan la revisión del plan |
+| **Enums de la consulta en snake_case** | `EnumSnakeCaseBinder` acepta `en_progreso` en la consulta, igual que el JSON, y rechaza números y valores desconocidos (400) | Un solo formato en toda la API; ningún filtro futuro vuelve a tropezar con esto |
+| **Fecha del filtro** | Se escribe o se elige con el campo de fecha (HU-043). A medio escribir no filtra; si no existe o el rango es imposible, se avisa y no se filtra | No aparecen errores mientras se escribe |
+
+### Cómo quedó (resumen)
+
+- **Backend:** `GET /api/plan-trabajo/tareas` con los filtros anteriores, y el binder de enums para toda la API.
+- **Web, plan de trabajo:**
+  - **Filtros:** estado (con "Vencidas"), responsable (con "Sin responsable"), origen, prioridad, y "Vence desde" y "Vence hasta". Filtran al momento.
+  - **Junto al total:** "N vencidas" (filtra) y "Quitar filtros".
+  - **Sin resultados:** "No hay tareas con esos filtros", con "Quitar filtros".
+
+### Trabajo hecho
+
+- Se implementó el backend con 9 pruebas nuevas:
+  - cada filtro y sus combinaciones;
+  - qué cuenta como vencida;
+  - filtros contradictorios o inválidos;
+  - aislamiento entre empresas.
+
+  Pasan las 186 pruebas del backend, también las de los filtros que ya existían (riesgos y eventos).
+- Se probó la web de punta a punta contra la API real (5 casos):
+  - conteo y badge de vencidas;
+  - enlace de vencidas y "Quitar filtros";
+  - estado, responsable, origen y prioridad, también combinados;
+  - rango de fechas con sus avisos;
+  - celular y modo oscuro.
+
+  Siguen pasando los e2e de HU-038, HU-042, HU-043 y HU-044. El de HU-043 se ajustó porque ahora la página también tiene selects de filtro.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-046 | Sin filtros; el contrato solo nombraba estado, prioridad y responsable | Filtros por estado, vencidas, responsable, origen, prioridad y fecha; vencidas contadas y filtrables con un toque |
 
 ## Cambio `2026-11-24-hu-044-mis-tareas` {#cambio-2026-11-24-hu-044-mis-tareas}
 
