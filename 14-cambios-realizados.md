@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** cómo se adapta una **tabla con acción por fila** en celular (pantalla de personas, HU-021) | [Ver cambio](#cambio-2026-11-23-design-system-tabla-celular) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** cómo se muestran los **peligros sugeridos** de una encuesta (HU-033) en la pantalla de resultados y qué badge lleva cada sugerencia | [Ver cambio](#cambio-2026-11-23-design-system-peligros-sugeridos) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** colores para datos (`--color-dato-serie` y `--color-dato-pista`, en claro y oscuro), cómo se muestran los **resultados de una encuesta** (lista de medidores, respuestas breves en orden alfabético) y una excepción del select para controles que se repiten por fila | [Ver cambio](#cambio-2026-11-23-design-system-datos) |
 | 2026-11-22 | Jesús Zepeda | **HU-047 (backend)** implementada: reporte anónimo de eventos (`POST /api/eventos` para los 4 roles activos) y consulta con filtros para `admin_empresa` y `responsable_sst` (`GET /api/eventos`, `GET /api/eventos/{id}`), dejando evidencias marcadas como pendientes de `HU-100` | [Ver cambio](#cambio-2026-11-22-hu-047-backend) |
@@ -41,6 +42,33 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-design-system-tabla-celular` {#cambio-2026-11-23-design-system-tabla-celular}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `design-system.md` (Estados de componentes, fila "Fila de tabla"). No cambia el modelo de datos, las reglas de negocio ni las historias |
+
+### El problema (por qué hubo que cambiar)
+
+1. En la lista de personas (HU-021), cada fila tiene la acción "Editar acceso" en la última columna.
+2. En celular, la tabla se desplazaba de lado y esa acción quedaba fuera de la pantalla: había que desplazar la tabla para encontrarla.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Columnas secundarias debajo del dato principal** | En celular se ocultan las columnas secundarias (rol, estado, fecha) y el rol y el estado pasan debajo del nombre | La fila cabe en el ancho de la pantalla y la acción queda a la vista |
+
+### Cómo quedó (resumen)
+
+- `design-system.md`: la fila "Fila de tabla" de Estados de componentes describe el comportamiento en celular.
+
+### Trabajo hecho
+
+- Se documentó la decisión y se comprobó en la lista de personas que, a 390px de ancho, la acción de cada fila queda dentro de la pantalla y la página no se desplaza de lado.
 
 ## Cambio `2026-11-23-design-system-peligros-sugeridos` {#cambio-2026-11-23-design-system-peligros-sugeridos}
 

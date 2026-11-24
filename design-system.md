@@ -408,7 +408,7 @@ borde `--color-border-default` (si tiene), cursor no permitido.
 | Radio | fondo `--color-bg-surface`, borde `--color-border-input`, círculo 16px, `--radius-full` | borde `--color-border-input-hover` | Seleccionado: fondo `--color-action-primary`, punto central 6px `--color-text-on-brand` | Texto Cuerpo a `--space-2`; el texto también selecciona. Área tocable ≥ 44px en celular |
 | Área de texto | igual que el input; padding `--space-3` | igual que el input | — | Mínimo 3 líneas (~80px), crece hasta ~8 y luego desplaza; sin tirador. Contador opcional (ver abajo) |
 | Ítem de menú | texto `--color-text-secondary` | fondo `--color-bg-subtle`, texto `--color-text-primary` | Seleccionado: fondo `--color-bg-selected`, texto `--color-text-selected` | — |
-| Fila de tabla | fondo `--color-bg-surface` | fondo `--color-bg-subtle` | Seleccionada: fondo `--color-bg-selected` | — |
+| Fila de tabla | fondo `--color-bg-surface` | fondo `--color-bg-subtle` | Seleccionada: fondo `--color-bg-selected` | En celular, las columnas secundarias se ocultan y su dato (por ejemplo, rol y estado) baja debajo del dato principal, para que la acción de la fila quede a la vista sin desplazar la tabla |
 | Card clickeable | borde `--color-border-default`, sin sombra | `--shadow-1` + borde `--color-border-strong` | — | — |
 
 Badges, avisos y toasts no son interactivos: tienen variantes por tipo, no estados.
