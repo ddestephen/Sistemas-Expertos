@@ -134,6 +134,30 @@ Para las barras de los gráficos (por ahora, los resultados de una encuesta). No
 - **En oscuro la pista es más oscura que la barra:** con un tono cercano, una opción con 0 % parecía una barra llena.
 - **Si un gráfico necesita varias series,** se agregan colores de la misma paleta de visualización en orden fijo, se validan y se documentan aquí antes de usarlos.
 
+### Semánticas: riesgo
+
+Los cuatro niveles de RN-16, con nivel = probabilidad × severidad (RN-15). Es el semáforo de las matrices de riesgo de SST (IPER, GTC 45): quien las usa lo lee sin leyenda.
+
+| Variable | Valor | Nivel | Texto encima (`--color-riesgo-{nivel}-texto`) |
+|---|---|---|---|
+| `--color-riesgo-bajo` | `#22C55E` | Bajo (1–4) | `#1D1D27`, 7.3:1 |
+| `--color-riesgo-medio` | `#FACC15` | Medio (5–9) | `#1D1D27`, 10.9:1 |
+| `--color-riesgo-alto` | `#F97316` | Alto (10–14) | `#1D1D27`, 6.0:1 |
+| `--color-riesgo-critico` | `#DC2645` | Crítico (15–25) | `#FFFFFF`, 4.8:1 |
+
+- **Los mismos valores en claro y en oscuro,** también los de texto. El texto encima es fijo: no usa `--color-text-primary`, que se invierte en oscuro.
+- **No se parecen a los avisos:**
+  - medio es amarillo, no el ámbar de advertencia;
+  - alto es naranja, que los avisos no usan;
+  - crítico tira a carmesí, distinto del rojo de error (`#DC2626`).
+- **Validación (validate_palette.js):**
+  - Con visión normal, los cuatro se distinguen: el par más cercano, crítico y alto, está en ΔE 16.
+  - Contra la superficie oscura (`#1D1D27`) todos pasan 3:1.
+  - Contra el blanco, verde, amarillo y naranja no llegan a 3:1, así que siempre llevan texto y separación.
+  - En deuteranopia, verde y naranja quedan en ΔE 6.2: ningún semáforo pasa esa prueba.
+- **Por eso el color de riesgo nunca va solo:** siempre se muestra con el nombre del nivel y el número.
+- **Dónde se usa:** solo en la etiqueta de riesgo y en el mapa de calor (ver Estados de componentes). Nunca en botones, fondos de página ni texto.
+
 ### Reglas de color
 
 1. Un solo botón principal (violeta) por pantalla o sección; el resto, secundarios.
@@ -381,8 +405,7 @@ Misma forma, con negro y más opacidad:
 
 ### Riesgo
 
-Al definir los colores de riesgo, hacerlo en los dos modos: las variantes sólidas probablemente
-sirvan en ambos; las suaves (badges) necesitan versión oscura, como los avisos.
+Los mismos valores que en claro, incluido el color del texto encima (ver "Semánticas: riesgo"). No hay variantes suaves: la etiqueta de riesgo es neutra y solo su cuadrado lleva el color, así que no necesita versión oscura.
 
 ---
 
@@ -576,6 +599,38 @@ Los resultados anónimos de una encuesta: indicadores arriba y, debajo, una sola
 
 No se usan tortas ni donas: las barras sobre una misma base se comparan mejor.
 
+### Etiqueta de riesgo
+
+Muestra la clasificación de un riesgo en listas, tablas y detalle.
+
+| Parte | Decisión |
+|---|---|
+| Forma | Chip neutro, como un badge: fondo `--color-bg-subtle`, borde `--color-border-default`, `--radius-sm`, Caption Medium |
+| Color | Solo un cuadrado de 10px con `--color-riesgo-{nivel}` y `--radius-sm`, a la izquierda del texto |
+| Texto | "Alto · 12": nivel y número, en `--color-text-primary` y con cifras tabulares. Nunca en el color del riesgo |
+| Sin evaluar | "Sin evaluar", sin cuadrado y en `--color-text-secondary` |
+
+- **No es un badge de color:** así "Bajo" no se confunde con "Activo" (éxito) ni "Crítico" con un error.
+- **Los badges de estado siguen aparte:** un riesgo puede llevar los dos, por ejemplo "Alto · 12" y "Por revisar".
+
+### Mapa de calor de riesgo
+
+La matriz de probabilidad × severidad, de 5 × 5. Se usa en tres lugares:
+- en la matriz (HU-038), para ver cuántos riesgos hay en cada celda;
+- al evaluar (HU-037), para elegir la celda;
+- en el PDF (HU-075).
+
+| Parte | Decisión |
+|---|---|
+| Ejes | Severidad en horizontal (1 → 5) y probabilidad en vertical (5 arriba). Títulos "Severidad" y "Probabilidad" en Label, números en Caption `--color-text-secondary` |
+| Celda | Mínimo 44px, fondo `--color-riesgo-{nivel}` según P × S, separación de 2px (el fondo de la card entre celdas), `--radius-sm` |
+| Contenido | En la matriz, la cantidad de riesgos (en negrita; vacía si no hay); al evaluar, el número P × S. Siempre en `--color-riesgo-{nivel}-texto` |
+| Leyenda | Debajo, los cuatro niveles con su cuadrado, nombre y rango ("Alto 10–14") |
+| Elegir (HU-037) | Cada celda es un radio: Tab entra al grupo y las flechas se mueven. El foco y la celda elegida llevan un anillo de 2px `--color-text-primary` por dentro y un halo de 2px del fondo, para que se vea sobre cualquier color. Se anuncia "Probabilidad 3, severidad 4: nivel 12, alto" |
+| Ver (HU-038) | Una celda con riesgos es un botón que filtra la lista a esos riesgos; se anuncia "Probabilidad 3, severidad 4: 2 riesgos, alto" |
+| Celular | El título "Probabilidad" pasa arriba del mapa, en horizontal; así cabe en 390px sin reducir las celdas de 44px |
+| Impresión | Se imprimen los colores (`print-color-adjust: exact`); el número y la leyenda permiten leerla en blanco y negro |
+
 **Guía visual:** `documentacion-proyecto-final/design-system/index.html` muestra cada decisión con su ejemplo,
 anotaciones superpuestas (activables) y todos los estados. Usa exactamente estas variables.
 Sus estilos están en `design-system.css` y su comportamiento en `design-system.js`, en la misma carpeta.
@@ -689,7 +744,6 @@ parecido con los colores de riesgo, y un botón para volver al tema por defecto.
 
 ## Pendientes
 
-- **Colores de riesgo** (bajo → crítico): pospuesto. Falta definir cuántos niveles usa la metodología (3, 4 o 5).
 - **Organización en Figma** (paso 2): estructura del archivo y variables.
 - **Breakpoints** exactos de celular / tablet / escritorio.
 - **Modo oscuro:** valores definidos (ver sección); falta revisar todas las pantallas en oscuro antes de lanzarlo, después del primer entregable.

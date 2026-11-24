@@ -119,7 +119,7 @@
         </div>
       </div>
       <div class="note"><svg class="icon"><use href="#i-info"/></svg><span><b>Datos (gráficos):</b> <span class="tok">--color-dato-serie</span> y <span class="tok">--color-dato-pista</span> salen de la paleta de visualización (azul) y no de la marca: el violeta significa "acción". Validados contra <span class="tok">--color-bg-surface</span> en claro y en oscuro. Un gráfico de una sola serie usa un solo tono y no lleva leyenda.</span></div>
-      <div class="note"><svg class="icon"><use href="#i-info"/></svg><span><b>Colores de riesgo:</b> pendientes. Se definen cuando esté decidida la cantidad de niveles de la metodología (3, 4 o 5).</span></div>
+      <div class="note"><svg class="icon"><use href="#i-info"/></svg><span><b>Riesgo:</b> semáforo de cuatro niveles (RN-16), <span class="tok">--color-riesgo-bajo</span> <span class="tok">-medio</span> <span class="tok">-alto</span> <span class="tok">-critico</span>, iguales en claro y en oscuro y distintos de los avisos. Siempre con el nivel y el número: ver <a class="link" href="#componentes">Riesgo: etiqueta y mapa de calor</a>.</span></div>
     </section>
 
     <!-- ============================================================ -->
@@ -644,6 +644,79 @@
           <li><span class="pin-static">A</span><span><b>Respuestas breves</b> sin autor y en orden alfabético<br><span class="tok">--color-bg-subtle</span> <span class="tok">--radius-md</span></span></li>
           <li><span class="pin-static">3</span><span><b>Menos de 3 respuestas:</b> solo totales y un aviso info que explica el anonimato</span></li>
           <li><span class="pin-static">!</span><span><b>Peligros sugeridos:</b> card propia entre los indicadores y el detalle; por peligro, badge de estado (Por revisar · En la matriz · Descartado), respaldo "N de T respuestas · %" con la misma barra y las preguntas que lo originaron; orden por respaldo</span></li>
+        </ul>
+      </div>
+
+      <!-- Riesgo -->
+      <div class="sub"><h3 class="t-h2">Riesgo: etiqueta y mapa de calor</h3><p class="muted">Semáforo de cuatro niveles (RN-16) con los mismos valores en claro y en oscuro. El color nunca va solo: siempre lo acompañan el nivel y el número.</p></div>
+      <div class="panel anatomy">
+        <div class="anatomy-stage">
+          <div class="stage-stack">
+            <div class="card survey">
+              <div class="t-label">Etiqueta de riesgo</div>
+              <div class="demo-row mt-2">
+                <span class="riesgo-tag"><span class="riesgo-sq heat-bajo"></span>Bajo · 3</span>
+                <span class="riesgo-tag"><span class="riesgo-sq heat-medio"></span>Medio · 8</span>
+                <span class="riesgo-tag"><span class="riesgo-sq heat-alto"></span>Alto · 12</span>
+                <span class="riesgo-tag"><span class="riesgo-sq heat-critico"></span>Crítico · 20</span>
+                <span class="riesgo-tag muted">Sin evaluar</span>
+              </div>
+            </div>
+            <div class="card survey">
+              <div class="t-label">Evaluar: elige probabilidad y severidad</div>
+              <div class="heat mt-4" role="radiogroup" aria-label="Probabilidad por severidad">
+                <span class="heat-title-y">Probabilidad</span>
+                <div class="heat-grid">
+              <span class="heat-axis-n">5</span>
+              <span class="heat-cell heat-medio" role="radio" aria-checked="false" aria-label="Probabilidad 5, severidad 1: nivel 5, medio">5</span>
+              <span class="heat-cell heat-alto" role="radio" aria-checked="false" aria-label="Probabilidad 5, severidad 2: nivel 10, alto">10</span>
+              <span class="heat-cell heat-critico" role="radio" aria-checked="false" aria-label="Probabilidad 5, severidad 3: nivel 15, crítico">15</span>
+              <span class="heat-cell heat-critico" role="radio" aria-checked="false" aria-label="Probabilidad 5, severidad 4: nivel 20, crítico">20</span>
+              <span class="heat-cell heat-critico" role="radio" aria-checked="false" aria-label="Probabilidad 5, severidad 5: nivel 25, crítico">25</span>
+              <span class="heat-axis-n">4</span>
+              <span class="heat-cell heat-bajo" role="radio" aria-checked="false" aria-label="Probabilidad 4, severidad 1: nivel 4, bajo">4</span>
+              <span class="heat-cell heat-medio" role="radio" aria-checked="false" aria-label="Probabilidad 4, severidad 2: nivel 8, medio">8</span>
+              <span class="heat-cell heat-alto" role="radio" aria-checked="false" aria-label="Probabilidad 4, severidad 3: nivel 12, alto">12</span>
+              <span class="heat-cell heat-critico" role="radio" aria-checked="false" aria-label="Probabilidad 4, severidad 4: nivel 16, crítico">16</span>
+              <span class="heat-cell heat-critico" role="radio" aria-checked="false" aria-label="Probabilidad 4, severidad 5: nivel 20, crítico">20</span>
+              <span class="heat-axis-n">3</span>
+              <span class="heat-cell heat-bajo" role="radio" aria-checked="false" aria-label="Probabilidad 3, severidad 1: nivel 3, bajo">3</span>
+              <span class="heat-cell heat-medio" role="radio" aria-checked="false" aria-label="Probabilidad 3, severidad 2: nivel 6, medio">6</span>
+              <span class="heat-cell heat-medio" role="radio" aria-checked="false" aria-label="Probabilidad 3, severidad 3: nivel 9, medio">9</span>
+              <span class="heat-cell heat-alto is-selected" role="radio" aria-checked="true" aria-label="Probabilidad 3, severidad 4: nivel 12, alto">12</span>
+              <span class="heat-cell heat-critico" role="radio" aria-checked="false" aria-label="Probabilidad 3, severidad 5: nivel 15, crítico">15</span>
+              <span class="heat-axis-n">2</span>
+              <span class="heat-cell heat-bajo" role="radio" aria-checked="false" aria-label="Probabilidad 2, severidad 1: nivel 2, bajo">2</span>
+              <span class="heat-cell heat-bajo" role="radio" aria-checked="false" aria-label="Probabilidad 2, severidad 2: nivel 4, bajo">4</span>
+              <span class="heat-cell heat-medio" role="radio" aria-checked="false" aria-label="Probabilidad 2, severidad 3: nivel 6, medio">6</span>
+              <span class="heat-cell heat-medio" role="radio" aria-checked="false" aria-label="Probabilidad 2, severidad 4: nivel 8, medio">8</span>
+              <span class="heat-cell heat-alto" role="radio" aria-checked="false" aria-label="Probabilidad 2, severidad 5: nivel 10, alto">10</span>
+              <span class="heat-axis-n">1</span>
+              <span class="heat-cell heat-bajo" role="radio" aria-checked="false" aria-label="Probabilidad 1, severidad 1: nivel 1, bajo">1</span>
+              <span class="heat-cell heat-bajo" role="radio" aria-checked="false" aria-label="Probabilidad 1, severidad 2: nivel 2, bajo">2</span>
+              <span class="heat-cell heat-bajo" role="radio" aria-checked="false" aria-label="Probabilidad 1, severidad 3: nivel 3, bajo">3</span>
+              <span class="heat-cell heat-bajo" role="radio" aria-checked="false" aria-label="Probabilidad 1, severidad 4: nivel 4, bajo">4</span>
+              <span class="heat-cell heat-medio" role="radio" aria-checked="false" aria-label="Probabilidad 1, severidad 5: nivel 5, medio">5</span>
+              <span></span><span class="heat-axis-n">1</span><span class="heat-axis-n">2</span><span class="heat-axis-n">3</span><span class="heat-axis-n">4</span><span class="heat-axis-n">5</span>
+                </div>
+                <span class="heat-title-x">Severidad</span>
+              </div>
+              <ul class="heat-legend">
+                <li><span class="riesgo-sq heat-bajo"></span>Bajo 1–4</li>
+                <li><span class="riesgo-sq heat-medio"></span>Medio 5–9</li>
+                <li><span class="riesgo-sq heat-alto"></span>Alto 10–14</li>
+                <li><span class="riesgo-sq heat-critico"></span>Crítico 15–25</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">■</span><span><b>Colores</b> bajo, medio, alto y crítico; iguales en claro y en oscuro<br><span class="tok">--color-riesgo-bajo</span> <span class="tok">-medio</span> <span class="tok">-alto</span> <span class="tok">-critico</span></span></li>
+          <li><span class="pin-static">A</span><span><b>Texto encima fijo:</b> oscuro sobre verde, amarillo y naranja; blanco sobre crítico<br><span class="tok">--color-riesgo-{nivel}-texto</span></span></li>
+          <li><span class="pin-static">▫</span><span><b>Etiqueta neutra:</b> solo el cuadrado lleva color; el texto "Alto · 12" va en texto principal, para no confundirse con los badges de estado</span></li>
+          <li><span class="pin-static">#</span><span><b>Celda de 44px</b> con el número P × S (al evaluar) o la cantidad de riesgos (en la matriz); 2px de separación</span></li>
+          <li><span class="pin-static">◎</span><span><b>Elegida o con foco:</b> anillo de 2px en texto principal con halo del fondo; se anuncia "Probabilidad 3, severidad 4: nivel 12, alto"</span></li>
+          <li><span class="pin-static">!</span><span><b>Nunca solo color:</b> en deuteranopia verde y naranja se parecen (ΔE 6.2); el nivel y el número lo resuelven</span></li>
         </ul>
       </div>
 

@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** colores de **riesgo** (semáforo de 4 niveles, iguales en claro y oscuro), **etiqueta de riesgo** y **mapa de calor** 5 × 5 para la matriz | [Ver cambio](#cambio-2026-11-23-design-system-riesgo) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-035 completa:** confirmar o descartar los peligros sugeridos desde los resultados de la encuesta; el contrato pasa a la ruta implementada | [Ver cambio](#cambio-2026-11-23-hu-035-revisar-peligros) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-022 implementada:** cambiar la contraseña con confirmación por correo (enlace firmado, de un solo uso y con vencimiento), también desde "¿Olvidaste tu contraseña?" | [Ver cambio](#cambio-2026-11-23-hu-022-cambio-contrasena) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** cómo se adapta una **tabla con acción por fila** en celular (pantalla de personas, HU-021) | [Ver cambio](#cambio-2026-11-23-design-system-tabla-celular) |
@@ -44,6 +45,50 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-design-system-riesgo` {#cambio-2026-11-23-design-system-riesgo}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `design-system.md` (Semánticas: riesgo; Modo oscuro § Riesgo; Etiqueta de riesgo; Mapa de calor de riesgo; Pendientes) y la guía visual (`design-system/index.html`, `design-system.css`, `design-system.js`). No cambia el modelo de datos, las reglas de negocio ni las historias |
+
+### El problema (por qué hubo que cambiar)
+
+1. Los colores de riesgo estaban en "Pendientes" porque no se sabía cuántos niveles usa la metodología. RN-16 ya lo fija: bajo (1–4), medio (5–9), alto (10–14) y crítico (15–25).
+2. La matriz de riesgos (HU-037, HU-038) y su PDF (HU-075) los necesitan.
+3. Había que evitar que un nivel de riesgo se confundiera con un aviso o con un badge de estado: un "Bajo" verde podía leerse como "Activo".
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Semáforo de 4 niveles** | Bajo `#22C55E`, medio `#FACC15`, alto `#F97316` y crítico `#DC2645` | Es la convención de las matrices de SST (IPER, GTC 45): se lee sin leyenda |
+| **Distintos de los avisos** | Medio es amarillo (no el ámbar de advertencia), alto es naranja (los avisos no lo usan) y crítico es carmesí (no el rojo de error) | Un riesgo no parece un mensaje del sistema |
+| **Iguales en claro y en oscuro** | También el color del texto encima: oscuro `#1D1D27` sobre verde, amarillo y naranja; blanco sobre crítico (contraste ≥ 4.5:1) | Una sola tabla de valores; sobre la superficie oscura los cuatro pasan 3:1 |
+| **Nunca solo color** | Cada uso lleva el nombre del nivel y el número | En deuteranopia el verde y el naranja se parecen (ΔE 6.2), y ningún semáforo pasa esa prueba |
+| **Etiqueta de riesgo neutra** | Chip gris con un cuadrado de 10px del color y "Alto · 12" en texto principal | No se confunde con los badges de estado, y un riesgo puede llevar los dos |
+| **Mapa de calor 5 × 5** | Severidad en horizontal, probabilidad en vertical; celdas de 44px con el número; anillo para la celda elegida | Sirve para evaluar (HU-037), para ver la matriz (HU-038) y para imprimirla (HU-075) |
+
+### Cómo quedó (resumen)
+
+- **`design-system.md`:**
+  - sección "Semánticas: riesgo" con las 8 variables (`--color-riesgo-{nivel}` y `-texto`);
+  - Modo oscuro § Riesgo;
+  - componentes "Etiqueta de riesgo" y "Mapa de calor de riesgo";
+  - se quitó el ítem de "Pendientes".
+- **La guía visual:** muestra las variables en la tabla de semánticas y un ejemplo con las etiquetas, el mapa y la leyenda, con anotaciones, en claro, en oscuro y en celular.
+
+### Trabajo hecho
+
+- **Validación con `validate_palette.js`,** contra `#FFFFFF` (claro) y `#1D1D27` (oscuro):
+  - con visión normal pasan, con el par más cercano (crítico y alto) en ΔE 16;
+  - en oscuro, el contraste contra la superficie es ≥ 3:1;
+  - en claro, verde, amarillo y naranja quedan bajo 3:1 contra el blanco, y lo compensan el texto y la separación;
+  - en daltonismo hay una advertencia, que se mitiga con el nombre y el número.
+- **Contraste del texto encima de cada color:** 7.3, 10.9, 6.0 y 4.8:1.
+- **Guía:** se comprobó en 1280 y 390px, en claro y en oscuro, sin errores de consola ni desborde.
 
 ## Cambio `2026-11-23-hu-035-revisar-peligros` {#cambio-2026-11-23-hu-035-revisar-peligros}
 
