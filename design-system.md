@@ -627,7 +627,7 @@ La matriz de probabilidad × severidad, de 5 × 5. Se usa en tres lugares:
 | Contenido | En la matriz, la cantidad de riesgos (en negrita; vacía si no hay); al evaluar, el número P × S. Siempre en `--color-riesgo-{nivel}-texto` |
 | Leyenda | Debajo, los cuatro niveles con su cuadrado, nombre y rango ("Alto 10–14") |
 | Elegir (HU-037) | El mapa es un atajo: cada celda es un botón que elige la probabilidad y la severidad a la vez. El control principal son las dos listas de radios con la explicación de cada valor (RN-80), que quedan sincronizadas con el mapa. La celda elegida (`aria-pressed`) y la que tiene foco llevan un anillo de 2px `--color-text-primary` por dentro y un halo de 2px del fondo, para que se vean sobre cualquier color. Se anuncia "Probabilidad 3, severidad 4: nivel 12, alto" |
-| Ver (HU-038) | Una celda con riesgos es un botón que filtra la lista a esos riesgos; se anuncia "Probabilidad 3, severidad 4: 2 riesgos, alto" |
+| Ver (HU-038) | Una celda con riesgos es un botón que filtra la lista a esos riesgos; tocarla otra vez, o la X del filtro que aparece sobre la lista, lo quita. Se anuncia "Probabilidad 3, severidad 4: 2 riesgos, alto". Las celdas sin riesgos conservan su color, pero no son interactivas ni tienen número. Junto al mapa van el total, los sin evaluar (enlace que filtra la lista) y la leyenda |
 | Celular | El título "Probabilidad" pasa arriba del mapa, en horizontal; así cabe en 390px sin reducir las celdas de 44px |
 | Impresión | Se imprimen los colores (`print-color-adjust: exact`); el número y la leyenda permiten leerla en blanco y negro |
 

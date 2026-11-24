@@ -235,7 +235,8 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-036 | GET | `api/riesgos/peligros-disponibles` | — | `PeligroDisponibleResponseDto[]` | `riesgo.peligros` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-036 | POST | `api/riesgos` | `CrearRiesgoRequestDto` | 201 `RiesgoResponseDto` | `riesgo.crear` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `EvaluarRiesgoRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar` | `admin_empresa`, `responsable_sst` | ✅ |
-| HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | 🚧 |
+| HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-038 | GET | `api/riesgos?…` (filtros) | `FiltrosRiesgosDto` (consulta) | `RiesgoResponseDto[]` | `riesgo.listar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-035 | PATCH | `api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | `RevisarPeligroSugeridoRequestDto` | `PeligroSugeridoRevisadoResponseDto` | `encuesta.peligro_sugerido.revisar` | `admin_empresa`, `responsable_sst` | ✅ |
 
 ---
@@ -1407,13 +1408,24 @@ Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distri
 
 ### M4 — Matriz (HU-036–038, HU-035) — 🚧
 
-#### `GET /api/riesgos` (HU-036) — ✅
+#### `GET /api/riesgos` (HU-036, HU-038) — ✅
 
-Riesgos de la matriz de la empresa de la sesión: solo los `confirmado`, los más recientes primero.
-- **Origen:** pueden venir de una encuesta (HU-035) o haberse agregado a mano.
-- **Fuera de la matriz:** los sugeridos sin revisar y los descartados no aparecen (RN-18).
+Riesgos de la empresa de la sesión.
+- **Por defecto:** los de la matriz (`confirmado`), vengan de una encuesta (HU-035) o agregados a mano.
+- **Orden:** primero el nivel más alto de la última evaluación inicial; los sin evaluar al final y, a igual nivel, los más recientes.
 
-**Response 200:** `RiesgoResponseDto[]` (ver abajo).
+**Filtros (parámetros de la consulta, `FiltrosRiesgosDto`; todos opcionales):**
+
+| Parámetro | Valores | Filtra |
+|---|---|---|
+| `estado` | `confirmado` (por defecto), `sugerido`, `descartado` | Los de la matriz, los que esperan revisión o los descartados (RN-18) |
+| `buscar` | texto, hasta 100 | Nombre o descripción del peligro, o la actividad. No distingue mayúsculas, pero sí tildes |
+| `clasificacionPeligro` | `fisico`, `mecanico`, … | Clasificación del peligro del catálogo; los descritos por la empresa no tienen |
+| `nivel` | `bajo`, `medio`, `alto`, `critico` | Clasificación de la última evaluación (RN-16) |
+| `sinEvaluar` | `true` | Los que no tienen evaluación |
+| `probabilidad` y `severidad` | 1 a 5, las dos o ninguna | Una celda del mapa |
+
+**Response 200:** `RiesgoResponseDto[]` (ver abajo). **400** si `probabilidad` o `severidad` van solas o fuera de 1–5, o si se pide `sinEvaluar` junto con un nivel o una celda.
 
 #### `GET /api/riesgos/peligros-disponibles` (HU-036) — ✅
 
@@ -1448,6 +1460,7 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
   "estado": "confirmado",
   "peligroId": "01933000-....",
   "peligroNombre": "Caída al mismo nivel",
+  "peligroClasificacion": "locativo",
   "descripcionPeligro": null,
   "actividad": "Bodega de carga",
   "encuestaId": null,
@@ -1457,7 +1470,7 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
 }
 ```
 
-- **`peligroNombre`:** es null si el peligro se describió; entonces viene `descripcionPeligro`.
+- **`peligroNombre` y `peligroClasificacion`:** son null si el peligro se describió; entonces viene `descripcionPeligro`.
 - **`evaluacion`:** es la última evaluación inicial (HU-037, mismo formato que `EvaluacionResponseDto`); null si todavía no se evaluó.
 - **`encuestaId` y `encuestaTitulo`:** indican la encuesta que lo sugirió (HU-035); null si se agregó a mano.
 
@@ -1508,23 +1521,17 @@ Evaluación **inicial** de un riesgo de la matriz. La residual, después de los 
 | 404 `riesgos.no_encontrado` | El riesgo no existe o es de otra empresa |
 | 409 `riesgos.no_en_matriz` | El riesgo está sugerido o descartado: solo se evalúan los confirmados (RN-18) |
 
-#### `GET /api/riesgos/matriz`
+#### `GET /api/riesgos/matriz` (HU-038) — ✅
+
+El mapa de la matriz: cuántos riesgos confirmados hay en cada celda de probabilidad × severidad, según su última evaluación inicial (art. 47.b). Solo trae las celdas con riesgos; los riesgos de cada una se piden con `GET /api/riesgos?probabilidad=…&severidad=…`.
 
 ```json
 {
-  "riesgos": [
-    {
-      "id": "01935000-....",
-      "peligroNombre": "Caída al mismo nivel",
-      "estado": "confirmado",
-      "evaluacionInicial": {
-        "probabilidad": 3,
-        "severidad": 4,
-        "nivel": 12,
-        "clasificacion": "alto"
-      },
-      "evaluacionResidual": null
-    }
+  "total": 5,
+  "sinEvaluar": 1,
+  "celdas": [
+    { "probabilidad": 4, "severidad": 5, "nivel": 20, "clasificacion": "critico", "cantidad": 1 },
+    { "probabilidad": 3, "severidad": 4, "nivel": 12, "clasificacion": "alto", "cantidad": 2 }
   ]
 }
 ```

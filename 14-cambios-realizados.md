@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **HU-038 implementada:** mapa de la matriz (riesgos por celda de probabilidad × severidad) y lista filtrable por peligro, su clasificación, nivel y estado, con el nivel más alto primero | [Ver cambio](#cambio-2026-11-23-hu-038-ver-matriz) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-037 implementada:** evaluar un riesgo (probabilidad × severidad) con la explicación de cada valor (**RN-80**, nueva), el nivel calculado y quién evaluó y cuándo | [Ver cambio](#cambio-2026-11-23-hu-037-evaluar-riesgo) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-036 implementada:** agregar riesgos a la matriz (peligro del catálogo o descrito, con su actividad) y ver la lista de riesgos de la empresa | [Ver cambio](#cambio-2026-11-23-hu-036-agregar-riesgos) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** colores de **riesgo** (semáforo de 4 niveles, iguales en claro y oscuro), **etiqueta de riesgo** y **mapa de calor** 5 × 5 para la matriz | [Ver cambio](#cambio-2026-11-23-design-system-riesgo) |
@@ -47,6 +48,45 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-hu-038-ver-matriz` {#cambio-2026-11-23-hu-038-ver-matriz}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (HU-038 y `RiesgoResponseDto`), `design-system.md` (Mapa de calor, fila "Ver"). En el código: slice `ObtenerMatriz`, filtros de `ListarRiesgos`, clasificación del peligro en la respuesta del riesgo y la página de la matriz en la web |
+
+### El problema (por qué hubo que cambiar)
+
+1. La matriz solo era una lista de riesgos. HU-038 pide verlos ubicados por probabilidad y severidad, y una lista filtrable por peligro, clasificación del peligro, nivel y estado.
+2. El contrato de `GET /api/riesgos/matriz` devolvía la lista completa con sus evaluaciones. El mapa solo necesita cuántos riesgos hay en cada celda, y la lista se filtra aparte.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Mapa con conteos** | `GET /api/riesgos/matriz` devuelve el total, los sin evaluar y las celdas con riesgos (por la última evaluación inicial) | El mapa se arma con poco, y la lista de una celda se pide con los filtros |
+| **Filtros en el backend** | `GET /api/riesgos` acepta estado, texto, clasificación del peligro, nivel, sin evaluar y celda, validados con FluentValidation | Lo pide el criterio del backend; la web y cualquier otro cliente filtran igual |
+| **"Estado" es el del riesgo** | En la matriz (confirmado), por revisar (sugerido) y descartado; por defecto, la matriz | Desde la matriz también se ven las sugerencias de todas las encuestas que esperan revisión |
+| **Nivel más alto primero** | La lista se ordena por el nivel de la última evaluación, con los sin evaluar al final | Ayuda a "decidir qué atender primero" (HU-038) |
+| **Celda como filtro** | Tocar una celda con riesgos filtra la lista; tocarla otra vez o la X lo quita | Del mapa a los riesgos concretos en un paso |
+
+### Cómo quedó (resumen)
+
+- **Backend:** `GET /api/riesgos/matriz`, filtros en `GET /api/riesgos` y `peligroClasificacion` en la respuesta del riesgo.
+- **Web, matriz (`/riesgos`):**
+  - **Mapa:** celdas con el número de riesgos, el total, los sin evaluar (enlace que filtra) y la leyenda.
+  - **Filtros:** buscar, clasificación del peligro, nivel y estado.
+  - **Lista:** cada riesgo abre su detalle.
+  - **Estado sin matriz:** "Por revisar" y "Descartado" se muestran con su badge, y el filtro de nivel se desactiva.
+
+### Trabajo hecho
+
+- Se implementaron el mapa y los filtros con 9 pruebas nuevas: conteo por la última evaluación, orden, cada filtro, estado, filtros inválidos, aislamiento entre empresas y permisos. Pasan las 119 pruebas del backend.
+- Se construyó la web y se probó de punta a punta contra la API real: mapa, orden, filtro por celda, por texto, clasificación, nivel, sin evaluar y estado, sin resultados, detalle, celular y modo oscuro.
+- Se actualizaron el contrato y el design system.
+- **Limitación conocida:** la búsqueda del backend distingue tildes (PostgreSQL sin la extensión `unaccent`): "electrico" no encuentra "Eléctrico".
 
 ## Cambio `2026-11-23-hu-037-evaluar-riesgo` {#cambio-2026-11-23-hu-037-evaluar-riesgo}
 
