@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **HU-022 implementada:** cambiar la contraseña con confirmación por correo (enlace firmado, de un solo uso y con vencimiento), también desde "¿Olvidaste tu contraseña?" | [Ver cambio](#cambio-2026-11-23-hu-022-cambio-contrasena) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** cómo se adapta una **tabla con acción por fila** en celular (pantalla de personas, HU-021) | [Ver cambio](#cambio-2026-11-23-design-system-tabla-celular) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** cómo se muestran los **peligros sugeridos** de una encuesta (HU-033) en la pantalla de resultados y qué badge lleva cada sugerencia | [Ver cambio](#cambio-2026-11-23-design-system-peligros-sugeridos) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** colores para datos (`--color-dato-serie` y `--color-dato-pista`, en claro y oscuro), cómo se muestran los **resultados de una encuesta** (lista de medidores, respuestas breves en orden alfabético) y una excepción del select para controles que se repiten por fila | [Ver cambio](#cambio-2026-11-23-design-system-datos) |
@@ -42,6 +43,49 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-hu-022-cambio-contrasena` {#cambio-2026-11-23-hu-022-cambio-contrasena}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (sección Contraseña y `SesionResponseDto`). En el código: backend (slices `SolicitarCambioContrasena` y `ConfirmarCambioContrasena`, token del enlace, claim `email`, código HTTP 410) y web (páginas para pedir el enlace y elegir la contraseña nueva). No cambia el modelo de datos, las reglas de negocio ni las historias |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-022 pide confirmar desde el correo antes de cambiar la contraseña. Solo existía el cambio con la contraseña actual, que se usa en el primer ingreso con contraseña temporal.
+2. El contrato de los dos endpoints estaba escrito (🚧), pero no decía cómo se guardaba el enlace ni cuántas veces servía.
+3. Quien olvidaba su contraseña no tenía cómo recuperarla.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Enlace firmado, sin tabla nueva** | El token lleva el Acceso, el vencimiento y un sello de la contraseña actual, firmados. No se guarda en la base | El modelo sigue con 41 tablas y no hace falta una migración |
+| **Un solo uso y 30 minutos** | Cuando la contraseña cambia, el sello deja de coincidir y el enlace ya no sirve. También vence a los 30 minutos | Un enlace viejo o reenviado no permite volver a cambiarla |
+| **Respuesta igual exista o no la cuenta** | `solicitud` responde siempre 202 con el mismo mensaje y solo escribe a cuentas verificadas | No revela qué correos están registrados |
+| **410 para un enlace que ya no sirve** | Vencido, usado o alterado responde 410 `auth.enlace_invalido` | La web explica el caso y ofrece pedir otro enlace |
+| **El JWT lleva el correo** | Claim `email` en el token de sesión | Con sesión, la web envía el enlace al correo de la cuenta sin pedir que se escriba |
+| **Mismo flujo para "olvidé mi contraseña"** | Desde el login se escribe el correo y se usa el mismo enlace | Quien no puede entrar recupera su cuenta sin ayuda |
+
+### Cómo quedó (resumen)
+
+- **Pedir el enlace (`POST /api/auth/contrasena/solicitud`):** envía el enlace al correo de la cuenta.
+- **Confirmar (`POST /api/auth/contrasena/confirmacion`):** cambia la contraseña con el token. Vale en todas las empresas de la cuenta y cierra todas sus sesiones (HU-114).
+- **Primer ingreso:** el cambio obligatorio con contraseña temporal no cambia.
+- **En la web:**
+  - "Cambiar contraseña" en el encabezado de la sesión.
+  - "¿Olvidaste tu contraseña?" en el login.
+  - La página del enlace (`/restablecer-contrasena`), que pide la contraseña nueva con la política a la vista.
+
+### Trabajo hecho
+
+- Se implementaron los dos endpoints con su validación (FluentValidation) y se agregó `TipoError.Expirado`, que se traduce a 410.
+- Se agregaron 6 pruebas de backend: misma respuesta exista o no el correo, cambio en todas las empresas con cierre de sesiones, un solo uso, enlace vencido o alterado, política y repetición de la actual, y claim `email`.
+- Las pruebas ya no usan SMTP: un capturador guarda los correos en memoria.
+- Se probó de punta a punta en la web contra la API real.
+- Se actualizó el contrato en `18-contratos-api-mvp.md`.
 
 ## Cambio `2026-11-23-design-system-tabla-celular` {#cambio-2026-11-23-design-system-tabla-celular}
 

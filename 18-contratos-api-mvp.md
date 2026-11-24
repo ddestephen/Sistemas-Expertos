@@ -397,7 +397,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `accessToken` | string | JWT (Bearer) |
+| `accessToken` | string | JWT (Bearer). Claims: `sub` (Acceso), `tipo_sesion`, `email` (correo de la cuenta, HU-022), rol y, en sesión de empresa, `vinculo_id` y `empresa_id` cifrado |
 | `refreshToken` | string | Opaco; solo en body, no en header |
 | `expiresIn` | int | Segundos de vida del access token |
 | `debeCambiarPassword` | bool | `true` si la cuenta tiene una contraseña temporal (HU-020, HU-115). El front debe mostrar el cambio (`POST /api/auth/contrasena/establecer`) antes de continuar; la API **no** lo bloquea |
@@ -475,9 +475,17 @@ Mismo contrato que `POST /api/auth/login/empresa`, cambiando solo `idEmpresa` (o
 
 ---
 
-#### Contraseña (HU-022, HU-114) — 🚧
+#### Contraseña (HU-022, HU-114) — ✅
 
 ##### `POST /api/auth/contrasena/solicitud` — `SolicitarCambioContrasenaRequestDto`
+
+**Auth:** anónimo. Sirve para cambiar la contraseña con sesión (la web envía el correo de la sesión) y para "¿Olvidaste tu contraseña?" desde el login.
+
+Envía al correo un enlace `{UrlBaseFrontend}/restablecer-contrasena?token=…` (plantilla `cambio_contrasena`). Solo se envía a cuentas verificadas: una sin verificar se activa con su contraseña temporal (RN-67).
+
+**El enlace:**
+- **Vigencia:** 30 minutos.
+- **Un solo uso:** el token va firmado y no se guarda en la base. Lleva el Acceso, el vencimiento y un sello de la contraseña actual; cuando la contraseña cambia, el sello deja de coincidir.
 
 **Request:**
 
@@ -491,7 +499,7 @@ Mismo contrato que `POST /api/auth/login/empresa`, cambiando solo `idEmpresa` (o
 
 ```json
 {
-  "mensaje": "Si el correo está registrado, recibirá instrucciones."
+  "mensaje": "Si el correo está registrado, recibirá un enlace para cambiar la contraseña."
 }
 ```
 
@@ -506,7 +514,20 @@ Mismo contrato que `POST /api/auth/login/empresa`, cambiando solo `idEmpresa` (o
 }
 ```
 
-**Response 204.** **Errores:** 400 política HU-114 · 410 token expirado.
+**Auth:** anónimo.
+
+**Response 204.**
+- **Alcance:** la contraseña es del Acceso (RN-65), así que vale en todas sus empresas.
+- **Sesiones:** se borran todos sus refresh, así que hay que volver a iniciar sesión.
+- **Contraseña temporal:** `DebeCambiarPassword` queda en `false`.
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | `contrasenaNueva` no cumple la política de HU-114 (un mensaje por requisito que falla) |
+| 400 `auth.contrasena_igual_actual` | La contraseña nueva es igual a la actual. El enlace sigue sirviendo |
+| 410 `auth.enlace_invalido` | El enlace venció, ya se usó o fue alterado |
 
 ##### `POST /api/auth/contrasena/establecer` — `EstablecerContrasenaRequestDto` (HU-114) — ✅
 
