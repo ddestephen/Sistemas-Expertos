@@ -48,7 +48,7 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Con `EmpresaId` | DetalleRespuesta | Respuesta a cada pregunta | M3 |
 | Con `EmpresaId` | DetalleRespuestaOpcion | Opciones elegidas en preguntas de opción múltiple | M3 |
 | Con `EmpresaId` | RiesgoEmpresa | Riesgos de la empresa | M4 |
-| Con `EmpresaId` | EvaluacionRiesgo | Evaluaciones inicial y residual | M4 |
+| Con `EmpresaId` | EvaluacionRiesgo | Evaluaciones inicial y residual; una inicial puede indicar el evento que la motivó | M4 |
 | Con `EmpresaId` | Control | Medidas de cada riesgo | M4 |
 | Con `EmpresaId` | Tarea | Tareas de todos los orígenes | M5 |
 | Con `EmpresaId` | Archivo | Datos y enlace de evidencias de tareas | M5 |

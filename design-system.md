@@ -558,11 +558,15 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 | Vínculo | De baja | — | Activo | Suspendido | — |
 | Encuesta | Borrador · Cerrada | Publicada | — | — | — |
 | Peligro sugerido | Por revisar · Descartado | — | En la matriz | — | — |
+| Riesgo | — | — | — | Sin control (alto o crítico sin controles, RN-19) | — |
+| Control | Propuesto | — | Implementado | — | — |
 | Tarea del plan | Pendiente · Cancelada | En progreso | Completada | — | Vencida |
-| Accidente | Cerrado · Descartado | En investigación | — | Abierto | — |
+| Accidente | Cerrado · Descartado | En investigación | — | Abierto | Grave (junto al estado) |
 | Política | Borrador · Reemplazada | — | Vigente | — | — |
 
 - **Accidente cerrado es neutro,** no éxito: que termine el caso no es una buena noticia.
+- **"Grave" no es un estado:** es una marca del reporte (HU-047) que va junto al badge de estado, en error, para que
+  un evento grave se distinga en la lista sin abrirlo.
 - **"Vencida" no es un estado guardado:** es una tarea pendiente o en progreso con la fecha límite
   pasada. Se muestran dos badges ("En progreso" + "Vencida") para no perder el estado.
 
@@ -577,6 +581,18 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 
 - **Todos los campos de contraseña lo llevan** (login, activar cuenta, cambiar y restablecer): lo pone
   `CampoTexto` con `type="password"`.
+
+### Navegación de sección
+
+Para moverse entre las partes de un área con varias pantallas hermanas, como los catálogos del staff (HU-023).
+
+| Parte | Decisión |
+|---|---|
+| Forma | Enlaces en una fila, sobre una línea `--color-border-default`, debajo del título del área. No son botones ni pestañas de contenido: cada uno es una página con su URL |
+| Texto | Label (14px Medium) en `--color-text-secondary`; al pasar el cursor, `--color-text-primary` |
+| Actual | `aria-current="page"`, texto `--color-text-selected` y barra inferior de 2px del mismo color. El color de marca no comunica estados (badges), pero sí indica dónde se está, como en la lista del select |
+| Alto | 44px (`--control-height-touch`), también en escritorio, para que el área de toque sea cómoda |
+| Celular | La fila se desplaza en horizontal si no cabe, sin ensanchar la página ni partir las palabras |
 
 ### Campo de fecha
 
@@ -593,10 +609,15 @@ Usos: fecha y hora del accidente; fecha límite de una tarea (sin hora).
 | Días no permitidos | Estilo deshabilitado; no se eligen |
 | Celular | El calendario se abre como hoja inferior |
 
+- **Posición:** el calendario se abre a 4px debajo del campo; si no cabe, encima. Queda fijo respecto a la pantalla,
+  así no lo recorta un contenedor con desplazamiento, como el cuerpo de un modal.
+- **Teclado:** flechas (día y semana), Inicio/Fin (semana), RePág/AvPág (mes), Enter elige y Esc cierra solo el
+  calendario y devuelve el foco a su botón. "Hoy" es la fecha de Honduras, sin importar la zona del navegador.
 - **Restricciones:** el accidente no admite fechas futuras. La fecha límite no admite fechas pasadas
   al crear la tarea; al editar se conserva la que tenía, aunque esté vencida.
 - **Hora del accidente:** campo aparte, junto a la fecha, en 12 horas con a. m. / p. m.; se escribe,
-  sin selector de reloj.
+  sin selector de reloj. Acepta "2:30 pm", "230p" o "14:30" y al salir del campo lo deja como "02:30 p. m.", con el
+  ícono `clock` a la derecha. Si la fecha es hoy, la hora no puede ser futura; al cambiar la fecha se vuelve a revisar.
 
 ### Estados de pantalla
 
@@ -656,6 +677,18 @@ Los resultados anónimos de una encuesta: indicadores arriba y, debajo, una sola
 
 No se usan tortas ni donas: las barras sobre una misma base se comparan mejor.
 
+### Estadísticas de eventos
+
+Cuántos eventos hubo en un periodo. Usa las mismas piezas que los resultados de encuesta: indicadores arriba y listas de medidores en una sola card.
+
+| Parte | Decisión |
+|---|---|
+| Periodo | Dos campos de fecha (Desde, Hasta) que se aplican al cambiar, sin botón, y atajos de texto: "Últimos 12 meses" (por defecto), "Este año" y "El año pasado". Mientras el periodo no es válido, se ven las cifras anteriores y el error junto al campo |
+| Indicadores | Eventos (con el periodo), Graves (con su %) y Tipo más frecuente |
+| Desglose | Por tipo (los cuatro, en orden fijo), por gravedad y por mes (todos los meses, también con 0). Cada fila: nombre, barra y "cantidad · %" sobre el total del periodo; si hubo graves, "N graves" debajo del nombre |
+| Sin eventos | Los indicadores en 0 y un estado vacío en lugar de las listas |
+| Privacidad | Solo cifras: ni descripciones, ni lugares, ni quién reportó |
+
 ### Etiqueta de riesgo
 
 Muestra la clasificación de un riesgo en listas, tablas y detalle.
@@ -668,7 +701,8 @@ Muestra la clasificación de un riesgo en listas, tablas y detalle.
 | Sin evaluar | "Sin evaluar", sin cuadrado y en `--color-text-secondary` |
 
 - **No es un badge de color:** así "Bajo" no se confunde con "Activo" (éxito) ni "Crítico" con un error.
-- **Los badges de estado siguen aparte:** un riesgo puede llevar los dos, por ejemplo "Alto · 12" y "Por revisar".
+- **Inicial y residual (HU-040):** en el detalle del riesgo, dos paneles lado a lado ("Inicial · Antes de los controles" y "Residual · Con los controles aplicados"), cada uno con su etiqueta, la probabilidad y la severidad, y quién evaluó. Debajo, una frase dice si el riesgo bajó, siguió igual o subió. En celular los paneles se apilan. En la lista de la matriz, el residual va en su propia columna; en celular, bajo el nivel con el rótulo "Residual".
+- **Los badges de estado siguen aparte:** un riesgo puede llevar los dos, por ejemplo "Alto · 12" y "Por revisar", o "Alto · 12" y "Sin control".
 
 ### Mapa de calor de riesgo
 
@@ -684,7 +718,7 @@ La matriz de probabilidad × severidad, de 5 × 5. Se usa en tres lugares:
 | Contenido | En la matriz, la cantidad de riesgos (en negrita; vacía si no hay); al evaluar, el número P × S. Siempre en `--color-riesgo-{nivel}-texto` |
 | Leyenda | Debajo, los cuatro niveles con su cuadrado, nombre y rango ("Alto 10–14") |
 | Elegir (HU-037) | El mapa es un atajo: cada celda es un botón que elige la probabilidad y la severidad a la vez. El control principal son las dos listas de radios con la explicación de cada valor (RN-80), que quedan sincronizadas con el mapa. La celda elegida (`aria-pressed`) y la que tiene foco llevan un anillo de 2px `--color-text-primary` por dentro y un halo de 2px del fondo, para que se vean sobre cualquier color. Se anuncia "Probabilidad 3, severidad 4: nivel 12, alto" |
-| Ver (HU-038) | Una celda con riesgos es un botón que filtra la lista a esos riesgos; se anuncia "Probabilidad 3, severidad 4: 2 riesgos, alto" |
+| Ver (HU-038) | Una celda con riesgos es un botón que filtra la lista a esos riesgos; tocarla otra vez, o la X del filtro que aparece sobre la lista, lo quita. Se anuncia "Probabilidad 3, severidad 4: 2 riesgos, alto". Las celdas sin riesgos conservan su color, pero no son interactivas ni tienen número. Junto al mapa van el total, los sin evaluar (enlace que filtra la lista) y la leyenda |
 | Celular | El título "Probabilidad" pasa arriba del mapa, en horizontal; así cabe en 390px sin reducir las celdas de 44px |
 | Impresión | Se imprimen los colores (`print-color-adjust: exact`); el número y la leyenda permiten leerla en blanco y negro |
 

@@ -139,10 +139,12 @@ erDiagram
     Accidente |o--o{ RiesgoEmpresa : "revela"
     Peligro |o--o{ RiesgoEmpresa : "origina"
     RiesgoEmpresa ||--o{ EvaluacionRiesgo : "se evalúa en"
+    Accidente |o--o{ EvaluacionRiesgo : "hace reevaluar"
     RiesgoEmpresa ||--o{ Control : "se controla con"
     RiesgoEmpresa |o--o{ Tarea : "genera"
     Control |o--o{ Tarea : "se implementa con"
     PlantillaTarea |o--o{ Tarea : "modela"
+    PlantillaTarea |o--o{ Control : "sugiere"
     Accidente ||--o| InvestigacionAccidente : "se investiga en"
     Accidente |o--o{ Tarea : "genera medidas"
     Tarea |o--o{ Archivo : "tiene evidencia"
@@ -678,6 +680,11 @@ Cada evaluación de un riesgo. Una nueva no reemplaza a la anterior (RN-20, D10)
 | Severidad | smallint | No | | CHECK entre 1 y 5 |
 | EvaluadoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | EvaluadoEn | timestamptz | No | | |
+| AccidenteId | uuid | Sí | FK compuesta → Accidente | Evento a raíz del cual se hizo (HU-051) |
+
+**Restricciones:**
+
+- CHECK: `AccidenteId` solo tiene valor si `Tipo = 'inicial'`: el evento hace revisar el riesgo, no sus controles.
 
 El nivel (`Probabilidad × Severidad`) y su clasificación se calculan; no se guardan (RN-15, RN-16).
 
@@ -688,12 +695,15 @@ El nivel (`Probabilidad × Severidad`) y su clasificación se calculan; no se gu
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | RiesgoEmpresaId | uuid | No | FK compuesta → RiesgoEmpresa | |
+| PlantillaTareaId | uuid | Sí | FK → PlantillaTarea | Plantilla del peligro de la que salió, si se aceptó una sugerencia (RN-76); null si el control es propio |
 | Tipo | varchar(15) | No | | `eliminacion`, `sustitucion`, `ingenieria`, `administrativo`, `epp` (RN-21) |
 | Descripcion | text | No | | |
 | Estado | varchar(12) | No | | `propuesto`, `implementado` |
 | CreadoEn | timestamptz | No | | |
 
-**Restricciones:** UQ `(RiesgoEmpresaId, Id)`, para que una tarea pueda verificar que su control es del mismo riesgo.
+**Restricciones:**
+- UQ `(RiesgoEmpresaId, Id)`, para que una tarea pueda verificar que su control es del mismo riesgo.
+- UQ parcial `(RiesgoEmpresaId, PlantillaTareaId) WHERE PlantillaTareaId IS NOT NULL`: una sugerencia se acepta una sola vez por riesgo.
 
 #### Tarea
 
@@ -725,6 +735,7 @@ Tareas de todos los módulos (D6). El origen se deduce de qué columna de origen
 - CHECK: si `Estado` es `en_progreso` o `completada`, `ResponsableId` y `FechaLimite` tienen valor (RN-22).
 - CHECK: `CompletadaEn` tiene valor si y solo si `Estado = 'completada'`.
 - UQ parcial `(RiesgoEmpresaId, PlantillaTareaId) WHERE` ambas tienen valor: generar el plan dos veces no duplica tareas.
+- UQ parcial `(ControlId) WHERE ControlId IS NOT NULL`: un control tiene una sola tarea que lo implementa, así que generar el plan dos veces tampoco duplica las tareas de los controles propios (HU-042).
 - Evidencia obligatoria (RN-25) y quién puede actualizar (RN-24): los valida la aplicación.
 
 #### Archivo
@@ -865,6 +876,7 @@ Aviso a un operador con vínculo (D28). Se ve dentro de Norvia y se envía por c
 | Rubro – CategoriaRiesgo – PreguntaExploratoria – OpcionPregunta | Uno a muchos, en cadena | FK en la tabla hija |
 | Accidente – InvestigacionAccidente | Uno a cero o uno | UQ en `AccidenteId` |
 | RiesgoEmpresa – origen | Muchos a cero o uno | Dos FK opcionales (`EncuestaId`, `AccidenteId`) y CHECK de máximo una |
+| EvaluacionRiesgo – Accidente | Muchos a cero o uno | FK opcional `AccidenteId`; solo en evaluaciones iniciales |
 | Tarea – origen | Muchos a cero o uno | Dos FK opcionales (`RiesgoEmpresaId`, `AccidenteId`) y CHECK de máximo una |
 | Archivo – dueño | Muchos a cero o uno | Dos FK opcionales y CHECK de máximo una |
 | Notificacion – origen | Muchos a uno | Dos FK opcionales y CHECK según `Tipo` |
@@ -964,13 +976,13 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-13, RN-14 | App | Consulta determinista sobre DetalleRespuesta y DetalleRespuestaOpcion (`IndicaExposicion`) |
 | RN-15, RN-16 | BD y App | CHECK de 1 a 5; nivel y clasificación calculados |
 | RN-18 | BD | `RiesgoEmpresa.Estado` |
-| RN-19 | App | Validación al evaluar |
-| RN-20 | BD | Una fila por evaluación |
+| RN-19 | App | Se señala mientras falte: la matriz cuenta y filtra los altos o críticos sin controles, y el riesgo muestra un aviso (HU-039) |
+| RN-20 | BD y App | Una fila por evaluación; el historial (HU-041) las muestra todas, iniciales y residuales |
 | RN-80 | App | Escalas con su explicación en la pantalla de evaluación; el valor guardado es solo el número del 1 al 5 |
 | RN-21 | BD | CHECK `Control.Tipo` |
-| RN-22 | BD | CHECK en Tarea |
+| RN-22 | BD y App | CHECK en Tarea; al asignar, la aplicación exige responsable activo de la empresa (no encuestado) y fecha límite no anterior a hoy (HU-043) |
 | RN-23 | BD | Columnas de origen con CHECK |
-| RN-24, RN-25 | App | Permisos y conteo de evidencias |
+| RN-24, RN-25 | App | Al cambiar el estado (HU-044): solo el responsable de la tarea o un Responsable SST; completar una tarea que pide evidencia exige al menos una (las evidencias llegan con HU-045) |
 | RN-26 | BD | CHECK `Tipo` y `EstadoEnfermedad` |
 | RN-27 | BD y App | Permiso de reporte anónimo para vínculos activos; `Accidente` sin `ReportadoPorId` y `Archivo` con `SubidoPorId` nulo si pertenece a un evento |
 | RN-28 | App y BD | Validación al cerrar (investigación y medida); estado `descartado` con `DescartadoPorId` y excluido de estadísticas |
@@ -985,7 +997,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-73 | App | Conteo de respuestas antes de mostrar el reporte |
 | RN-74 | BD y App | Rol `encuestado` con sus permisos en RolPermiso (incluye reporte anónimo) |
 | RN-75 | BD y App | Notificacion por vínculo activo al aprobar la versión; UQ parcial por versión y destinatario |
-| RN-76 | App | Sugerencias leídas de PlantillaTarea del peligro; solo se guarda el Control confirmado |
+| RN-76 | App y BD | Sugerencias leídas de PlantillaTarea del peligro; solo se guarda el Control aceptado, con `PlantillaTareaId` y UQ parcial por riesgo |
 | RN-77 | App | Notificacion al asignar responsable |
 | RN-78 | BD y App | `CorreoEstado`, `CorreoIntentos` y proceso de reintento |
 | RN-79 | App | Filtro por `DestinatarioId` del token |

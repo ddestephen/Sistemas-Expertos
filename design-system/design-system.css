@@ -901,3 +901,8 @@ svg.icon-32 { width: 32px; height: 32px; }
 .back-bar { display: flex; align-items: center; gap: var(--space-2); width: 100%; min-width: 0; height: var(--control-height); padding: 0 var(--space-4); background: var(--color-bg-surface); border-bottom: var(--border-width) solid var(--color-border-default); box-shadow: var(--shadow-1); }
 .back-bar-title { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--color-text-secondary); }
 @media (max-width: 639px) { .back-bar { height: var(--control-height-touch); } }
+/* Navegación de sección (design-system.md § Navegación de sección) */
+.seccion-demo { display: flex; gap: var(--space-4); overflow-x: auto; width: 100%; border-bottom: 1px solid var(--color-border-default); }
+.seccion-demo a { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: -1px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; white-space: nowrap; }
+.seccion-demo a:hover { color: var(--color-text-primary); }
+.seccion-demo a[aria-current="page"] { color: var(--color-text-selected); border-bottom-color: var(--color-text-selected); }

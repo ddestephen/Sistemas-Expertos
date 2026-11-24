@@ -129,7 +129,7 @@ Rutas **sin prefijo** (`api/rubros`, `api/peligros`…). Son de alcance **plataf
 
 - **Editar:** `PATCH {id}` parcial; lo que no se envía se conserva.
 - **Activar o desactivar:** `PATCH {id}/estado` con `{ "activo": false }`. No hay borrado físico.
-- **Plantillas:** `api/plantillas` son las plantillas de **documento** (políticas y procedimientos). Las plantillas de tarea no tienen API en HU-023.
+- **Plantillas:** `api/plantillas` son las plantillas de **documento** (políticas y procedimientos). Las plantillas de **tarea** de cada peligro van en `api/plantillas-tarea` (agregadas el 24-11-2026: sugieren los controles de HU-039 y las tareas modelo de HU-042).
 
 | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|
@@ -153,8 +153,12 @@ Rutas **sin prefijo** (`api/rubros`, `api/peligros`…). Son de alcance **plataf
 | POST | `api/plantillas` | `CrearPlantillaDocumentoRequestDto` | 201 `PlantillaDocumentoResponseDto` | `catalogo.plantilla.crear` | `admin_plataforma` | ✅ |
 | PATCH | `api/plantillas/{id}` | `ActualizarPlantillaDocumentoRequestDto` | `PlantillaDocumentoResponseDto` | `catalogo.plantilla.actualizar` | `admin_plataforma` | ✅ |
 | PATCH | `api/plantillas/{id}/estado` | `CambiarEstadoPlantillaDocumentoRequestDto` | `PlantillaDocumentoResponseDto` | `catalogo.plantilla.estado` | `admin_plataforma` | ✅ |
+| GET | `api/plantillas-tarea?peligroId=` | — | `PlantillaTareaResponseDto[]` | `catalogo.plantilla_tarea.listar` | `admin_plataforma`, `soporte_plataforma` | ✅ |
+| POST | `api/plantillas-tarea` | `CrearPlantillaTareaRequestDto` | 201 `PlantillaTareaResponseDto` | `catalogo.plantilla_tarea.crear` | `admin_plataforma` | ✅ |
+| PATCH | `api/plantillas-tarea/{id}` | `ActualizarPlantillaTareaRequestDto` | `PlantillaTareaResponseDto` | `catalogo.plantilla_tarea.actualizar` | `admin_plataforma` | ✅ |
+| PATCH | `api/plantillas-tarea/{id}/estado` | `CambiarEstadoPlantillaTareaRequestDto` | `PlantillaTareaResponseDto` | `catalogo.plantilla_tarea.estado` | `admin_plataforma` | ✅ |
 
-Los filtros (`?rubroId=`, `?categoriaRiesgoId=`) son opcionales. Las listas incluyen los elementos desactivados, porque son pantallas de mantenimiento. Los catálogos iniciales vienen de HU-097 (`CatalogoBase`). Cuerpos JSON en el [anexo](#anexo-catalogos).
+Los filtros (`?rubroId=`, `?categoriaRiesgoId=`, `?peligroId=`) son opcionales. Las listas incluyen los elementos desactivados, porque son pantallas de mantenimiento. Los catálogos iniciales vienen de HU-097 (`CatalogoBase` y `CatalogoSst`). Cuerpos JSON en el [anexo](#anexo-catalogos).
 
 ### HU-024 | Listar empresas (Should)
 
@@ -235,7 +239,13 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-036 | GET | `api/riesgos/peligros-disponibles` | — | `PeligroDisponibleResponseDto[]` | `riesgo.peligros` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-036 | POST | `api/riesgos` | `CrearRiesgoRequestDto` | 201 `RiesgoResponseDto` | `riesgo.crear` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `EvaluarRiesgoRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar` | `admin_empresa`, `responsable_sst` | ✅ |
-| HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | 🚧 |
+| HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-038 | GET | `api/riesgos?…` (filtros) | `FiltrosRiesgosDto` (consulta) | `RiesgoResponseDto[]` | `riesgo.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-041 | GET | `api/riesgos/{id}/evaluaciones` | — | `EvaluacionResponseDto[]` | `riesgo.historial` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-040 | POST | `api/riesgos/{id}/evaluaciones-residual` | `EvaluarRiesgoResidualRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar_residual` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-039 | GET | `api/riesgos/{id}/controles` | — | `ControlResponseDto[]` | `riesgo.control.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-039 | GET | `api/riesgos/{id}/controles/sugeridos` | — | `ControlSugeridoResponseDto[]` | `riesgo.control.sugeridos` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-039 | POST | `api/riesgos/{id}/controles` | `CrearControlRequestDto` | 201 `ControlResponseDto` | `riesgo.control.crear` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-035 | PATCH | `api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | `RevisarPeligroSugeridoRequestDto` | `PeligroSugeridoRevisadoResponseDto` | `encuesta.peligro_sugerido.revisar` | `admin_empresa`, `responsable_sst` | ✅ |
 
 ---
@@ -248,8 +258,22 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-047 | GET | `api/eventos` | Listar eventos de la empresa (`admin_empresa`, `responsable_sst`) con filtros | ✅ |
 | HU-047 | GET | `api/eventos/{id}` | Detalle completo de evento (`admin_empresa`, `responsable_sst`) | ✅ |
 | HU-047 | POST | `api/eventos/{id}/evidencias` | Adjuntar evidencias (`Archivo`; pendiente `HU-100` almacenamiento externo) | 🚧 |
-| HU-039 | POST | `api/riesgos/{id}/controles` | Definir controles | 🚧 |
-| HU-042–045 | varios | `api/plan-trabajo/...` | Plan de acción | 🚧 |
+| HU-049 | PUT | `api/eventos/{id}/investigacion` | Registrar o corregir la investigación (`evento.investigar`: `responsable_sst`) | ✅ |
+| HU-049 | POST | `api/eventos/{id}/cierre` | Cerrar con investigación y medidas, `RN-28` (`evento.cerrar`: `responsable_sst`) | ✅ |
+| HU-049 | PATCH | `api/eventos/{id}/descarte` | Descartar un reporte inválido (`evento.descartar`: `responsable_sst`) | ✅ |
+| HU-050 | POST | `api/eventos/{id}/medidas-correctivas` | Agregar una medida, que es una tarea del plan con origen `accidente` (`evento.medida.crear`: `responsable_sst`) | ✅ |
+| HU-052 | GET | `api/eventos/estadisticas?desde&hasta` | Cuántos eventos hubo por tipo, gravedad y mes; sin descartados ni datos de personas (`evento.estadisticas`: `admin_empresa`, `responsable_sst`) | ✅ |
+| HU-051 | GET | `api/eventos/{id}/riesgos` | Riesgos que el evento reveló o hizo reevaluar (`evento.riesgos`: `admin_empresa`, `responsable_sst`); los enlaces se crean con `accidenteId` en `POST api/riesgos` y `POST api/riesgos/{id}/evaluaciones` | ✅ |
+| HU-050 | GET | `api/eventos/{id}/medidas-correctivas` | Medidas del evento con su avance (`evento.medida.listar`: `admin_empresa`, `responsable_sst`) | ✅ |
+| HU-042 | GET | `api/plan-trabajo/propuesta` | Vista previa del plan (permiso `plan.propuesta`) | ✅ |
+| HU-042 | POST | `api/plan-trabajo/generacion` | Confirmar el plan (permiso `plan.generar`) | ✅ |
+| HU-042, HU-046 | GET | `api/plan-trabajo/tareas?…` | Tareas del plan con filtros (permiso `tarea.listar`) | ✅ |
+| HU-043 | POST | `api/plan-trabajo/tareas` | Crear una tarea manual, ya asignada (permiso `tarea.crear`) | ✅ |
+| HU-043 | PUT | `api/plan-trabajo/tareas/{id}/asignacion` | Asignar o reasignar responsable y fecha límite (permiso `tarea.asignar`) | ✅ |
+| HU-043 | GET | `api/plan-trabajo/responsables` | A quién se le puede asignar una tarea (permiso `tarea.responsables`) | ✅ |
+| HU-044 | GET | `api/plan-trabajo/tareas/mias` | Mis tareas (permiso `tarea.mias`; también `colaborador`) | ✅ |
+| HU-044 | PATCH | `api/plan-trabajo/tareas/{id}/estado` | Cambiar el estado (permiso `tarea.estado`; también `colaborador`, con RN-24 en la aplicación) | ✅ |
+| HU-045 | POST | `api/plan-trabajo/tareas/{id}/evidencias` | Adjuntar evidencia | 🚧 |
 | HU-075 | GET | `api/riesgos/matriz/pdf` | Impresión matriz (M10) | 🚧 |
 
 ---
@@ -350,24 +374,32 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-036 | GET | `/api/riesgos/{id}` | — | `RiesgoResponseDto` | Riesgos |
 | HU-037 | POST | `/api/riesgos/{id}/evaluaciones` | JSON | `EvaluacionResponseDto` | Riesgos |
 | HU-040 | POST | `/api/riesgos/{id}/evaluaciones-residual` | JSON | `EvaluacionResponseDto` | Riesgos |
-| HU-041 | GET | `/api/riesgos/{id}/historial` | — | JSON | Riesgos |
+| HU-041 | GET | `/api/riesgos/{id}/evaluaciones` | — | `EvaluacionResponseDto[]` | Riesgos |
 | HU-038 | GET | `/api/riesgos/matriz` | — | JSON | Riesgos |
 | HU-075 | GET | `/api/riesgos/matriz/pdf` | — | PDF | Riesgos |
 | HU-039 | POST | `/api/riesgos/{id}/controles` | JSON | `ControlResponseDto` | Riesgos |
 | HU-039 | GET | `/api/riesgos/{id}/controles` | — | array | Riesgos |
+| HU-039 | GET | `/api/riesgos/{id}/controles/sugeridos` | — | array | Riesgos |
+| HU-042 | GET | `/api/plan-trabajo/propuesta` | — | JSON | Plan |
 | HU-042 | POST | `/api/plan-trabajo/generacion` | JSON | JSON | Plan |
-| HU-043 | PATCH | `/api/plan-trabajo/tareas/{id}` | JSON | `TareaResponseDto` | Plan |
+| HU-043 | POST | `/api/plan-trabajo/tareas` | JSON | `TareaResponseDto` | Plan |
+| HU-043 | PUT | `/api/plan-trabajo/tareas/{id}/asignacion` | JSON | `TareaResponseDto` | Plan |
+| HU-043 | GET | `/api/plan-trabajo/responsables` | — | array | Plan |
 | HU-044 | GET | `/api/plan-trabajo/tareas/mias` | — | array | Plan |
-| HU-044 | GET | `/api/plan-trabajo/tareas` | query | array | Plan |
+| HU-044 | PATCH | `/api/plan-trabajo/tareas/{id}/estado` | JSON | `TareaResponseDto` | Plan |
 | HU-045 | POST | `/api/plan-trabajo/tareas/{id}/evidencias` | multipart | JSON | Plan |
-| HU-046 | GET | `/api/plan-trabajo/tareas` | filtros query | array | Plan |
+| HU-046 | GET | `/api/plan-trabajo/tareas` | filtros query | `TareaResponseDto[]` | Plan |
 | HU-047 | POST | `/api/eventos` | JSON | JSON | Eventos |
 | HU-047 | POST | `/api/eventos/{id}/evidencias` | multipart | JSON | Eventos *(pendiente HU-100)* |
 | HU-047 | GET | `/api/eventos` | query opcional | array | Eventos |
 | HU-047 | GET | `/api/eventos/{id}` | — | JSON | Eventos |
-| HU-049 | PATCH | `/api/eventos/{id}/investigacion` | JSON | JSON | Eventos |
+| HU-049 | PUT | `/api/eventos/{id}/investigacion` | JSON | JSON | Eventos |
+| HU-049 | POST | `/api/eventos/{id}/cierre` | — | JSON | Eventos |
 | HU-049 | PATCH | `/api/eventos/{id}/descarte` | JSON | JSON | Eventos |
 | HU-050 | POST | `/api/eventos/{id}/medidas-correctivas` | JSON | JSON | Eventos |
+| HU-050 | GET | `/api/eventos/{id}/medidas-correctivas` | — | array | Eventos |
+| HU-051 | GET | `/api/eventos/{id}/riesgos` | — | array | Eventos |
+| HU-052 | GET | `/api/eventos/estadisticas?desde&hasta` | query | JSON | Eventos |
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
 | HU-117 | PATCH | `/api/notificaciones/{id}/lectura` | — | 204 | Notificaciones |
 | encuestado | GET | `/api/politicas/vigentes` | — | array | Políticas |
@@ -980,7 +1012,8 @@ El lote completo responde **400** solo si `filas` está vacío o tiene más de 5
     "id": "01934150-....",
     "categoriaRiesgoId": "01934000-....",
     "texto": "¿Levantas cargas de más de 25 kg?",
-    "tipoRespuesta": "seleccion_unica",
+    "tipoRespuestaCodigo": "seleccion_unica",
+    "instruccionUi": "Seleccione una opción.",
     "obligatoria": true,
     "orden": 1,
     "peligroId": "01933000-....",
@@ -999,7 +1032,7 @@ El lote completo responde **400** solo si `filas` está vacío o tiene más de 5
 {
   "categoriaRiesgoId": "01934000-....",
   "texto": "¿Levantas cargas de más de 25 kg?",
-  "tipoRespuesta": "seleccion_unica",
+  "tipoRespuestaCodigo": "seleccion_unica",
   "obligatoria": true,
   "peligroId": "01933000-....",
   "opciones": [
@@ -1011,7 +1044,7 @@ El lote completo responde **400** solo si `filas` está vacío o tiene más de 5
 
 Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front aplica las mismas en su esquema Zod:
 
-- `tipoRespuesta` es obligatorio.
+- `tipoRespuestaCodigo` es obligatorio.
 - `respuesta_breve`: `opciones` vacía y sin `peligroId`.
 - `seleccion_unica` y `seleccion_multiple`: de 2 a 20 opciones, sin `orden` ni texto repetidos.
 - Con `peligroId`, al menos una opción con `indicaExposicion: true`; sin `peligroId`, ninguna.
@@ -1019,7 +1052,7 @@ Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front apl
 
 `PATCH /api/preguntas/{id}` — `ActualizarPreguntaRequestDto`. Campos sueltos: `categoriaRiesgoId`, `texto`, `obligatoria`, `orden`. Si `orden` no se envía se conserva (o va al final si cambia de categoría); si otra pregunta ya lo tiene, responde 409 `catalogos.orden_ocupado`.
 
-`tipoRespuesta`, `peligroId` y `opciones` forman **un bloque**: para cambiar cualquiera se envían `tipoRespuesta` y `opciones` juntos, y entonces un `peligroId` ausente significa "sin peligro". Las opciones se reemplazan completas y reciben `id` nuevos. Las encuestas ya generadas no cambian, porque guardan su propia copia (RN-12).
+`tipoRespuestaCodigo`, `peligroId` y `opciones` forman **un bloque**: para cambiar cualquiera se envían `tipoRespuestaCodigo` y `opciones` juntos, y entonces un `peligroId` ausente significa "sin peligro". Las opciones se reemplazan completas y reciben `id` nuevos. Las encuestas ya generadas no cambian, porque guardan su propia copia (RN-12).
 
 ```json
 { "texto": "¿Con qué frecuencia levantas cargas pesadas?" }
@@ -1027,7 +1060,7 @@ Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front apl
 
 ```json
 {
-  "tipoRespuesta": "seleccion_unica",
+  "tipoRespuestaCodigo": "seleccion_unica",
   "peligroId": "01933000-....",
   "opciones": [
     { "texto": "Nunca", "orden": 1, "indicaExposicion": false },
@@ -1058,6 +1091,28 @@ Reglas del **bloque de respuesta** (D7, D26, RN-68); el formulario del front apl
 `PATCH /api/plantillas/{id}` — `ActualizarPlantillaDocumentoRequestDto`: `titulo`, `tipoDocumento`, `rubroId` (`0` = todos los rubros), `contenido`.
 
 `PATCH /api/plantillas/{id}/estado`: `{ "activo": false }`
+
+#### Plantillas de tarea
+
+Tareas modelo de cada peligro. Con `tipoControl`, Norvia la sugiere como **control** al definir los controles de un riesgo con ese peligro, de la más efectiva a la menos (HU-039, RN-76, RN-21). Sin tipo es una **tarea modelo**, que entra a la propuesta del plan (HU-042). Lo ya aceptado o generado en las empresas guarda su copia y no cambia al editar la plantilla.
+
+`GET /api/plantillas-tarea?peligroId={uuid}` → `PlantillaTareaResponseDto[]`. Por peligro: primero los controles por tipo (eliminación → EPP) y luego las tareas modelo, por título. Incluye las desactivadas.
+
+```json
+[{ "id": "...", "peligroId": "...", "tipoControl": "ingenieria", "titulo": "Encerrar o aislar las máquinas más ruidosas",
+   "descripcion": null, "prioridadSugerida": 2, "requiereEvidencia": true, "activa": true }]
+```
+
+`POST /api/plantillas-tarea` — `CrearPlantillaTareaRequestDto`: `peligroId` (activo), `tipoControl` (opcional: `eliminacion`, `sustitucion`, `ingenieria`, `administrativo`, `epp`), `titulo` (máx. 200), `descripcion` (máx. 2000), `prioridadSugerida` (1 alta a 3 baja) y `requiereEvidencia`. **400** `catalogos.peligro_invalido` si el peligro no existe o está inactivo.
+
+```json
+{ "peligroId": "...", "tipoControl": null, "titulo": "Hacer audiometrías al personal expuesto cada año",
+  "prioridadSugerida": 2, "requiereEvidencia": true }
+```
+
+`PATCH /api/plantillas-tarea/{id}` — `ActualizarPlantillaTareaRequestDto`, parcial: `tipoControl`, `quitarTipoControl` (`true` la vuelve tarea modelo; no se combina con `tipoControl`), `titulo`, `descripcion` (`""` la borra), `prioridadSugerida`, `requiereEvidencia`. El peligro no cambia.
+
+`PATCH /api/plantillas-tarea/{id}/estado`: `{ "activo": false }`. Desactivada, deja de sugerirse y de proponerse en el plan.
 
 #### `GET /api/plataforma/empresas` (HU-024)
 
@@ -1407,13 +1462,25 @@ Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distri
 
 ### M4 — Matriz (HU-036–038, HU-035) — 🚧
 
-#### `GET /api/riesgos` (HU-036) — ✅
+#### `GET /api/riesgos` (HU-036, HU-038) — ✅
 
-Riesgos de la matriz de la empresa de la sesión: solo los `confirmado`, los más recientes primero.
-- **Origen:** pueden venir de una encuesta (HU-035) o haberse agregado a mano.
-- **Fuera de la matriz:** los sugeridos sin revisar y los descartados no aparecen (RN-18).
+Riesgos de la empresa de la sesión.
+- **Por defecto:** los de la matriz (`confirmado`), vengan de una encuesta (HU-035) o agregados a mano.
+- **Orden:** primero el nivel más alto de la última evaluación inicial; los sin evaluar al final y, a igual nivel, los más recientes.
 
-**Response 200:** `RiesgoResponseDto[]` (ver abajo).
+**Filtros (parámetros de la consulta, `FiltrosRiesgosDto`; todos opcionales):**
+
+| Parámetro | Valores | Filtra |
+|---|---|---|
+| `estado` | `confirmado` (por defecto), `sugerido`, `descartado` | Los de la matriz, los que esperan revisión o los descartados (RN-18) |
+| `buscar` | texto, hasta 100 | Nombre o descripción del peligro, o la actividad. No distingue mayúsculas, pero sí tildes |
+| `clasificacionPeligro` | `fisico`, `mecanico`, … | Clasificación del peligro del catálogo; los descritos por la empresa no tienen |
+| `nivel` | `bajo`, `medio`, `alto`, `critico` | Clasificación de la última evaluación (RN-16) |
+| `sinEvaluar` | `true` | Los que no tienen evaluación |
+| `sinControl` | `true` | Los altos o críticos que todavía no tienen controles (RN-19, HU-039) |
+| `probabilidad` y `severidad` | 1 a 5, las dos o ninguna | Una celda del mapa |
+
+**Response 200:** `RiesgoResponseDto[]` (ver abajo). **400** si `probabilidad` o `severidad` van solas o fuera de 1–5, si se pide `sinEvaluar` junto con un nivel o una celda, o `sinControl` junto con `sinEvaluar` o un nivel bajo o medio.
 
 #### `GET /api/riesgos/peligros-disponibles` (HU-036) — ✅
 
@@ -1433,12 +1500,14 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
 {
   "peligroId": "01933000-....",
   "descripcionPeligro": null,
-  "actividad": "Bodega de carga"
+  "actividad": "Bodega de carga",
+  "accidenteId": null
 }
 ```
 
 - **Peligro:** se envía `peligroId` (del catálogo y activo) **o** `descripcionPeligro` (hasta 300 caracteres), no los dos.
 - **`actividad`:** obligatoria, hasta 200 caracteres.
+- **`accidenteId`** (HU-051): opcional. El evento que reveló el riesgo; tiene que ser de la empresa y no estar descartado.
 
 **Response 201** — `RiesgoResponseDto`
 
@@ -1448,18 +1517,25 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
   "estado": "confirmado",
   "peligroId": "01933000-....",
   "peligroNombre": "Caída al mismo nivel",
+  "peligroClasificacion": "locativo",
   "descripcionPeligro": null,
   "actividad": "Bodega de carga",
   "encuestaId": null,
   "encuestaTitulo": null,
+  "accidenteId": null,
   "creadoEn": "2026-11-16T12:00:00Z",
-  "evaluacion": null
+  "evaluacion": null,
+  "evaluacionResidual": null,
+  "totalControles": 0
 }
 ```
 
-- **`peligroNombre`:** es null si el peligro se describió; entonces viene `descripcionPeligro`.
+- **`peligroNombre` y `peligroClasificacion`:** son null si el peligro se describió; entonces viene `descripcionPeligro`.
 - **`evaluacion`:** es la última evaluación inicial (HU-037, mismo formato que `EvaluacionResponseDto`); null si todavía no se evaluó.
 - **`encuestaId` y `encuestaTitulo`:** indican la encuesta que lo sugirió (HU-035); null si se agregó a mano.
+- **`accidenteId`:** el evento que lo reveló (HU-051); null si no salió de un evento. Un riesgo tiene como máximo un origen: encuesta o evento.
+- **`evaluacionResidual`:** la última evaluación residual, con los controles aplicados (HU-040, mismo formato); null si no hay. La matriz y su orden usan la inicial.
+- **`totalControles`:** cuántos controles tiene (HU-039). Un riesgo alto o crítico con 0 se señala como "sin control" (RN-19).
 
 **Errores:**
 
@@ -1467,6 +1543,7 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
 |---|---|
 | 400 `ValidationProblemDetails` | Falta el peligro, vienen los dos, falta la actividad o algún texto pasa su largo |
 | 400 `riesgos.peligro_invalido` | El peligro no existe o está inactivo |
+| 400 `riesgos.evento_invalido` | `accidenteId` no es un evento de la empresa o está descartado (HU-051) |
 | 409 `riesgos.duplicado` | La matriz ya tiene ese peligro con la misma actividad (sin distinguir mayúsculas) |
 
 #### `POST /api/riesgos/{id}/evaluaciones` — `EvaluarRiesgoRequestDto` (HU-037) — ✅
@@ -1478,9 +1555,12 @@ Evaluación **inicial** de un riesgo de la matriz. La residual, después de los 
 ```json
 {
   "probabilidad": 3,
-  "severidad": 4
+  "severidad": 4,
+  "accidenteId": null
 }
 ```
+
+- **`accidenteId`** (HU-051): opcional. El evento a raíz del cual se reevalúa el riesgo; tiene que ser de la empresa y no estar descartado. Queda guardado en la evaluación, y el evento la muestra (`GET /api/eventos/{id}/riesgos`).
 
 **Response 201** — `EvaluacionResponseDto`
 
@@ -1494,7 +1574,8 @@ Evaluación **inicial** de un riesgo de la matriz. La residual, después de los 
   "clasificacion": "alto",
   "evaluadoPorId": "01932000-....",
   "evaluadoPorNombre": "Lucía Bonilla",
-  "evaluadoEn": "2026-11-16T12:05:00Z"
+  "evaluadoEn": "2026-11-16T12:05:00Z",
+  "accidenteId": null
 }
 ```
 
@@ -1505,26 +1586,22 @@ Evaluación **inicial** de un riesgo de la matriz. La residual, después de los 
 | HTTP | Cuándo |
 |---|---|
 | 400 `ValidationProblemDetails` | Falta la probabilidad o la severidad, o alguna no está entre 1 y 5 |
+| 400 `riesgos.evento_invalido` | `accidenteId` no es un evento de la empresa o está descartado (HU-051) |
 | 404 `riesgos.no_encontrado` | El riesgo no existe o es de otra empresa |
 | 409 `riesgos.no_en_matriz` | El riesgo está sugerido o descartado: solo se evalúan los confirmados (RN-18) |
 
-#### `GET /api/riesgos/matriz`
+#### `GET /api/riesgos/matriz` (HU-038) — ✅
+
+El mapa de la matriz: cuántos riesgos confirmados hay en cada celda de probabilidad × severidad, según su última evaluación inicial (art. 47.b). Solo trae las celdas con riesgos; los riesgos de cada una se piden con `GET /api/riesgos?probabilidad=…&severidad=…`. `altosSinControl` cuenta los altos o críticos sin controles (RN-19, HU-039); se listan con `GET /api/riesgos?sinControl=true`.
 
 ```json
 {
-  "riesgos": [
-    {
-      "id": "01935000-....",
-      "peligroNombre": "Caída al mismo nivel",
-      "estado": "confirmado",
-      "evaluacionInicial": {
-        "probabilidad": 3,
-        "severidad": 4,
-        "nivel": 12,
-        "clasificacion": "alto"
-      },
-      "evaluacionResidual": null
-    }
+  "total": 5,
+  "sinEvaluar": 1,
+  "altosSinControl": 2,
+  "celdas": [
+    { "probabilidad": 4, "severidad": 5, "nivel": 20, "clasificacion": "critico", "cantidad": 1 },
+    { "probabilidad": 3, "severidad": 4, "nivel": 12, "clasificacion": "alto", "cantidad": 2 }
   ]
 }
 ```
@@ -1571,33 +1648,33 @@ Confirma o descarta un peligro sugerido por la encuesta. `riesgoId` es el `riesg
 
 #### `GET /api/riesgos/{id}`
 
-**Response 200:** `RiesgoResponseDto` en cualquier estado, con la última evaluación inicial en `evaluacion` (HU-037). **404** `riesgos.no_encontrado` si no existe o es de otra empresa.
+**Response 200:** `RiesgoResponseDto` en cualquier estado, con la última evaluación inicial en `evaluacion` (HU-037) y la última residual en `evaluacionResidual` (HU-040). **404** `riesgos.no_encontrado` si no existe o es de otra empresa.
 
-#### `GET /api/riesgos/{id}/historial` (HU-041)
+#### `GET /api/riesgos/{id}/evaluaciones` (HU-041) — ✅
+
+El historial de evaluaciones del riesgo, para demostrar su evolución (art. 47.b): **todas**, iniciales y residuales, la más reciente primero, con fecha y quién evaluó. Ninguna se borra al evaluar de nuevo (RN-20, D10); la vigente de cada tipo es la primera de su tipo en la lista.
+
+**Response 200:** `EvaluacionResponseDto[]` (mismo item que devuelve evaluar, con `accidenteId` si se hizo a raíz de un evento). Un riesgo sin evaluar devuelve `[]`.
 
 ```json
-{
-  "riesgoId": "01935000-....",
-  "eventos": [
-    {
-      "tipo": "creado",
-      "fecha": "2026-11-16T12:00:00Z",
-      "detalle": "Riesgo confirmado manualmente"
-    },
-    {
-      "tipo": "evaluacion_inicial",
-      "fecha": "2026-11-16T12:05:00Z",
-      "probabilidad": 3,
-      "severidad": 4,
-      "nivel": 12
-    }
-  ]
-}
+[
+  { "id": "…", "tipo": "residual", "probabilidad": 2, "severidad": 3, "nivel": 6, "clasificacion": "medio",
+    "evaluadoPorId": "…", "evaluadoPorNombre": "Sara Responsable", "evaluadoEn": "2026-11-24T14:05:00Z" },
+  { "id": "…", "tipo": "inicial", "probabilidad": 3, "severidad": 4, "nivel": 12, "clasificacion": "alto",
+    "evaluadoPorId": "…", "evaluadoPorNombre": "Sara Responsable", "evaluadoEn": "2026-11-24T14:00:00Z" }
+]
 ```
 
-#### `POST /api/riesgos/{id}/evaluaciones-residual` (HU-040)
+**Errores:** 404 `riesgos.no_encontrado` (no existe o es de otra empresa).
 
-Mismo body que evaluación inicial; `tipo` fijo `residual` en servidor o en body:
+*(Antes el contrato tenía `GET …/historial` con una línea de tiempo de eventos variados, como "creado". HU-041 pide las evaluaciones, y no hay otros eventos guardados; la ruta es la misma del `POST` de evaluaciones.)*
+
+#### `POST /api/riesgos/{id}/evaluaciones-residual` — `EvaluarRiesgoResidualRequestDto` (HU-040) — ✅
+
+Evaluación **residual**: el riesgo con sus controles aplicados, para saber si bajó.
+- **Aparte de la inicial:** se guarda con `tipo` `residual`, que fija el servidor (D10). Una nueva no reemplaza la anterior (RN-20), y la vigente es la más reciente.
+- **Mismo cálculo:** probabilidad y severidad del 1 al 5; nivel y clasificación calculados (RN-15, RN-16).
+- **Condiciones:** el riesgo tiene que estar en la matriz, tener evaluación inicial y al menos un control.
 
 ```json
 {
@@ -1606,35 +1683,79 @@ Mismo body que evaluación inicial; `tipo` fijo `residual` en servidor o en body
 }
 ```
 
-**Response 201:** `EvaluacionResponseDto` con `tipo`: `"residual"`.
+**Response 201:** `EvaluacionResponseDto` con `tipo`: `"residual"` (mismo formato que la inicial).
 
-#### `POST /api/riesgos/{id}/controles` (HU-039) — `CrearControlRequestDto`
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta la probabilidad o la severidad, o alguna no está entre 1 y 5 |
+| 404 `riesgos.no_encontrado` | El riesgo no existe o es de otra empresa |
+| 409 `riesgos.no_en_matriz` | El riesgo está sugerido o descartado (RN-18) |
+| 409 `riesgos.sin_evaluacion_inicial` | Todavía no tiene evaluación inicial: no hay con qué comparar |
+| 409 `riesgos.sin_controles` | No tiene controles: no hay "riesgo con los controles aplicados" |
+
+#### `GET /api/riesgos/{id}/controles/sugeridos` (HU-039) — ✅
+
+Controles que Norvia sugiere a partir de las plantillas **activas** del peligro del riesgo que tienen tipo de control (RN-76), ordenados del más efectivo al menos efectivo según la jerarquía (RN-21): eliminación, sustitución, ingeniería, administrativo y equipo de protección personal.
+- **No se guardan:** son plantillas del catálogo; solo se guarda la que se acepta con `POST …/controles`.
+- **Ya aceptadas:** no se vuelven a sugerir.
+- **Peligro descrito por la empresa:** no tiene plantillas; responde `[]`.
+
+```json
+[
+  { "plantillaId": "01936000-....", "tipo": "eliminacion", "titulo": "Hacer el trabajo desde el suelo", "descripcion": null },
+  { "plantillaId": "01936001-....", "tipo": "epp", "titulo": "Usar arnés de cuerpo completo", "descripcion": "Con doble línea de vida." }
+]
+```
+
+**Errores:** 404 `riesgos.no_encontrado` (no existe o es de otra empresa).
+
+#### `POST /api/riesgos/{id}/controles` — `CrearControlRequestDto` (HU-039) — ✅
+
+Agrega un control propio o acepta una sugerencia, tal cual o editada (tipo y descripción). El control queda `propuesto`; se implementa con el plan de trabajo (M5).
 
 ```json
 {
-  "tipo": "administrativo",
-  "descripcion": "Capacitación trimestral en ergonomía"
+  "tipo": "ingenieria",
+  "descripcion": "Instalar barandas de 1 m con rodapié en el borde del techo.",
+  "plantillaId": "01936000-...."
 }
 ```
 
-| `tipo` | `eliminacion` \| `sustitucion` \| `ingenieria` \| `administrativo` \| `epp` |
+| Campo | Regla |
+|---|---|
+| `tipo` | Obligatorio: `eliminacion` \| `sustitucion` \| `ingenieria` \| `administrativo` \| `epp` (RN-21) |
+| `descripcion` | Obligatoria, hasta 1000 caracteres; se guarda sin espacios al inicio ni al final |
+| `plantillaId` | Solo al aceptar una sugerencia: la plantilla de la que sale (RN-76). Sin él, el control es propio |
 
-**Response 201:**
+**Response 201** — `ControlResponseDto`
 
 ```json
 {
   "id": "01935200-....",
   "riesgoId": "01935000-....",
-  "tipo": "administrativo",
-  "descripcion": "Capacitación trimestral en ergonomía",
+  "tipo": "ingenieria",
+  "descripcion": "Instalar barandas de 1 m con rodapié en el borde del techo.",
   "estado": "propuesto",
-  "creadoEn": "2026-11-16T13:00:00Z"
+  "plantillaId": "01936000-....",
+  "creadoEn": "2026-11-23T13:00:00Z"
 }
 ```
 
-#### `GET /api/riesgos/{id}/controles`
+**Errores:**
 
-**Response 200:** array de `ControlResponseDto`.
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta el tipo o no es válido, o falta la descripción o pasa de 1000 caracteres |
+| 400 `riesgos.sugerencia_invalida` | La plantilla no es del peligro del riesgo, está inactiva o no tiene tipo de control |
+| 404 `riesgos.no_encontrado` | El riesgo no existe o es de otra empresa |
+| 409 `riesgos.no_en_matriz` | El riesgo está sugerido o descartado (RN-18) |
+| 409 `riesgos.sugerencia_aceptada` | Esa sugerencia ya es un control del riesgo |
+
+#### `GET /api/riesgos/{id}/controles` (HU-039) — ✅
+
+**Response 200:** `ControlResponseDto[]`, del más efectivo al menos efectivo y, dentro de cada tipo, del más antiguo al más reciente. **404** `riesgos.no_encontrado`.
 
 #### `GET /api/riesgos/matriz/pdf` (HU-075)
 
@@ -1646,29 +1767,97 @@ Mismo body que evaluación inicial; `tipo` fijo `residual` en servidor o en body
 
 ### M5 — Plan de trabajo (HU-042 a HU-046) — 🚧
 
-#### `POST /api/plan-trabajo/generacion` (HU-042)
+Las tres rutas de HU-042 son para `admin_empresa` y `responsable_sst`.
 
-**Request** — `GenerarPlanTrabajoRequestDto`:
+#### `GET /api/plan-trabajo/propuesta` (HU-042) — ✅
+
+Las tareas que se agregarían al plan, para revisarlas antes de confirmar. **No guarda nada.** Es determinista: los mismos datos dan la misma propuesta y las mismas claves.
+
+- **De dónde salen** (art. 46.1.e), solo de riesgos **confirmados y evaluados**:
+  - cada control `propuesto` sin tarea produce una tarea que lo implementa. Si salió de una sugerencia, usa el título y la evidencia de su plantilla; si es propio, el título es la primera línea de su descripción (hasta 200 caracteres);
+  - cada plantilla activa del peligro **sin** tipo de control (tarea modelo) produce una tarea. Las que sugieren un control solo entran cuando el control se acepta (RN-76).
+- **Prioridad:** sale del nivel de la última evaluación inicial: alto o crítico 1, medio 2, bajo 3.
+- **Orden:** riesgos del nivel más alto primero; dentro de cada uno, controles por efectividad (RN-21) y luego tareas modelo por su prioridad sugerida.
+- **Lo que ya tiene tarea** no se vuelve a proponer.
 
 ```json
 {
-  "incluirControlesPropuestos": true,
-  "incluirPlantillasRubro": true
+  "tareas": [
+    {
+      "clave": "control:01935200-....",
+      "riesgoId": "01935000-....",
+      "riesgoNombre": "Trabajo en alturas",
+      "riesgoNivel": 10,
+      "riesgoClasificacion": "alto",
+      "origen": "control",
+      "controlId": "01935200-....",
+      "tipoControl": "ingenieria",
+      "plantillaId": "01936000-....",
+      "titulo": "Instalar barandas en el borde",
+      "descripcion": "Instalar barandas de 1 m",
+      "prioridad": 1,
+      "requiereEvidencia": true
+    },
+    {
+      "clave": "plantilla:01935000-....:01936001-....",
+      "riesgoId": "01935000-....",
+      "riesgoNombre": "Trabajo en alturas",
+      "riesgoNivel": 10,
+      "riesgoClasificacion": "alto",
+      "origen": "plantilla",
+      "controlId": null,
+      "tipoControl": null,
+      "plantillaId": "01936001-....",
+      "titulo": "Inspeccionar la línea de vida cada mes",
+      "descripcion": null,
+      "prioridad": 1,
+      "requiereEvidencia": true
+    }
+  ],
+  "riesgosSinEvaluar": 1
 }
 ```
 
-**Response 201:**
+`riesgosSinEvaluar`: riesgos de la matriz que no entran porque no tienen nivel.
+
+#### `POST /api/plan-trabajo/generacion` — `GenerarPlanRequestDto` (HU-042) — ✅
+
+Confirma el plan con las tareas elegidas de la propuesta. Las que se desmarcaron no se envían y vuelven a proponerse.
+- **No confía en el cliente:** vuelve a calcular la propuesta y crea solo las claves que siguen en ella. Una clave que ya tiene tarea, o de otra empresa, se ignora.
+- **No duplica:** generarlo dos veces crea 0 la segunda vez. La base lo garantiza con los índices únicos `(RiesgoEmpresaId, PlantillaTareaId)` y `ControlId`.
+- **Cada tarea queda** `pendiente`, sin responsable ni fecha (HU-043), con su origen: el riesgo y, si lo implementa, el control (RN-23).
 
 ```json
-{
-  "tareasCreadas": 15,
-  "planId": "01935300-...."
-}
+{ "claves": ["control:01935200-....", "plantilla:01935000-....:01936001-...."] }
 ```
 
-#### `GET /api/plan-trabajo/tareas` (HU-043, HU-046)
+**Response 200:**
 
-**Query:** `estado=pendiente|en_progreso|completada`, `prioridad=1|2|3`, `responsableId={uuid}`
+```json
+{ "tareasCreadas": 2 }
+```
+
+**Errores:** 400 `ValidationProblemDetails` si `claves` falta o está vacía.
+
+*(Antes el contrato tenía `incluirControlesPropuestos`, `incluirPlantillasRubro` y devolvía un `planId`. No hay entidad de plan ni plantillas por rubro: el plan son las tareas de la empresa.)*
+
+#### `GET /api/plan-trabajo/tareas` (HU-042, HU-046) — ✅
+
+Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro de cada riesgo, controles por efectividad y luego tareas modelo.
+
+**Filtros (parámetros de la consulta, `FiltrosTareasDto`; todos opcionales y combinables):**
+
+| Parámetro | Valores | Filtra |
+|---|---|---|
+| `estado` | `pendiente`, `en_progreso`, `completada`, `cancelada` | El estado guardado |
+| `vencidas` | `true` | Pendientes o en progreso con la fecha límite antes de hoy (fecha de Honduras). "Vencida" no es un estado guardado |
+| `responsableId` | uuid | Las de esa persona |
+| `sinResponsable` | `true` | Las que todavía no tienen responsable |
+| `origen` | `riesgo`, `accidente`, `manual` | De dónde sale (RN-23) |
+| `prioridad` | 1, 2, 3 | Alta, media, baja |
+| `fechaDesde`, `fechaHasta` | aaaa-mm-dd | Fecha límite en el rango, incluidas; las tareas sin fecha quedan fuera |
+
+**400** si se combinan `vencidas` con `estado` `completada` o `cancelada`, `responsableId` con `sinResponsable`, o `fechaDesde` después de `fechaHasta`; también si un valor no es válido (p. ej. `prioridad=4` u `origen=otro`).
 
 **Response 200:**
 
@@ -1676,33 +1865,121 @@ Mismo body que evaluación inicial; `tipo` fijo `residual` en servidor o en body
 [
   {
     "id": "01935400-....",
-    "titulo": "Implementar señalización",
+    "titulo": "Instalar barandas en el borde",
+    "descripcion": "Instalar barandas de 1 m",
     "estado": "pendiente",
     "prioridad": 1,
-    "fechaLimite": "2026-12-01",
-    "responsableId": "01933f40-....",
-    "responsableNombre": "Juan Pérez",
-    "requiereEvidencia": true
+    "responsableId": null,
+    "responsableNombre": null,
+    "fechaLimite": null,
+    "requiereEvidencia": true,
+    "origen": "riesgo",
+    "riesgoId": "01935000-....",
+    "riesgoNombre": "Trabajo en alturas",
+    "riesgoNivel": 10,
+    "riesgoClasificacion": "alto",
+    "controlTipo": "ingenieria",
+    "accidenteId": null,
+    "creadaEn": "2026-11-24T06:00:00Z"
   }
 ]
 ```
 
-#### `GET /api/plan-trabajo/tareas/mias` (HU-044)
+- `origen`: `riesgo`, `accidente` o `manual` (RN-23).
+- `accidenteId`: con origen `accidente`, el evento del que sale la medida correctiva (HU-050); `null` en los demás.
+- `riesgoNivel` y `riesgoClasificacion`: la última evaluación inicial del riesgo, en el momento de consultar.
 
-Mismo item que arriba; filtrado por vínculo del JWT.
+#### `GET /api/plan-trabajo/tareas/mias` (HU-044) — ✅
 
-#### `PATCH /api/plan-trabajo/tareas/{id}` — `ActualizarTareaRequestDto`
+Las tareas cuyo responsable es el vínculo de la sesión (del token), con el mismo item que `GET …/tareas`. Para `admin_empresa`, `responsable_sst` y `colaborador`; los encuestados no tienen tareas.
+
+**Orden:** primero en progreso y luego pendientes, por fecha límite más próxima y prioridad; al final las completadas y canceladas, las más recientes primero.
+
+El item incluye `completadaEn` (null si no está completada); también lo trae `GET …/tareas`.
+
+#### `GET /api/plan-trabajo/responsables` (HU-043) — ✅
+
+A quién se le puede asignar una tarea: los vínculos **activos** de la empresa con rol `admin_empresa`, `responsable_sst` o `colaborador` (RN-07). Los encuestados no entran: sus cuentas son solo para responder encuestas (HU-115). Orden: por nombre.
+
+```json
+[ { "id": "01933f40-....", "nombreCompleto": "Carlos Colaborador", "rolCodigo": "colaborador" } ]
+```
+
+#### `PUT /api/plan-trabajo/tareas/{id}/asignacion` — `AsignarTareaRequestDto` (HU-043) — ✅
+
+Asigna o reasigna el responsable y la fecha límite. El estado no cambia: iniciarla es HU-044. Avisar al responsable (RN-77) es HU-081.
+
+```json
+{ "responsableId": "01933f40-....", "fechaLimite": "2026-12-15" }
+```
+
+- **Los dos son obligatorios** (RN-22).
+- **Responsable:** uno de `GET …/responsables`.
+- **Fecha límite:** no puede ser anterior a hoy (fecha de Honduras), salvo que se conserve la que ya tenía, aunque esté vencida (design-system § Campo de fecha).
+
+**Response 200:** `TareaResponseDto` (el mismo item de `GET …/tareas`).
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta el responsable o la fecha límite |
+| 400 `plan.responsable_invalido` | No es un vínculo activo de la empresa, o es encuestado |
+| 400 `plan.fecha_pasada` | La fecha es anterior a hoy y no es la que ya tenía |
+| 404 `plan.tarea_no_encontrada` | La tarea no existe o es de otra empresa |
+| 409 `plan.tarea_cerrada` | La tarea está completada o cancelada |
+
+#### `POST /api/plan-trabajo/tareas` — `CrearTareaManualRequestDto` (HU-043) — ✅
+
+Tarea manual: no sale de un riesgo ni de un accidente (origen `manual`, RN-23). Nace `pendiente` y **ya asignada**.
 
 ```json
 {
-  "estado": "en_progreso",
+  "titulo": "Recargar los extintores",
+  "descripcion": "Los dos de la bodega",
+  "prioridad": 2,
   "responsableId": "01933f40-....",
-  "fechaLimite": "2026-12-15",
-  "prioridad": 2
+  "fechaLimite": "2026-12-04",
+  "requiereEvidencia": true
 }
 ```
 
+| Campo | Regla |
+|---|---|
+| `titulo` | Obligatorio, hasta 200 caracteres |
+| `descripcion` | Opcional, hasta 2000 |
+| `prioridad` | Obligatoria: 1 alta, 2 media, 3 baja |
+| `responsableId`, `fechaLimite` | Obligatorios, con las mismas reglas que al asignar |
+| `requiereEvidencia` | Opcional; por defecto `false` (RN-25, HU-045) |
+
+**Response 201:** `TareaResponseDto` con `origen: "manual"`. **Errores:** 400 `ValidationProblemDetails`, `plan.responsable_invalido` o `plan.fecha_pasada`.
+
+#### `PATCH /api/plan-trabajo/tareas/{id}/estado` — `CambiarEstadoTareaRequestDto` (HU-044) — ✅
+
+Pasa una tarea por `pendiente`, `en_progreso` y `completada`, en cualquier orden (también para reabrirla). Reemplaza al `PATCH /api/plan-trabajo/tareas/{id}` genérico del contrato anterior: asignar es `PUT …/asignacion` (HU-043), así el permiso de cambiar el estado no permite reasignar.
+
+```json
+{ "estado": "en_progreso" }
+```
+
+- **Quién (RN-24):** el responsable de la tarea o un Responsable SST. El permiso de la ruta lo tienen también `admin_empresa` y `colaborador`, pero la aplicación rechaza a quien no sea ninguno de los dos.
+- **Iniciar o completar (RN-22):** la tarea necesita responsable y fecha límite.
+- **Completar (RN-25):** si la tarea pide evidencia, no se completa sin ella. Hasta HU-045 no hay dónde adjuntarla, así que esas tareas no se pueden completar todavía.
+- **`completadaEn`:** se guarda al completar y se borra al reabrir. Pedir el mismo estado no cambia nada.
+- **Cancelar** no es parte de atender una tarea: `cancelada` se rechaza aquí.
+
 **Response 200:** `TareaResponseDto`.
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta el estado, o no es `pendiente`, `en_progreso` ni `completada` |
+| 403 `plan.tarea_ajena` | No es su responsable ni Responsable SST (RN-24) |
+| 404 `plan.tarea_no_encontrada` | La tarea no existe o es de otra empresa |
+| 409 `plan.tarea_sin_asignar` | Se quiere iniciar o completar sin responsable o sin fecha límite (RN-22) |
+| 409 `plan.falta_evidencia` | Se quiere completar una tarea que pide evidencia y no la tiene (RN-25) |
+| 409 `plan.tarea_cancelada` | La tarea está cancelada |
 
 #### `POST /api/plan-trabajo/tareas/{id}/evidencias` (HU-045)
 
@@ -1762,7 +2039,7 @@ Mismo item que arriba; filtrado por vínculo del JWT.
 
 ---
 
-### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049, HU-050 🚧)
+### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049 ✅; HU-050 ✅; HU-051 ✅; HU-052 ✅)
 
 Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`): el servidor toma `EmpresaId` del JWT, pero no guarda `ReportadoPorId` ni expondrá `SubidoPorId` en los adjuntos del evento (`D11`, `RN-27`, `RN-74`). Los permisos de consulta (`GET`) corresponden a `admin_empresa` y `responsable_sst`.
 
@@ -1786,7 +2063,7 @@ Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`
 | `tipo` | `accidente` \| `incidente` \| `enfermedad_profesional` \| `condicion_insegura` (obligatorio) |
 | `estadoEnfermedad` | `sospechosa` \| `diagnosticada` (obligatorio si y solo si `tipo = enfermedad_profesional`; `null` en otro caso) |
 | `esGrave` | booleano (opcional, `false` por defecto; aplica a cualquier tipo) |
-| `fechaHoraEvento` | ISO-8601 UTC obligatorio; no puede ser futura (margen de 5 min por desfase de reloj) |
+| `fechaHoraEvento` | ISO-8601 obligatorio, en UTC o con zona (la web envía la hora de Honduras con `-06:00`, p. ej. `2026-11-14T09:30:00-06:00`; se guarda en UTC); no puede ser futura (margen de 5 min por desfase de reloj) |
 | `lugar` | string opcional, máx. 200 caracteres |
 | `descripcion` | string obligatorio, no vacío ni solo espacios |
 
@@ -1820,32 +2097,92 @@ Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`
 
 **Errores:** 400 `eventos.filtro_invalido` (si `estado` o `tipo` no coinciden con los valores válidos en `snake_case`) · 401 · 403.
 
+#### `GET /api/eventos/estadisticas` (HU-052 — ✅)
+
+**Auth:** Bearer de empresa (`evento.estadisticas`: `admin_empresa`, `responsable_sst`).
+
+Cuántos eventos hubo en un periodo, para detectar patrones (art. 47.e). **Solo cifras:** no trae quién reportó (no se guarda, D11), ni descripciones ni lugares. **No cuenta los descartados** (RN-28).
+
+**Query (obligatoria):** `?desde=2025-12-01&hasta=2026-11-24`
+
+- Fechas de Honduras (aaaa-mm-dd), incluidas, sobre **cuándo ocurrió** el evento (`fechaHoraEvento`), no cuándo se reportó.
+- `hasta` no puede ser anterior a `desde`, y el periodo abarca como máximo 24 meses.
+
+**Response 200 (`EstadisticasEventosResponseDto`):**
+
+```json
+{
+  "desde": "2025-12-01",
+  "hasta": "2026-11-24",
+  "total": 4,
+  "graves": 1,
+  "porTipo": [
+    { "tipo": "accidente", "cantidad": 2, "graves": 1 },
+    { "tipo": "incidente", "cantidad": 1, "graves": 0 },
+    { "tipo": "enfermedad_profesional", "cantidad": 0, "graves": 0 },
+    { "tipo": "condicion_insegura", "cantidad": 1, "graves": 0 }
+  ],
+  "porMes": [
+    { "anio": 2025, "mes": 12, "cantidad": 0, "graves": 0 },
+    "…",
+    { "anio": 2026, "mes": 11, "cantidad": 2, "graves": 1 }
+  ]
+}
+```
+
+- `porTipo`: los cuatro tipos en orden fijo, también con 0.
+- `porMes`: todos los meses del periodo (mes de Honduras), del primero al último, también con 0, para compararlos sobre la misma base.
+
+**Errores:** 400 validación (faltan las fechas, `hasta` antes de `desde` o más de 24 meses) · 401 · 403.
+
 #### `GET /api/eventos/{id}` (HU-047 — ✅)
 
 **Auth:** Bearer de empresa (`evento.ver`: `admin_empresa`, `responsable_sst`).
 
-**Response 200 (`EventoDetalleResponseDto`):** detalle completo (`id`, `tipo`, `estado`, `estadoEnfermedad`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` completa, `registradoEn`). Adjuntos (`HU-100`) e investigación/cierre (`HU-049`) se integrarán al implementar dichas HUs; nunca incluye datos de quien reportó.
+**Response 200 (`EventoDetalleResponseDto`):** detalle completo (`id`, `tipo`, `estado`, `estadoEnfermedad`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` completa, `registradoEn`). Desde `HU-049` también trae `investigacion` (`null` o `{ causasInmediatas, causasBasicas, conclusiones, investigadaPorId, investigadaPorNombre, fechaInvestigacion }`), `totalMedidas` (tareas con origen en el evento que no están canceladas), `cerradoEn`, `descartadoEn`, `descartadoPorNombre` y `motivoDescarte`. Los adjuntos llegan con `HU-100`. Nunca incluye datos de quien reportó.
 
 **Errores:** 404 `eventos.no_encontrado` · 401 · 403.
 
-#### `PATCH /api/eventos/{id}/investigacion` (HU-049) — `ActualizarInvestigacionRequestDto`
+#### `PUT /api/eventos/{id}/investigacion` (HU-049 — ✅) — `RegistrarInvestigacionRequestDto`
 
-Roles: `responsable_sst`.
+**Auth:** Bearer de empresa (`evento.investigar`: `responsable_sst`). El `admin_empresa` solo consulta.
+
+Registra la investigación del evento o la corrige (una sola por evento; volver a enviarla la reemplaza, no la duplica). La primera vez el evento pasa de `abierto` a `en_investigacion`. Ya no cierra el evento: el cierre es una acción aparte (`POST …/cierre`).
 
 ```json
 {
   "causasInmediatas": "Piso mojado sin señalización",
   "causasBasicas": "Falta de procedimiento de limpieza",
   "conclusiones": "Capacitar al personal de limpieza y colocar conos",
+  "investigadaPorId": "01933f40-....",
   "fechaInvestigacion": "2026-11-15"
 }
 ```
 
-**Response 200:** evento actualizado (`estado`: `"en_investigacion"` o `"cerrado"` si cumple `RN-28`).
+- `causasInmediatas` y `causasBasicas`: obligatorias, máx. 4000 caracteres (se recortan los espacios).
+- `conclusiones`: opcional, máx. 4000.
+- `investigadaPorId`: `VinculoEmpresa` activo de la empresa con rol `admin_empresa`, `responsable_sst` o `colaborador` (la lista sale de `GET /api/plan-trabajo/responsables`).
+- `fechaInvestigacion`: fecha sin hora; no puede ser futura (fecha de Honduras) ni anterior al día del evento.
 
-#### `PATCH /api/eventos/{id}/descarte` (HU-049) — `DescartarEventoRequestDto`
+**Response 200 (`EventoDetalleResponseDto`):** el evento con su `investigacion`.
 
-Roles: `responsable_sst`. Marca un reporte inválido o duplicado como `descartado` sin requerir investigación ni medidas (`RN-28`).
+**Errores:** 400 validación · 400 `eventos.investigador_invalido` · 400 `eventos.fecha_investigacion_invalida` · 404 `eventos.no_encontrado` · 409 `eventos.terminado` (ya cerrado o descartado) · 401 · 403.
+
+*(Antes el contrato tenía `PATCH …/investigacion` sin investigador, y el evento se cerraba solo al cumplir `RN-28`. Se cambió a `PUT` porque reemplaza la investigación completa, y a un cierre explícito para que el Responsable SST decida cuándo terminó.)*
+
+#### `POST /api/eventos/{id}/cierre` (HU-049 — ✅)
+
+**Auth:** Bearer de empresa (`evento.cerrar`: `responsable_sst`). Sin cuerpo.
+
+Cierra el evento si cumple `RN-28`: tiene investigación y al menos una medida correctiva (tarea del plan con origen en el evento que no esté cancelada; las crea `HU-050`). Guarda `CerradoEn`. Cerrado, ya no se edita la investigación; las medidas siguen en el plan de trabajo.
+
+**Response 200 (`EventoDetalleResponseDto`):** evento con `estado: "cerrado"` y `cerradoEn`.
+
+**Errores:** 404 `eventos.no_encontrado` · 409 `eventos.sin_investigacion` · 409 `eventos.sin_medidas` · 409 `eventos.terminado` · 401 · 403.
+
+#### `PATCH /api/eventos/{id}/descarte` (HU-049 — ✅) — `DescartarEventoRequestDto`
+
+**Auth:** Bearer de empresa (`evento.descartar`: `responsable_sst`). Marca un reporte falso, inválido o duplicado como `descartado` sin investigación ni medidas (`RN-28`). Guarda quién lo descartó y cuándo. Un evento descartado no se investiga ni se cierra.
 
 ```json
 {
@@ -1853,19 +2190,86 @@ Roles: `responsable_sst`. Marca un reporte inválido o duplicado como `descartad
 }
 ```
 
-**Response 200:** evento con `estado`: `"descartado"`, `motivoDescarte` y `descartadoEn`.
+- `motivo`: opcional, máx. 1000 caracteres; vacío se guarda como `null`.
 
-#### `POST /api/eventos/{id}/medidas-correctivas` (HU-050)
+**Response 200 (`EventoDetalleResponseDto`):** evento con `estado: "descartado"`, `motivoDescarte`, `descartadoEn` y `descartadoPorNombre`.
+
+**Errores:** 400 validación · 404 `eventos.no_encontrado` · 409 `eventos.terminado` · 401 · 403.
+
+#### `GET /api/eventos/{id}/riesgos` (HU-051 — ✅)
+
+**Auth:** Bearer de empresa (`evento.riesgos`: `admin_empresa`, `responsable_sst`).
+
+Lo que el evento cambió en la matriz (art. 47.b). Los enlaces se hacen desde riesgos: `POST /api/riesgos` y `POST /api/riesgos/{id}/evaluaciones` con `accidenteId`.
+
+**Response 200 (`RiesgoDelEventoResponseDto[]`):**
+
+```json
+[
+  { "riesgoId": "…", "nombre": "Estantes sin anclar a la pared", "actividad": "Almacenaje en bodega", "relacion": "revelado",
+    "nivelAnterior": null, "clasificacionAnterior": null, "nivel": 12, "clasificacion": "alto", "evaluadoEn": "2026-11-24T17:10:00Z" },
+  { "riesgoId": "…", "nombre": "Cajas apiladas sin sujetar", "actividad": "Almacenaje en bodega", "relacion": "reevaluado",
+    "nivelAnterior": 4, "clasificacionAnterior": "bajo", "nivel": 16, "clasificacion": "critico", "evaluadoEn": "2026-11-24T17:12:00Z" }
+]
+```
+
+- **`revelado`:** el riesgo se agregó a raíz del evento (`RiesgoEmpresa.AccidenteId`). `nivel` es su nivel inicial actual (null si todavía no se evalúa).
+- **`reevaluado`:** el riesgo ya estaba en la matriz y se reevaluó a raíz del evento (`EvaluacionRiesgo.AccidenteId`). `nivel` es el de esa evaluación y `nivelAnterior` el de la evaluación inicial previa (null si no había). Si se reevaluó varias veces por el mismo evento, cuenta la última.
+- **Orden:** primero los revelados y luego los reevaluados; dentro de cada grupo, la evaluación más reciente primero.
+
+**Errores:** 404 `eventos.no_encontrado` · 401 · 403.
+
+#### `POST /api/eventos/{id}/medidas-correctivas` (HU-050 — ✅) — `CrearMedidaCorrectivaRequestDto`
+
+**Auth:** Bearer de empresa (`evento.medida.crear`: `responsable_sst`). El `admin_empresa` solo consulta.
+
+Cada medida correctiva crea una `Tarea` del plan de trabajo con origen `accidente` (`AccidenteId` = el evento; RN-23, D6). Pide lo mismo que una tarea manual (`POST /api/plan-trabajo/tareas`): nace pendiente y asignada. Se trabaja desde el plan (`HU-044`) como cualquier otra tarea. Solo se agrega mientras el evento esté `abierto` o `en_investigacion`.
 
 ```json
 {
-  "descripcion": "Instalar señalización de piso mojado",
+  "titulo": "Señalizar el piso mojado",
+  "descripcion": "Conos amarillos en la entrada de la bodega",
+  "prioridad": 1,
+  "responsableId": "01933f40-....",
   "fechaLimite": "2026-11-30",
-  "responsableId": "01933f40-...."
+  "requiereEvidencia": false
 }
 ```
 
-**Response 201:** crea `Tarea` vinculada al evento.
+- `titulo`: obligatorio, máx. 200. `descripcion`: opcional, máx. 2000.
+- `prioridad`: 1 (alta), 2 (media) o 3 (baja).
+- `responsableId`: vínculo activo de la empresa con rol `admin_empresa`, `responsable_sst` o `colaborador` (lista en `GET /api/plan-trabajo/responsables`).
+- `fechaLimite`: no anterior a hoy (fecha de Honduras).
+
+**Response 201 (`MedidaCorrectivaResponseDto`):**
+
+```json
+{
+  "id": "01935a10-....",
+  "titulo": "Señalizar el piso mojado",
+  "descripcion": "Conos amarillos en la entrada de la bodega",
+  "estado": "pendiente",
+  "prioridad": 1,
+  "responsableId": "01933f40-....",
+  "responsableNombre": "Carlos Colaborador",
+  "fechaLimite": "2026-11-30",
+  "requiereEvidencia": false,
+  "creadaEn": "2026-11-24T16:40:00Z",
+  "completadaEn": null
+}
+```
+
+**Errores:** 400 validación · 400 `eventos.responsable_invalido` · 400 `eventos.fecha_pasada` · 404 `eventos.no_encontrado` · 409 `eventos.terminado` (cerrado o descartado) · 401 · 403.
+
+*(Antes el contrato pedía solo `descripcion`, `fechaLimite` y `responsableId`. Ahora pide lo mismo que una tarea manual, porque la medida es una tarea del plan y necesita título y prioridad.)*
+
+#### `GET /api/eventos/{id}/medidas-correctivas` (HU-050 — ✅)
+
+**Auth:** Bearer de empresa (`evento.medida.listar`: `admin_empresa`, `responsable_sst`).
+
+**Response 200 (`MedidaCorrectivaResponseDto[]`):** las medidas del evento con su avance, también las canceladas y también si el evento ya está cerrado. **Orden:** primero las pendientes y en progreso, por fecha límite más próxima y prioridad; luego las completadas y al final las canceladas. "Vencida" no se guarda: la web la calcula (pendiente o en progreso con la fecha límite pasada).
+
+**Errores:** 404 `eventos.no_encontrado` · 401 · 403.
 
 ---
 
@@ -1934,7 +2338,7 @@ Recorte 13-11-2026 y prioridad WONT: **no se define contrato HTTP** (el front no
 | HU-025, HU-027, HU-028 | Calendario Google, áreas, comisión |
 | HU-053–061, HU-079, HU-082–086 | Comisión, actas, calendario externo |
 | HU-062–069, HU-088 | Equipos, EPP, inventario |
-| HU-052, HU-077–078, HU-080 | Estadísticas e informes fuera del MVP actual |
+| HU-077–078, HU-080 | Informes fuera del MVP actual (HU-052, las estadísticas de eventos, sí está en E2 y tiene contrato) |
 | HU-105, HU-112, HU-113 | App móvil, distribución, Google Forms/Calendar |
 | HU-101–104, HU-102 | Solo frontend / infra local |
 | HU-098 | Pruebas automatizadas, no endpoint público |
