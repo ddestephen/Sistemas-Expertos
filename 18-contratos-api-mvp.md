@@ -230,7 +230,10 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 
 | HU | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|---|
-| HU-036 | POST | `api/riesgos` | `CrearRiesgoRequestDto` | `RiesgoResponseDto` | `riesgo.crear` | `responsable_sst` | 🚧 |
+| HU-036 | GET | `api/riesgos` | — | `RiesgoResponseDto[]` | `riesgo.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-036 | GET | `api/riesgos/{id}` | — | `RiesgoResponseDto` | `riesgo.leer` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-036 | GET | `api/riesgos/peligros-disponibles` | — | `PeligroDisponibleResponseDto[]` | `riesgo.peligros` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-036 | POST | `api/riesgos` | `CrearRiesgoRequestDto` | 201 `RiesgoResponseDto` | `riesgo.crear` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `CrearEvaluacionRequestDto` | `EvaluacionResponseDto` | `riesgo.evaluar` | `responsable_sst` | 🚧 |
 | HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | 🚧 |
 | HU-035 | PATCH | `api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | `RevisarPeligroSugeridoRequestDto` | `PeligroSugeridoRevisadoResponseDto` | `encuesta.peligro_sugerido.revisar` | `admin_empresa`, `responsable_sst` | ✅ |
@@ -341,6 +344,8 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-032 | GET | `/api/encuestas/{id}/reporte` | — | JSON | Reporte |
 | HU-033 | GET | `/api/encuestas/{id}/peligros-sugeridos` | — | `PeligrosSugeridosResponseDto` | Reporte |
 | HU-035 | PATCH | `/api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | JSON | `PeligroSugeridoRevisadoResponseDto` | Riesgos |
+| HU-036 | GET | `/api/riesgos` | — | `RiesgoResponseDto[]` | Riesgos |
+| HU-036 | GET | `/api/riesgos/peligros-disponibles` | — | `PeligroDisponibleResponseDto[]` | Riesgos |
 | HU-036 | POST | `/api/riesgos` | JSON | `RiesgoResponseDto` | Riesgos |
 | HU-036 | GET | `/api/riesgos/{id}` | — | `RiesgoResponseDto` | Riesgos |
 | HU-037 | POST | `/api/riesgos/{id}/evaluaciones` | JSON | `EvaluacionResponseDto` | Riesgos |
@@ -1402,7 +1407,27 @@ Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distri
 
 ### M4 — Matriz (HU-036–038, HU-035) — 🚧
 
-#### `POST /api/riesgos` — `CrearRiesgoRequestDto`
+#### `GET /api/riesgos` (HU-036) — ✅
+
+Riesgos de la matriz de la empresa de la sesión: solo los `confirmado`, los más recientes primero.
+- **Origen:** pueden venir de una encuesta (HU-035) o haberse agregado a mano.
+- **Fuera de la matriz:** los sugeridos sin revisar y los descartados no aparecen (RN-18).
+
+**Response 200:** `RiesgoResponseDto[]` (ver abajo).
+
+#### `GET /api/riesgos/peligros-disponibles` (HU-036) — ✅
+
+Peligros **activos** del catálogo global, por nombre, para elegir al agregar un riesgo. `api/peligros` es del staff de plataforma; esta ruta es para sesiones de empresa.
+
+```json
+[ { "id": "01933000-....", "nombre": "Caída al mismo nivel", "descripcion": null, "clasificacion": "locativo" } ]
+```
+
+#### `POST /api/riesgos` — `CrearRiesgoRequestDto` (HU-036) — ✅
+
+Agrega a la matriz un riesgo que la encuesta no detectó.
+- **Estado:** entra como `confirmado`, y quien lo agrega queda como su revisor.
+- **Empresa:** `EmpresaId` sale de la sesión, nunca del cliente.
 
 ```json
 {
@@ -1412,7 +1437,8 @@ Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distri
 }
 ```
 
-Uno de `peligroId` o `descripcionPeligro` obligatorio.
+- **Peligro:** se envía `peligroId` (del catálogo y activo) **o** `descripcionPeligro` (hasta 300 caracteres), no los dos.
+- **`actividad`:** obligatoria, hasta 200 caracteres.
 
 **Response 201** — `RiesgoResponseDto`
 
@@ -1422,10 +1448,24 @@ Uno de `peligroId` o `descripcionPeligro` obligatorio.
   "estado": "confirmado",
   "peligroId": "01933000-....",
   "peligroNombre": "Caída al mismo nivel",
+  "descripcionPeligro": null,
   "actividad": "Bodega de carga",
+  "encuestaId": null,
+  "encuestaTitulo": null,
   "creadoEn": "2026-11-16T12:00:00Z"
 }
 ```
+
+- **`peligroNombre`:** es null si el peligro se describió; entonces viene `descripcionPeligro`.
+- **`encuestaId` y `encuestaTitulo`:** indican la encuesta que lo sugirió (HU-035); null si se agregó a mano.
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta el peligro, vienen los dos, falta la actividad o algún texto pasa su largo |
+| 400 `riesgos.peligro_invalido` | El peligro no existe o está inactivo |
+| 409 `riesgos.duplicado` | La matriz ya tiene ese peligro con la misma actividad (sin distinguir mayúsculas) |
 
 #### `POST /api/riesgos/{id}/evaluaciones` — `CrearEvaluacionRequestDto`
 
@@ -1516,7 +1556,7 @@ Confirma o descarta un peligro sugerido por la encuesta. `riesgoId` es el `riesg
 
 #### `GET /api/riesgos/{id}`
 
-**Response 200:** `RiesgoResponseDto` + última evaluación inicial/residual embebida.
+**Response 200:** `RiesgoResponseDto` (HU-036, en cualquier estado). HU-037 le agregará la última evaluación inicial y residual. **404** `riesgos.no_encontrado` si no existe o es de otra empresa.
 
 #### `GET /api/riesgos/{id}/historial` (HU-041)
 

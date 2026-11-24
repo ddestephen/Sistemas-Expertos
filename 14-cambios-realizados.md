@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **HU-036 implementada:** agregar riesgos a la matriz (peligro del catálogo o descrito, con su actividad) y ver la lista de riesgos de la empresa | [Ver cambio](#cambio-2026-11-23-hu-036-agregar-riesgos) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** colores de **riesgo** (semáforo de 4 niveles, iguales en claro y oscuro), **etiqueta de riesgo** y **mapa de calor** 5 × 5 para la matriz | [Ver cambio](#cambio-2026-11-23-design-system-riesgo) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-035 completa:** confirmar o descartar los peligros sugeridos desde los resultados de la encuesta; el contrato pasa a la ruta implementada | [Ver cambio](#cambio-2026-11-23-hu-035-revisar-peligros) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-022 implementada:** cambiar la contraseña con confirmación por correo (enlace firmado, de un solo uso y con vencimiento), también desde "¿Olvidaste tu contraseña?" | [Ver cambio](#cambio-2026-11-23-hu-022-cambio-contrasena) |
@@ -45,6 +46,48 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-hu-036-agregar-riesgos` {#cambio-2026-11-23-hu-036-agregar-riesgos}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (M4: HU-036). En el código: módulo Riesgos del backend (slices `CrearRiesgo`, `ListarRiesgos`, `ObtenerRiesgo` y `ListarPeligrosDisponibles`, `RiesgosController`, 4 permisos) y en la web la matriz y el formulario para agregar un riesgo, con un select con búsqueda nuevo. No cambia el modelo de datos ni las reglas de negocio |
+
+### El problema (por qué hubo que cambiar)
+
+1. Solo entraban a la matriz los peligros que sugería una encuesta (HU-035). HU-036 pide agregar los que la encuesta no detectó, desde el catálogo o describiéndolos.
+2. El contrato tenía solo `POST /api/riesgos`. Faltaban la lista de riesgos, para "mostrar los riesgos agregados", y una forma de que una empresa consultara el catálogo de peligros: `api/peligros` es solo del staff de plataforma.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Entra confirmado** | Un riesgo agregado a mano no pasa por "sugerido": queda en la matriz, y quien lo agrega figura como su revisor | Lo decide la persona responsable; no hay nada que revisar |
+| **Actividad obligatoria** | Al agregar a mano se pide la actividad (hasta 200 caracteres) | Lo pide el criterio de HU-036 y distingue riesgos del mismo peligro en lugares distintos |
+| **Sin duplicados** | No se repite el mismo peligro con la misma actividad (sin distinguir mayúsculas); en otra actividad, sí | La matriz no se llena de filas iguales |
+| **Catálogo para empresas** | `GET /api/riesgos/peligros-disponibles` devuelve los peligros activos | La empresa elige del catálogo sin acceder a la administración del staff |
+| **Lista de la matriz** | `GET /api/riesgos` devuelve los confirmados con su origen (encuesta o a mano) | Es la base de la matriz; HU-037 y HU-038 le suman la evaluación y el mapa de calor |
+| **Administración y Responsable SST** | Los permisos son para `admin_empresa` y `responsable_sst`, igual que la revisión de sugerencias (HU-035) | Ambos roles gestionan la empresa y ven las mismas pantallas |
+
+### Cómo quedó (resumen)
+
+- **Backend:** el módulo Riesgos tiene 4 endpoints y 11 pruebas: creación, validación, peligro inactivo, duplicado, origen, aislamiento entre empresas y permisos.
+- **Web, matriz (`/riesgos`):** lista los riesgos con el peligro, la actividad, la etiqueta "Sin evaluar", el origen y la fecha. En celular, la actividad y el origen bajan debajo del peligro.
+- **Web, agregar riesgo (`/riesgos/nuevo`):** se elige el peligro del catálogo con un select con búsqueda (design-system.md § Select: buscador arriba y hoja inferior en celular) o se describe, y se indica la actividad.
+
+### Trabajo hecho
+
+- Se implementaron y probaron los endpoints. Pasan las 93 pruebas del backend.
+- Se construyó la web y se probó de punta a punta contra la API real:
+  - riesgo confirmado desde una encuesta;
+  - búsqueda sin tildes y manejo con teclado;
+  - agregar del catálogo y descrito;
+  - duplicado;
+  - celular y modo oscuro;
+  - acceso solo para los roles de gestión.
+- Se actualizó el contrato en `18-contratos-api-mvp.md`.
 
 ## Cambio `2026-11-23-design-system-riesgo` {#cambio-2026-11-23-design-system-riesgo}
 
