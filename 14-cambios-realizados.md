@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-042 implementada:** generar el plan de trabajo desde los riesgos evaluados y sus controles (y las tareas modelo del peligro), revisarlo desmarcando tareas y confirmarlo sin duplicar; tabla `Tarea` creada en el código | [Ver cambio](#cambio-2026-11-24-hu-042-plan) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-040 implementada:** evaluación residual (con los controles aplicados) guardada aparte de la inicial y mostrada a su lado, con la comparación de niveles | [Ver cambio](#cambio-2026-11-23-hu-040-residual) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-039 implementada:** controles de un riesgo sugeridos desde las plantillas del peligro (aceptar, editar o descartar) o propios, y señal de los riesgos altos y críticos sin control (**RN-19**); `Control` gana `PlantillaTareaId` | [Ver cambio](#cambio-2026-11-23-hu-039-controles) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-038 implementada:** mapa de la matriz (riesgos por celda de probabilidad × severidad) y lista filtrable por peligro, su clasificación, nivel y estado, con el nivel más alto primero | [Ver cambio](#cambio-2026-11-23-hu-038-ver-matriz) |
@@ -50,6 +51,69 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-042-plan` {#cambio-2026-11-24-hu-042-plan}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `12-modelo-datos.md` (Tarea: UQ parcial por `ControlId`), `18-contratos-api-mvp.md` (HU-042: propuesta, generación y lista de tareas). En el código: entidad `Tarea` y su migración `TareaPlanHu042`, módulo `Plan` (slices `ObtenerPropuestaPlan`, `GenerarPlan`, `ListarTareas`) y la página del plan en la web. La etiqueta de riesgo de la web pasó a `shared/riesgo` porque la usan la matriz y el plan |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-042 pide convertir riesgos y controles en tareas "según las plantillas", ordenadas por prioridad, revisables antes de confirmar y sin duplicarse al generar dos veces. La tabla `Tarea` estaba en el modelo, pero no en el código.
+2. El contrato pedía `incluirPlantillasRubro` y devolvía un `planId`, pero no existen plantillas por rubro ni una entidad "plan": el plan son las tareas de la empresa.
+3. El modelo solo impedía duplicar tareas por plantilla de cada riesgo. Un control propio (sin plantilla) podía generar su tarea dos veces.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **De dónde salen las tareas** | Cada control propuesto sin tarea produce una que lo implementa; cada plantilla activa del peligro **sin** tipo de control (tarea modelo) produce otra. Las plantillas que sugieren un control solo entran si el control se aceptó (HU-039) | "Riesgos y controles producen tareas según las plantillas", sin saltarse la confirmación de RN-76 |
+| **Solo riesgos evaluados** (decidido por el equipo) | Los riesgos sin evaluación no entran; la vista previa dice cuántos faltan y enlaza a la matriz | La prioridad sale del nivel, así que sin nivel no hay orden |
+| **Prioridad por nivel** | Alto o crítico 1, medio 2, bajo 3, según la última evaluación inicial. Orden: nivel más alto primero, luego controles por efectividad (RN-21) y luego tareas modelo | Cumple "empezando por los riesgos más altos" |
+| **Revisar desmarcando** (decidido por el equipo) | `GET …/propuesta` no guarda nada; la web muestra todo marcado y se desmarca lo que no se quiere. `POST …/generacion` recibe las claves elegidas y recalcula la propuesta en el servidor | Revisión real antes de confirmar, sin confiar en lo que mande el cliente; lo desmarcado se vuelve a proponer |
+| **No duplicar** | Lo que ya tiene tarea no se propone; la base lo garantiza con la UQ por plantilla de cada riesgo (ya documentada) y una nueva UQ parcial por `ControlId` | Generarlo dos veces crea 0 la segunda vez, aunque haya dos pestañas abiertas |
+| **Estado como texto con CHECK** (decidido por el equipo) | `Tarea.Estado` sigue a `12` (varchar con CHECK), como Encuesta y Accidente | Coherencia con el modelo documentado |
+| **Sin entidad de plan** | Se quitan `planId`, `incluirControlesPropuestos` e `incluirPlantillasRubro` del contrato | El modelo no tiene un "plan" aparte |
+
+### Cómo quedó (resumen)
+
+- **Base:** tabla `Tarea` con las FK compuestas y CHECK de `12` (un solo origen, control del mismo riesgo, responsable y fecha para iniciarse, `CompletadaEn` solo si está completada) y las dos UQ parciales.
+- **Backend:** `GET /api/plan-trabajo/propuesta`, `POST /api/plan-trabajo/generacion` y `GET /api/plan-trabajo/tareas`, con los permisos `plan.propuesta`, `plan.generar` y `tarea.listar` para `admin_empresa` y `responsable_sst`.
+- **Web (`/plan-de-trabajo`, enlace en Inicio):**
+  - **Tareas propuestas:** agrupadas por riesgo (con su nivel y prioridad), cada una con su origen y si pide evidencia. Se desmarcan y se confirman con "Agregar N tareas al plan".
+  - **Tareas del plan:** tabla con prioridad, nivel del riesgo, estado ("Pendiente") y responsable ("Sin responsable" hasta HU-043).
+  - **Sin propuesta:** dice "El plan está al día" y cómo aparecen tareas nuevas.
+
+### Trabajo hecho
+
+- Se implementó el backend con 11 pruebas nuevas:
+  - qué se propone y que no se guarda nada;
+  - orden por nivel y riesgos sin evaluar;
+  - confirmar solo lo elegido, con su origen;
+  - no duplicar y controles nuevos después de generar;
+  - orden de la lista dentro de un riesgo;
+  - validación, aislamiento entre empresas y permisos;
+  - la UQ por control en la base.
+
+  Pasan las 152 pruebas del backend.
+- Se construyó la web y se probó de punta a punta contra la API real (6 casos):
+  - propuesta ordenada;
+  - desmarcar;
+  - confirmar;
+  - plan al día sin duplicar;
+  - control nuevo;
+  - celular y modo oscuro.
+
+  Siguen pasando los e2e de HU-039 y HU-040.
+- **Hallazgo:** las tareas confirmadas juntas comparten `CreadaEn`, así que la lista no puede desempatar por fecha. Se ordena por riesgo, tipo de control y título.
+- **Pendiente para el equipo:** sin plantillas de tareas cargadas (HU-023 no las cubre), solo los controles producen tareas.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-042 | Contrato con opciones sin respaldo en el modelo y un `planId`; sin tabla `Tarea` en el código | Propuesta determinista por nivel, revisión desmarcando y confirmación sin duplicados; `Tarea` en la base |
 
 ## Cambio `2026-11-23-hu-040-residual` {#cambio-2026-11-23-hu-040-residual}
 

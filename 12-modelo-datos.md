@@ -729,6 +729,7 @@ Tareas de todos los módulos (D6). El origen se deduce de qué columna de origen
 - CHECK: si `Estado` es `en_progreso` o `completada`, `ResponsableId` y `FechaLimite` tienen valor (RN-22).
 - CHECK: `CompletadaEn` tiene valor si y solo si `Estado = 'completada'`.
 - UQ parcial `(RiesgoEmpresaId, PlantillaTareaId) WHERE` ambas tienen valor: generar el plan dos veces no duplica tareas.
+- UQ parcial `(ControlId) WHERE ControlId IS NOT NULL`: un control tiene una sola tarea que lo implementa, así que generar el plan dos veces tampoco duplica las tareas de los controles propios (HU-042).
 - Evidencia obligatoria (RN-25) y quién puede actualizar (RN-24): los valida la aplicación.
 
 #### Archivo

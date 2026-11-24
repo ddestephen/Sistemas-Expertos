@@ -253,7 +253,10 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-047 | GET | `api/eventos` | Listar eventos de la empresa (`admin_empresa`, `responsable_sst`) con filtros | ✅ |
 | HU-047 | GET | `api/eventos/{id}` | Detalle completo de evento (`admin_empresa`, `responsable_sst`) | ✅ |
 | HU-047 | POST | `api/eventos/{id}/evidencias` | Adjuntar evidencias (`Archivo`; pendiente `HU-100` almacenamiento externo) | 🚧 |
-| HU-042–045 | varios | `api/plan-trabajo/...` | Plan de acción | 🚧 |
+| HU-042 | GET | `api/plan-trabajo/propuesta` | Vista previa del plan (permiso `plan.propuesta`) | ✅ |
+| HU-042 | POST | `api/plan-trabajo/generacion` | Confirmar el plan (permiso `plan.generar`) | ✅ |
+| HU-042 | GET | `api/plan-trabajo/tareas` | Tareas del plan, sin filtros todavía (permiso `tarea.listar`) | ✅ |
+| HU-043–045 | varios | `api/plan-trabajo/...` | Asignar, atender y adjuntar evidencia | 🚧 |
 | HU-075 | GET | `api/riesgos/matriz/pdf` | Impresión matriz (M10) | 🚧 |
 
 ---
@@ -360,6 +363,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-039 | POST | `/api/riesgos/{id}/controles` | JSON | `ControlResponseDto` | Riesgos |
 | HU-039 | GET | `/api/riesgos/{id}/controles` | — | array | Riesgos |
 | HU-039 | GET | `/api/riesgos/{id}/controles/sugeridos` | — | array | Riesgos |
+| HU-042 | GET | `/api/plan-trabajo/propuesta` | — | JSON | Plan |
 | HU-042 | POST | `/api/plan-trabajo/generacion` | JSON | JSON | Plan |
 | HU-043 | PATCH | `/api/plan-trabajo/tareas/{id}` | JSON | `TareaResponseDto` | Plan |
 | HU-044 | GET | `/api/plan-trabajo/tareas/mias` | — | array | Plan |
@@ -1710,29 +1714,83 @@ Agrega un control propio o acepta una sugerencia, tal cual o editada (tipo y des
 
 ### M5 — Plan de trabajo (HU-042 a HU-046) — 🚧
 
-#### `POST /api/plan-trabajo/generacion` (HU-042)
+Las tres rutas de HU-042 son para `admin_empresa` y `responsable_sst`.
 
-**Request** — `GenerarPlanTrabajoRequestDto`:
+#### `GET /api/plan-trabajo/propuesta` (HU-042) — ✅
+
+Las tareas que se agregarían al plan, para revisarlas antes de confirmar. **No guarda nada.** Es determinista: los mismos datos dan la misma propuesta y las mismas claves.
+
+- **De dónde salen** (art. 46.1.e), solo de riesgos **confirmados y evaluados**:
+  - cada control `propuesto` sin tarea produce una tarea que lo implementa. Si salió de una sugerencia, usa el título y la evidencia de su plantilla; si es propio, el título es la primera línea de su descripción (hasta 200 caracteres);
+  - cada plantilla activa del peligro **sin** tipo de control (tarea modelo) produce una tarea. Las que sugieren un control solo entran cuando el control se acepta (RN-76).
+- **Prioridad:** sale del nivel de la última evaluación inicial: alto o crítico 1, medio 2, bajo 3.
+- **Orden:** riesgos del nivel más alto primero; dentro de cada uno, controles por efectividad (RN-21) y luego tareas modelo por su prioridad sugerida.
+- **Lo que ya tiene tarea** no se vuelve a proponer.
 
 ```json
 {
-  "incluirControlesPropuestos": true,
-  "incluirPlantillasRubro": true
+  "tareas": [
+    {
+      "clave": "control:01935200-....",
+      "riesgoId": "01935000-....",
+      "riesgoNombre": "Trabajo en alturas",
+      "riesgoNivel": 10,
+      "riesgoClasificacion": "alto",
+      "origen": "control",
+      "controlId": "01935200-....",
+      "tipoControl": "ingenieria",
+      "plantillaId": "01936000-....",
+      "titulo": "Instalar barandas en el borde",
+      "descripcion": "Instalar barandas de 1 m",
+      "prioridad": 1,
+      "requiereEvidencia": true
+    },
+    {
+      "clave": "plantilla:01935000-....:01936001-....",
+      "riesgoId": "01935000-....",
+      "riesgoNombre": "Trabajo en alturas",
+      "riesgoNivel": 10,
+      "riesgoClasificacion": "alto",
+      "origen": "plantilla",
+      "controlId": null,
+      "tipoControl": null,
+      "plantillaId": "01936001-....",
+      "titulo": "Inspeccionar la línea de vida cada mes",
+      "descripcion": null,
+      "prioridad": 1,
+      "requiereEvidencia": true
+    }
+  ],
+  "riesgosSinEvaluar": 1
 }
 ```
 
-**Response 201:**
+`riesgosSinEvaluar`: riesgos de la matriz que no entran porque no tienen nivel.
+
+#### `POST /api/plan-trabajo/generacion` — `GenerarPlanRequestDto` (HU-042) — ✅
+
+Confirma el plan con las tareas elegidas de la propuesta. Las que se desmarcaron no se envían y vuelven a proponerse.
+- **No confía en el cliente:** vuelve a calcular la propuesta y crea solo las claves que siguen en ella. Una clave que ya tiene tarea, o de otra empresa, se ignora.
+- **No duplica:** generarlo dos veces crea 0 la segunda vez. La base lo garantiza con los índices únicos `(RiesgoEmpresaId, PlantillaTareaId)` y `ControlId`.
+- **Cada tarea queda** `pendiente`, sin responsable ni fecha (HU-043), con su origen: el riesgo y, si lo implementa, el control (RN-23).
 
 ```json
-{
-  "tareasCreadas": 15,
-  "planId": "01935300-...."
-}
+{ "claves": ["control:01935200-....", "plantilla:01935000-....:01936001-...."] }
 ```
 
-#### `GET /api/plan-trabajo/tareas` (HU-043, HU-046)
+**Response 200:**
 
-**Query:** `estado=pendiente|en_progreso|completada`, `prioridad=1|2|3`, `responsableId={uuid}`
+```json
+{ "tareasCreadas": 2 }
+```
+
+**Errores:** 400 `ValidationProblemDetails` si `claves` falta o está vacía.
+
+*(Antes el contrato tenía `incluirControlesPropuestos`, `incluirPlantillasRubro` y devolvía un `planId`. No hay entidad de plan ni plantillas por rubro: el plan son las tareas de la empresa.)*
+
+#### `GET /api/plan-trabajo/tareas` (HU-042; filtros en HU-043 y HU-046) — ✅
+
+Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro de cada riesgo, controles por efectividad y luego tareas modelo. Los filtros (`estado`, `prioridad`, `responsableId`) llegan con HU-043 y HU-046.
 
 **Response 200:**
 
@@ -1740,16 +1798,27 @@ Agrega un control propio o acepta una sugerencia, tal cual o editada (tipo y des
 [
   {
     "id": "01935400-....",
-    "titulo": "Implementar señalización",
+    "titulo": "Instalar barandas en el borde",
+    "descripcion": "Instalar barandas de 1 m",
     "estado": "pendiente",
     "prioridad": 1,
-    "fechaLimite": "2026-12-01",
-    "responsableId": "01933f40-....",
-    "responsableNombre": "Juan Pérez",
-    "requiereEvidencia": true
+    "responsableId": null,
+    "responsableNombre": null,
+    "fechaLimite": null,
+    "requiereEvidencia": true,
+    "origen": "riesgo",
+    "riesgoId": "01935000-....",
+    "riesgoNombre": "Trabajo en alturas",
+    "riesgoNivel": 10,
+    "riesgoClasificacion": "alto",
+    "controlTipo": "ingenieria",
+    "creadaEn": "2026-11-24T06:00:00Z"
   }
 ]
 ```
+
+- `origen`: `riesgo`, `accidente` o `manual` (RN-23).
+- `riesgoNivel` y `riesgoClasificacion`: la última evaluación inicial del riesgo, en el momento de consultar.
 
 #### `GET /api/plan-trabajo/tareas/mias` (HU-044)
 
