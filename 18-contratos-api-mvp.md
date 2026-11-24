@@ -259,7 +259,9 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-043 | POST | `api/plan-trabajo/tareas` | Crear una tarea manual, ya asignada (permiso `tarea.crear`) | ✅ |
 | HU-043 | PUT | `api/plan-trabajo/tareas/{id}/asignacion` | Asignar o reasignar responsable y fecha límite (permiso `tarea.asignar`) | ✅ |
 | HU-043 | GET | `api/plan-trabajo/responsables` | A quién se le puede asignar una tarea (permiso `tarea.responsables`) | ✅ |
-| HU-044–045 | varios | `api/plan-trabajo/...` | Atender tareas y adjuntar evidencia | 🚧 |
+| HU-044 | GET | `api/plan-trabajo/tareas/mias` | Mis tareas (permiso `tarea.mias`; también `colaborador`) | ✅ |
+| HU-044 | PATCH | `api/plan-trabajo/tareas/{id}/estado` | Cambiar el estado (permiso `tarea.estado`; también `colaborador`, con RN-24 en la aplicación) | ✅ |
+| HU-045 | POST | `api/plan-trabajo/tareas/{id}/evidencias` | Adjuntar evidencia | 🚧 |
 | HU-075 | GET | `api/riesgos/matriz/pdf` | Impresión matriz (M10) | 🚧 |
 
 ---
@@ -372,7 +374,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-043 | PUT | `/api/plan-trabajo/tareas/{id}/asignacion` | JSON | `TareaResponseDto` | Plan |
 | HU-043 | GET | `/api/plan-trabajo/responsables` | — | array | Plan |
 | HU-044 | GET | `/api/plan-trabajo/tareas/mias` | — | array | Plan |
-| HU-044 | GET | `/api/plan-trabajo/tareas` | query | array | Plan |
+| HU-044 | PATCH | `/api/plan-trabajo/tareas/{id}/estado` | JSON | `TareaResponseDto` | Plan |
 | HU-045 | POST | `/api/plan-trabajo/tareas/{id}/evidencias` | multipart | JSON | Plan |
 | HU-046 | GET | `/api/plan-trabajo/tareas` | filtros query | array | Plan |
 | HU-047 | POST | `/api/eventos` | JSON | JSON | Eventos |
@@ -1825,9 +1827,13 @@ Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro d
 - `origen`: `riesgo`, `accidente` o `manual` (RN-23).
 - `riesgoNivel` y `riesgoClasificacion`: la última evaluación inicial del riesgo, en el momento de consultar.
 
-#### `GET /api/plan-trabajo/tareas/mias` (HU-044)
+#### `GET /api/plan-trabajo/tareas/mias` (HU-044) — ✅
 
-Mismo item que arriba; filtrado por vínculo del JWT.
+Las tareas cuyo responsable es el vínculo de la sesión (del token), con el mismo item que `GET …/tareas`. Para `admin_empresa`, `responsable_sst` y `colaborador`; los encuestados no tienen tareas.
+
+**Orden:** primero en progreso y luego pendientes, por fecha límite más próxima y prioridad; al final las completadas y canceladas, las más recientes primero.
+
+El item incluye `completadaEn` (null si no está completada); también lo trae `GET …/tareas`.
 
 #### `GET /api/plan-trabajo/responsables` (HU-043) — ✅
 
@@ -1886,9 +1892,32 @@ Tarea manual: no sale de un riesgo ni de un accidente (origen `manual`, RN-23). 
 
 **Response 201:** `TareaResponseDto` con `origen: "manual"`. **Errores:** 400 `ValidationProblemDetails`, `plan.responsable_invalido` o `plan.fecha_pasada`.
 
-#### Cambiar el estado de una tarea (HU-044) — 🚧
+#### `PATCH /api/plan-trabajo/tareas/{id}/estado` — `CambiarEstadoTareaRequestDto` (HU-044) — ✅
 
-El `PATCH /api/plan-trabajo/tareas/{id}` genérico del contrato anterior se reemplaza por rutas por acción: asignar es `PUT …/asignacion` (HU-043), y cambiar el estado lo define HU-044, con sus propios permisos (el colaborador solo cambia sus tareas, RN-24).
+Pasa una tarea por `pendiente`, `en_progreso` y `completada`, en cualquier orden (también para reabrirla). Reemplaza al `PATCH /api/plan-trabajo/tareas/{id}` genérico del contrato anterior: asignar es `PUT …/asignacion` (HU-043), así el permiso de cambiar el estado no permite reasignar.
+
+```json
+{ "estado": "en_progreso" }
+```
+
+- **Quién (RN-24):** el responsable de la tarea o un Responsable SST. El permiso de la ruta lo tienen también `admin_empresa` y `colaborador`, pero la aplicación rechaza a quien no sea ninguno de los dos.
+- **Iniciar o completar (RN-22):** la tarea necesita responsable y fecha límite.
+- **Completar (RN-25):** si la tarea pide evidencia, no se completa sin ella. Hasta HU-045 no hay dónde adjuntarla, así que esas tareas no se pueden completar todavía.
+- **`completadaEn`:** se guarda al completar y se borra al reabrir. Pedir el mismo estado no cambia nada.
+- **Cancelar** no es parte de atender una tarea: `cancelada` se rechaza aquí.
+
+**Response 200:** `TareaResponseDto`.
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta el estado, o no es `pendiente`, `en_progreso` ni `completada` |
+| 403 `plan.tarea_ajena` | No es su responsable ni Responsable SST (RN-24) |
+| 404 `plan.tarea_no_encontrada` | La tarea no existe o es de otra empresa |
+| 409 `plan.tarea_sin_asignar` | Se quiere iniciar o completar sin responsable o sin fecha límite (RN-22) |
+| 409 `plan.falta_evidencia` | Se quiere completar una tarea que pide evidencia y no la tiene (RN-25) |
+| 409 `plan.tarea_cancelada` | La tarea está cancelada |
 
 #### `POST /api/plan-trabajo/tareas/{id}/evidencias` (HU-045)
 

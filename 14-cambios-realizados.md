@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-044 implementada:** "Mis tareas" para atender las tareas asignadas (pendiente, en progreso, completada y reabrir), solo por su responsable o el Responsable SST (**RN-24**), sin completar las que piden evidencia (**RN-25**) | [Ver cambio](#cambio-2026-11-24-hu-044-mis-tareas) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-043 implementada:** asignar responsable y fecha límite a cada tarea (solo personas activas de la empresa, sin encuestados), crear tareas manuales y marcar las vencidas; primer **campo de fecha** del design system en el código | [Ver cambio](#cambio-2026-11-24-hu-043-asignar) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-042 implementada:** generar el plan de trabajo desde los riesgos evaluados y sus controles (y las tareas modelo del peligro), revisarlo desmarcando tareas y confirmarlo sin duplicar; tabla `Tarea` creada en el código | [Ver cambio](#cambio-2026-11-24-hu-042-plan) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-040 implementada:** evaluación residual (con los controles aplicados) guardada aparte de la inicial y mostrada a su lado, con la comparación de niveles | [Ver cambio](#cambio-2026-11-23-hu-040-residual) |
@@ -52,6 +53,66 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-044-mis-tareas` {#cambio-2026-11-24-hu-044-mis-tareas}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (HU-044: mis tareas y cambio de estado; `completadaEn` en el item), `12-modelo-datos.md` §9 (RN-24, RN-25). En el código: slices `ListarMisTareas` y `CambiarEstadoTarea`, y la página "Mis tareas" en la web |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-044 pide que el colaborador vea sus tareas y las pase por pendiente, en progreso y completada, sin poder cambiar las ajenas.
+2. Los permisos se asignan por ruta y rol. Para cambiar el estado, el colaborador necesita el permiso, pero RN-24 dice que solo el responsable de **esa** tarea o el Responsable SST pueden actualizarla. El rol no alcanza: hay que mirar la tarea.
+3. RN-25 (no completar sin evidencia) aplica desde ya, pero las evidencias llegan con HU-045.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Ruta propia para el estado** | `PATCH …/tareas/{id}/estado`, separada de `PUT …/asignacion` | Dar este permiso al colaborador no le permite reasignar |
+| **RN-24 en la aplicación** | El permiso de la ruta lo tienen `admin_empresa`, `responsable_sst` y `colaborador`; el servicio además exige ser el responsable de la tarea o Responsable SST (403 `plan.tarea_ajena`). Un admin que no es responsable tampoco puede | Lo que dice la regla, al pie de la letra; el rol se lee de la base, así refleja un cambio de rol reciente |
+| **Estados en cualquier orden** | Entre pendiente, en progreso y completada se puede ir y volver (reabrir). `completadaEn` se guarda al completar y se borra al reabrir. Cancelar no está aquí | "Puedo pasarlas por pendiente, en progreso y completada"; un error al marcar se corrige solo |
+| **RN-25 desde ya** | Una tarea que pide evidencia no se completa (409 `plan.falta_evidencia`). Como todavía no hay evidencias, esas tareas esperan a HU-045; en la web el botón está deshabilitado y se explica por qué | No se completa nada que deba demostrarse |
+| **RN-22 al iniciar** | Sin responsable o sin fecha límite no se inicia ni se completa (409 `plan.tarea_sin_asignar`) | Lo exige la base con un CHECK; la aplicación da un mensaje claro |
+| **Solo veo las mías** | `GET …/tareas/mias` filtra por el vínculo del token. Los colaboradores no entran al plan completo | "No puedo cambiar tareas ajenas": ni siquiera las ve |
+
+### Cómo quedó (resumen)
+
+- **Backend:** `GET /api/plan-trabajo/tareas/mias` y `PATCH /api/plan-trabajo/tareas/{id}/estado`, con los permisos `tarea.mias` y `tarea.estado`. `completadaEn` se agrega al item de tarea.
+- **Web (`/mis-tareas`, enlace "Mis tareas" en Inicio para admin, Responsable SST y colaborador):**
+  - **Por hacer:** en progreso y pendientes, la más urgente primero, con prioridad, fecha límite, "Vencida", de dónde sale y si pide evidencia.
+  - **Terminadas:** completadas (con su fecha) y canceladas.
+  - **Botones según el estado:** "Empezar", "Marcar como completada" (deshabilitado si pide evidencia), "Volver a pendiente" y "Reabrir".
+  - **Si la tarea dejó de ser suya:** el aviso queda arriba y la lista se actualiza.
+
+### Trabajo hecho
+
+- Se implementó el backend con 10 pruebas nuevas:
+  - solo mis tareas y en qué orden;
+  - el ciclo completo, también reabrir;
+  - tarea ajena: el admin no puede y el Responsable SST sí;
+  - evidencia, sin asignar y estados no permitidos;
+  - tarea cancelada;
+  - aislamiento entre empresas y que el encuestado no entra.
+
+  Pasan las 177 pruebas del backend.
+- Se construyó la web y se probó de punta a punta contra la API real (8 casos):
+  - lista y orden;
+  - empezar, completar, reabrir y volver a pendiente;
+  - tarea con evidencia;
+  - tarea reasignada a otra persona mientras estaba abierta;
+  - el colaborador no entra al plan;
+  - estado vacío, celular y modo oscuro.
+
+  Siguen pasando los e2e de HU-042 y HU-043.
+- **Hallazgo:** si una tarea se reasignaba mientras el colaborador la tenía abierta, al recargar la lista desaparecía junto con su mensaje de error. Ahora el aviso va arriba de la página.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-044 | Contrato de "mis tareas" sin detalle; el cambio de estado iba en un `PATCH` genérico | Página "Mis tareas", cambio de estado con RN-22, RN-24 y RN-25, y reabrir |
 
 ## Cambio `2026-11-24-hu-043-asignar` {#cambio-2026-11-24-hu-043-asignar}
 

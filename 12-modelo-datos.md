@@ -975,7 +975,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-21 | BD | CHECK `Control.Tipo` |
 | RN-22 | BD y App | CHECK en Tarea; al asignar, la aplicación exige responsable activo de la empresa (no encuestado) y fecha límite no anterior a hoy (HU-043) |
 | RN-23 | BD | Columnas de origen con CHECK |
-| RN-24, RN-25 | App | Permisos y conteo de evidencias |
+| RN-24, RN-25 | App | Al cambiar el estado (HU-044): solo el responsable de la tarea o un Responsable SST; completar una tarea que pide evidencia exige al menos una (las evidencias llegan con HU-045) |
 | RN-26 | BD | CHECK `Tipo` y `EstadoEnfermedad` |
 | RN-27 | BD y App | Permiso de reporte anónimo para vínculos activos; `Accidente` sin `ReportadoPorId` y `Archivo` con `SubidoPorId` nulo si pertenece a un evento |
 | RN-28 | App y BD | Validación al cerrar (investigación y medida); estado `descartado` con `DescartadoPorId` y excluido de estadísticas |
