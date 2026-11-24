@@ -245,6 +245,22 @@ Unidad base **4px**. Solo estos valores; los saltos son intencionales.
 | `--layout-max-width-narrow` | `720px` | Formularios y documentos |
 | `--layout-sidebar-width` | `240px` | Menú lateral en escritorio |
 
+#### Espacios de seguridad
+
+Cada pantalla deja siempre el mismo espacio arriba, a los lados y abajo. Lo aplica el contenedor
+general (`.pagina` en `AppLayout`); las páginas **no** agregan su propio padding superior. Se ajustan
+solo en `theme.css`.
+
+| Variable | Celular | Tablet (≥640px) | Escritorio (≥1024px) | Uso |
+|---|---|---|---|---|
+| `--layout-gutter` | `16px` | `24px` | `32px` | Margen lateral (y de la barra fija de Volver) |
+| `--layout-space-top` | `24px` | `32px` | `32px` | Aire sobre el primer elemento (Volver o encabezado) |
+| `--layout-space-bottom` | `48px` | `48px` | `48px` | Aire bajo el último elemento |
+| `--safe-top/right/bottom/left` | `env(safe-area-inset-*)` | | | Notch, barra de estado y barra de gestos; se suman a lo anterior (requiere `viewport-fit=cover`) |
+
+El área segura también se suma en lo fijo a los bordes: la barra de Volver (arriba), la hoja inferior
+del diálogo y de la lista con búsqueda (abajo) y el modal a pantalla completa en celular (arriba y abajo).
+
 ### Tamaños de componentes
 
 | Variable | Valor | Uso |
@@ -444,8 +460,16 @@ Badges, avisos y toasts no son interactivos: tienen variantes por tipo, no estad
   dos cortas ("Sí / No").
 - **Error de grupo:** las opciones no se ponen rojas. El mensaje va una sola vez debajo del grupo,
   igual que el error del input (ícono + `--color-error-text`). Vale para radios y checkboxes.
-- **Contador del área de texto** (solo si hay límite): "120 / 500" abajo a la derecha, Caption en
-  `--color-text-tertiary`; al pasarse, `--color-error-text`.
+- **Contador del área de texto** (solo si hay límite): "120 / 500" siempre visible, abajo a la derecha
+  (a la derecha de la ayuda o del error), Caption en `--color-text-tertiary` con cifras tabulares; al
+  pasarse, `--color-error-text`.
+- **Contador de largo exacto** (RTN 14, DNI 13): "12 / 14" con el mismo estilo. Cuenta solo los dígitos
+  (los guiones y espacios no cuentan); completo pasa a `--color-text-secondary`; si sobra, `--color-error-text`.
+  Con pasaporte (sin largo fijo) no se muestra.
+- **Inputs de una línea con máximo** (nombres, títulos, razón social): sin contador. Si se pasa, basta
+  el mensaje de error del campo.
+- **Lectores de pantalla:** el contador se asocia al campo (`aria-describedby`) y solo se anuncia al
+  llegar al límite o pasarse, no en cada tecla.
 - **Celular:** el área de texto usa 16px, como el input, para evitar el zoom del iPhone.
 
 ### Select
@@ -494,6 +518,27 @@ encuesta, suspender una empresa).
   peligro, el botón usa `--color-action-danger` y el foco empieza en "Cancelar".
 - **No se cierra con clic fuera.** En celular sale como hoja inferior.
 
+### Volver (navegación de regreso)
+
+El regreso a la pantalla anterior queda siempre a la mano: arriba de la página y, al desplazar, en una
+barra fija.
+
+| Parte | Decisión |
+|---|---|
+| Link en su lugar | Ícono `arrow-left` 16px + "Volver a {destino}" (Label, `--color-text-link`), `--space-1` entre ícono y texto. Primer elemento de la página |
+| Destino | **La pantalla anterior** (como "atrás" del navegador), nombrada: si se llegó a los resultados desde un riesgo, "Volver al riesgo". Si no hay pantalla anterior (se entró por URL), es de la otra zona (con/sin sesión) o es la misma pantalla (tras guardar un formulario), se usa la pantalla padre fija |
+| Barra fija | Aparece cuando el link sale de la vista: pegada arriba, alto `--control-height` (44px en celular) más `--space-2` arriba y abajo (y el área segura del dispositivo), fondo `--color-bg-surface`, borde inferior `--color-border-default`, `--shadow-1` (encabezado fijo). El contenido se alinea al mismo ancho que la página |
+| Contenido de la barra | El mismo link + "·" + título de la página en Cuerpo `--color-text-secondary`, truncado con elipsis. En celular el título se oculta si no cabe |
+| Animación | Aparece con fundido y desplazamiento de 120ms; sin animación con reducción de movimiento |
+| Capas | Encima del contenido y debajo de las listas desplegables (z 20 < 30); modales y diálogos siempre encima |
+| Al volver | La pantalla anterior vuelve a la posición de desplazamiento en que se dejó |
+| Accesibilidad | Mientras está oculta, la barra es `aria-hidden` e `inert` (no recibe foco) |
+
+- **Texto:** siempre "Volver a {destino}" en minúscula: "Volver a encuestas", "Volver a mis encuestas",
+  "Volver a la encuesta", "Volver a la matriz", "Volver al riesgo".
+- **Solo regreso por ahora:** la barra no lleva acciones de la pantalla. Si más adelante se agregan,
+  se documentan aquí (un solo botón principal, regla de color 1).
+
 ### Badges de estado
 
 Cada color significa siempre lo mismo, sea cual sea la entidad. No hay badge de marca: la marca no
@@ -520,6 +565,18 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 - **Accidente cerrado es neutro,** no éxito: que termine el caso no es una buena noticia.
 - **"Vencida" no es un estado guardado:** es una tarea pendiente o en progreso con la fecha límite
   pasada. Se muestran dos badges ("En progreso" + "Vencida") para no perder el estado.
+
+### Campo de contraseña
+
+| Parte | Decisión |
+|---|---|
+| Caja | Igual que el input, con un botón de solo ícono a la derecha, dentro de la caja |
+| Botón | `eye` 16px ("Mostrar contraseña") o `eye-off` ("Ocultar contraseña"); 36px (44px en celular), `--color-text-secondary`. Etiqueta accesible, tooltip y `aria-pressed` |
+| Comportamiento | Muestra u oculta solo ese campo; no envía el formulario. Arranca oculta |
+| Navegador | Se oculta el botón propio de Edge para no tener dos |
+
+- **Todos los campos de contraseña lo llevan** (login, activar cuenta, cambiar y restablecer): lo pone
+  `CampoTexto` con `type="password"`.
 
 ### Campo de fecha
 

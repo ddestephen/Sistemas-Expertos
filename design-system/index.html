@@ -26,6 +26,7 @@
   <symbol id="i-users" viewBox="0 0 16 16"><circle cx="6" cy="5.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M1.75 13.5c.5-2.25 2.25-3.5 4.25-3.5s3.75 1.25 4.25 3.5M10.5 3.25a2.5 2.5 0 0 1 0 4.75M12 10.25c1.25.5 2 1.75 2.25 3.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
   <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.5v7.5m-3-3 3 3 3-3M3 12.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-chevron-down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M12.5 8h-9m4-4-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-chevron-left" viewBox="0 0 16 16"><path d="m10 4-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-chevron-right" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 16 16"><rect x="2.5" y="3.25" width="11" height="10.25" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 6.5h11M5.5 2v2.5M10.5 2v2.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
@@ -390,12 +391,13 @@
         </div>
       </div>
       <!-- Área de texto -->
-      <div class="sub"><h3 class="t-h2">Área de texto</h3><p class="muted">Mismos colores, bordes y estados que el campo de texto. Mínimo 3 líneas; crece con el texto hasta unas 8 y después desplaza. El contador aparece solo si hay límite.</p></div>
+      <div class="sub"><h3 class="t-h2">Área de texto</h3><p class="muted">Mismos colores, bordes y estados que el campo de texto. Mínimo 3 líneas; crece con el texto hasta unas 8 y después desplaza. El contador aparece solo si hay límite. Los campos de largo exacto (RTN, DNI) usan el mismo contador; los inputs de una línea con máximo no lo llevan.</p></div>
       <div class="panel comp-panel">
         <div class="states states-wide">
           <div class="state"><div class="state-demo"><div class="field"><textarea class="input textarea" rows="3" placeholder="Describe qué pasó…" data-max="200" aria-label="Descripción"></textarea><span class="counter tabular">0 / 200</span></div></div><div class="state-name">Por defecto <span class="live">interactivo</span></div><div class="state-tokens"><div>padding <span class="tok">--space-3</span></div><div>contador Caption <span class="tok">--color-text-tertiary</span></div></div></div>
           <div class="state"><div class="state-demo"><div class="field"><textarea class="input textarea is-focus" rows="3" aria-label="Ejemplo con foco">Caída al mismo nivel en el pasillo de bodega.</textarea><span class="counter tabular">45 / 200</span></div></div><div class="state-name">Foco</div><div class="state-tokens"><div>borde <span class="tok">--color-focus-ring</span></div><div>halo <span class="tok">--color-focus-halo</span></div></div></div>
           <div class="state"><div class="state-demo"><div class="field"><textarea class="input textarea is-error" rows="3" aria-label="Ejemplo con límite superado">El trabajador resbaló en el pasillo de bodega porque el piso estaba mojado después de la limpieza y no había señalización. Se golpeó la rodilla derecha y recibió primeros auxilios en el lugar.</textarea><span class="counter tabular is-over">205 / 200</span></div></div><div class="state-name">Límite superado</div><div class="state-tokens"><div>borde <span class="tok">--color-error-icon</span></div><div>contador <span class="tok">--color-error-text</span></div></div></div>
+          <div class="state"><div class="state-demo"><div class="field"><input class="input" value="0801-1999-1234" aria-label="RTN"><span class="counter tabular">12 / 14</span></div></div><div class="state-name">Largo exacto (RTN, DNI)</div><div class="state-tokens"><div>cuenta solo dígitos</div><div>completo: <span class="tok">--color-text-secondary</span></div><div class="tertiary">Inputs de nombres y títulos no llevan contador</div></div></div>
           <div class="state"><div class="state-demo"><div class="field"><textarea class="input textarea" rows="3" disabled aria-label="Ejemplo deshabilitado">Caída al mismo nivel en el pasillo de bodega.</textarea></div></div><div class="state-name">Deshabilitado</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-disabled</span></div><div>texto <span class="tok">--color-text-disabled</span></div></div></div>
         </div>
       </div>
@@ -543,6 +545,16 @@
           <div class="state"><div class="state-demo"><div class="card card-click is-focus"><div class="t-h3">Matriz IPER</div><div class="muted">Actualizada hace 3 días</div></div></div><div class="state-name">Foco (teclado)</div><div class="state-tokens"><div>anillo <span class="tok">--color-focus-ring</span></div></div></div>
         </div>
       </div>
+
+      <!-- Volver -->
+      <div class="sub"><h3 class="t-h2">Volver</h3><p class="muted">Regreso a la pantalla anterior (como &quot;atrás&quot;), nombrada; si se entró por URL, a la pantalla padre. Al desplazar, el link pasa a una barra fija arriba con el título de la página; al volver, la pantalla anterior recupera su posición.</p></div>
+      <div class="panel comp-panel">
+        <div class="states states-wide">
+          <div class="state"><div class="state-demo"><a class="link back-link" href="#componentes"><svg class="icon"><use href="#i-arrow-left"/></svg>Volver a encuestas</a></div><div class="state-name">En su lugar <span class="live">interactivo</span></div><div class="state-tokens"><div>texto <span class="tok">--color-text-link</span></div><div>ícono 16px, <span class="tok">--space-1</span></div></div></div>
+          <div class="state"><div class="state-demo w-full"><div class="back-bar"><a class="link back-link" href="#componentes"><svg class="icon"><use href="#i-arrow-left"/></svg>Volver a encuestas</a><span class="back-bar-title">· Evaluación de condiciones de trabajo 2026</span></div></div><div class="state-name">Barra fija (al desplazar)</div><div class="state-tokens"><div>fondo <span class="tok">--color-bg-surface</span></div><div>borde <span class="tok">--color-border-default</span> + <span class="tok">--shadow-1</span></div><div>alto <span class="tok">--control-height</span> (44px en celular)</div></div></div>
+        </div>
+      </div>
+      <div class="note"><svg class="icon"><use href="#i-info"/></svg><span>Texto siempre "Volver a {destino}". Destino híbrido: la pantalla padre, o el módulo de origen si se llegó desde otro ("Volver al riesgo"). Oculta, la barra es <span class="tok">aria-hidden</span> e <span class="tok">inert</span>. Queda debajo de listas desplegables y modales; aparece con 120ms de fundido (sin animación con reducción de movimiento).</span></div>
 
       <!-- Badges -->
       <div class="sub"><h3 class="t-h2">Badge</h3><p class="muted">Sin estados (no es interactivo). Radio 4px, Caption Medium. Siempre con texto.</p></div>
