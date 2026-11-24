@@ -139,6 +139,7 @@ erDiagram
     Accidente |o--o{ RiesgoEmpresa : "revela"
     Peligro |o--o{ RiesgoEmpresa : "origina"
     RiesgoEmpresa ||--o{ EvaluacionRiesgo : "se evalúa en"
+    Accidente |o--o{ EvaluacionRiesgo : "hace reevaluar"
     RiesgoEmpresa ||--o{ Control : "se controla con"
     RiesgoEmpresa |o--o{ Tarea : "genera"
     Control |o--o{ Tarea : "se implementa con"
@@ -679,6 +680,11 @@ Cada evaluación de un riesgo. Una nueva no reemplaza a la anterior (RN-20, D10)
 | Severidad | smallint | No | | CHECK entre 1 y 5 |
 | EvaluadoPorId | uuid | No | FK compuesta → VinculoEmpresa | |
 | EvaluadoEn | timestamptz | No | | |
+| AccidenteId | uuid | Sí | FK compuesta → Accidente | Evento a raíz del cual se hizo (HU-051) |
+
+**Restricciones:**
+
+- CHECK: `AccidenteId` solo tiene valor si `Tipo = 'inicial'`: el evento hace revisar el riesgo, no sus controles.
 
 El nivel (`Probabilidad × Severidad`) y su clasificación se calculan; no se guardan (RN-15, RN-16).
 
@@ -870,6 +876,7 @@ Aviso a un operador con vínculo (D28). Se ve dentro de Norvia y se envía por c
 | Rubro – CategoriaRiesgo – PreguntaExploratoria – OpcionPregunta | Uno a muchos, en cadena | FK en la tabla hija |
 | Accidente – InvestigacionAccidente | Uno a cero o uno | UQ en `AccidenteId` |
 | RiesgoEmpresa – origen | Muchos a cero o uno | Dos FK opcionales (`EncuestaId`, `AccidenteId`) y CHECK de máximo una |
+| EvaluacionRiesgo – Accidente | Muchos a cero o uno | FK opcional `AccidenteId`; solo en evaluaciones iniciales |
 | Tarea – origen | Muchos a cero o uno | Dos FK opcionales (`RiesgoEmpresaId`, `AccidenteId`) y CHECK de máximo una |
 | Archivo – dueño | Muchos a cero o uno | Dos FK opcionales y CHECK de máximo una |
 | Notificacion – origen | Muchos a uno | Dos FK opcionales y CHECK según `Tipo` |

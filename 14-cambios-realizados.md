@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-051 completada:** desde un evento se agrega un riesgo nuevo que queda **revelado** por él o se **reevalúa** uno de la matriz; la evaluación guarda el evento (columna nueva `EvaluacionRiesgo.AccidenteId`, D10) y el evento muestra el nivel de antes y el de después | [Ver cambio](#cambio-2026-11-24-hu-051) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-050 completada:** el Responsable SST agrega medidas correctivas a un evento; cada una es una **tarea del plan** con origen "accidente", y desde el evento se ve su avance (completadas, vencidas). Con esto un evento ya se puede cerrar desde la web | [Ver cambio](#cambio-2026-11-24-hu-050) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-049 completada:** el Responsable SST registra y corrige la investigación de un evento (causas inmediatas y de fondo, conclusiones, quién investigó y cuándo), lo **cierra** solo con investigación y al menos una medida correctiva (RN-28) y descarta reportes inválidos con motivo opcional; el admin solo consulta | [Ver cambio](#cambio-2026-11-24-hu-049) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-047 completada en la web:** reportar un evento de forma anónima (cualquier persona de la empresa, también encuestados) con fecha y hora de Honduras, y lista y detalle de eventos para el admin y el Responsable SST; primer **campo de hora** del design system | [Ver cambio](#cambio-2026-11-24-hu-047-web) |
@@ -60,6 +61,69 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-051` {#cambio-2026-11-24-hu-051}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `08-decisiones-bd.md` (D10), `09-entidades.md`, `12-modelo-datos.md` y `15-diagramas-drawio.md` (columna `EvaluacionRiesgo.AccidenteId`), `18-contratos-api-mvp.md`. En el código: migración `RiesgoEventoHu051` (también agrega `RiesgoEmpresa.AccidenteId`, que el modelo ya tenía y el código no), un caso de uso y un permiso nuevos, `accidenteId` al crear y evaluar riesgos, pruebas, y las pantallas de eventos y riesgos |
+
+### El problema (por qué hubo que cambiar)
+
+1. Un evento enseña algo sobre la matriz (art. 47.b): o revela un peligro que no estaba, o muestra que un riesgo era más grave de lo evaluado. No había forma de dejar ese rastro.
+2. El modelo tenía `RiesgoEmpresa.AccidenteId` ("evento que lo reveló"), que sirve para el riesgo nuevo, pero el código no lo tenía.
+3. Para un riesgo que ya estaba en la matriz, el modelo no tenía dónde guardar que se reevaluó por un evento: `AccidenteId` del riesgo es su origen, y ya tiene otro (encuesta o agregado a mano).
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Riesgo nuevo: revelado por el evento** | `POST /api/riesgos` acepta `accidenteId`; el riesgo queda con ese origen (como máximo uno: encuesta o evento) | Cumple "creo un riesgo nuevo que queda enlazado al evento" con lo que el modelo ya tenía |
+| **Riesgo existente: el enlace va en la evaluación** | Columna nueva `EvaluacionRiesgo.AccidenteId`, opcional y solo en evaluaciones iniciales (CHECK). Lo decidió el equipo frente a no guardar el enlace | No cambia el origen del riesgo, no agrega tablas y deja ver el antes y el después en el historial (D10) |
+| **El evento muestra lo que cambió** | `GET /api/eventos/{id}/riesgos`: revelados con su nivel actual y reevaluados con "pasó de Bajo · 4 a Crítico · 16" | El Responsable SST ve en el evento cómo quedó la matriz |
+| **Se evalúa en la pantalla de riesgos** | Desde el evento, "Agregar un riesgo" y "Reevaluar un riesgo" llevan a las pantallas de riesgos con el evento; ahí se guarda y se vuelve al evento | No se duplica el mapa de calor ni el formulario de evaluación |
+| **También con el evento cerrado** | Se enlaza mientras el evento no esté descartado (400 `riesgos.evento_invalido` si lo está o es de otra empresa) | Lo aprendido puede llegar después del cierre |
+| **Botones solo para el Responsable SST** | En el evento solo él agrega o reevalúa; el admin consulta. La API de riesgos sigue abierta al admin, como antes | La historia es del Responsable SST; no se cambian los permisos de la matriz |
+
+### Cómo quedó (resumen)
+
+- **Detalle del evento:** sección **Matriz de riesgos** con los riesgos enlazados:
+  - revelados primero;
+  - cada uno con su etiqueta de nivel y qué pasó;
+  - botones "Agregar un riesgo" y "Reevaluar un riesgo". El segundo abre un modal para buscar el riesgo en la matriz.
+- **Agregar riesgo (`/riesgos/nuevo?evento=…`):** avisa que quedará enlazado y, al guardarlo, lleva a evaluarlo.
+- **Riesgo (`/riesgos/:id?evento=…`):**
+  - un aviso "Revisión tras un evento", con enlace de vuelta;
+  - la reevaluación inicial abierta de una vez, que se guarda enlazada.
+  - El origen muestra "Revelado por un evento", y el historial marca "Tras un evento" en las evaluaciones enlazadas.
+- **Modal (design system):** el contenido empieza arriba. En celular, un modal con poco contenido lo repartía a lo alto de la pantalla.
+
+### Trabajo hecho
+
+- 5 pruebas nuevas en el backend:
+  - riesgo revelado y evaluado;
+  - reevaluación con su nivel de antes y de después, y el historial con el evento de cada evaluación;
+  - orden;
+  - no se enlaza con un evento descartado ni de otra empresa;
+  - permisos y aislamiento.
+
+  Pasan las 215 pruebas.
+- La web se probó de punta a punta contra la API real (7 casos):
+  - sin riesgos;
+  - agregar y evaluar desde el evento;
+  - elegir y reevaluar uno existente;
+  - el existente conserva su origen y su historial;
+  - el descartado no muestra la sección;
+  - el admin solo consulta;
+  - celular y modo oscuro.
+
+  Siguen pasando los e2e de riesgos, controles, plan y catálogos que usan las pantallas o el modal tocados.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-051 | Sin construir; el código no tenía el enlace riesgo–evento y el modelo no podía guardar una reevaluación por un evento | Riesgo revelado y reevaluación enlazada al evento, con el antes y el después a la vista |
 
 ## Cambio `2026-11-24-hu-050` {#cambio-2026-11-24-hu-050}
 

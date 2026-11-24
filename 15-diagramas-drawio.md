@@ -105,6 +105,7 @@ erDiagram
     Accidente |o--o{ RiesgoEmpresa : "revela"
     Peligro |o--o{ RiesgoEmpresa : "origina"
     RiesgoEmpresa ||--o{ EvaluacionRiesgo : "se evalúa en"
+    Accidente |o--o{ EvaluacionRiesgo : "hace reevaluar"
     RiesgoEmpresa ||--o{ Control : "se controla con"
     RiesgoEmpresa |o--o{ Tarea : "genera"
     Control |o--o{ Tarea : "se implementa con"
@@ -178,6 +179,7 @@ erDiagram
     Accidente |o--o{ RiesgoEmpresa : "revela"
     Peligro |o--o{ RiesgoEmpresa : "origina"
     RiesgoEmpresa ||--o{ EvaluacionRiesgo : "se evalúa en"
+    Accidente |o--o{ EvaluacionRiesgo : "hace reevaluar"
     RiesgoEmpresa ||--o{ Control : "se controla con"
     RiesgoEmpresa |o--o{ Tarea : "genera"
     Control |o--o{ Tarea : "se implementa con"
@@ -482,6 +484,7 @@ erDiagram
     Empresa ||--o{ EvaluacionRiesgo : "EmpresaId"
     RiesgoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + RiesgoEmpresaId"
     VinculoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + EvaluadoPorId"
+    Accidente |o--o{ EvaluacionRiesgo : "EmpresaId + AccidenteId"
     Empresa ||--o{ Control : "EmpresaId"
     RiesgoEmpresa ||--o{ Control : "EmpresaId + RiesgoEmpresaId"
     EncuestaOpcion |o--o{ DetalleRespuesta : "EncuestaPreguntaId + EncuestaOpcionId"
@@ -589,6 +592,7 @@ erDiagram
         smallint Severidad "NOT NULL"
         uuid EvaluadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
         timestamptz EvaluadoEn "NOT NULL"
+        uuid AccidenteId FK "FK comp → Accidente; solo si Tipo = inicial"
     }
 
     Control {
@@ -806,6 +810,7 @@ erDiagram
     Empresa ||--o{ EvaluacionRiesgo : "EmpresaId"
     RiesgoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + RiesgoEmpresaId"
     VinculoEmpresa ||--o{ EvaluacionRiesgo : "EmpresaId + EvaluadoPorId"
+    Accidente |o--o{ EvaluacionRiesgo : "EmpresaId + AccidenteId"
     Empresa ||--o{ Control : "EmpresaId"
     RiesgoEmpresa ||--o{ Control : "EmpresaId + RiesgoEmpresaId"
     Empresa ||--o{ Tarea : "EmpresaId"
@@ -1144,6 +1149,7 @@ erDiagram
         smallint Severidad "NOT NULL"
         uuid EvaluadoPorId FK "NOT NULL; FK comp → VinculoEmpresa"
         timestamptz EvaluadoEn "NOT NULL"
+        uuid AccidenteId FK "FK comp → Accidente; solo si Tipo = inicial"
     }
 
     Control {

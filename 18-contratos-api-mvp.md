@@ -262,6 +262,7 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-049 | POST | `api/eventos/{id}/cierre` | Cerrar con investigación y medidas, `RN-28` (`evento.cerrar`: `responsable_sst`) | ✅ |
 | HU-049 | PATCH | `api/eventos/{id}/descarte` | Descartar un reporte inválido (`evento.descartar`: `responsable_sst`) | ✅ |
 | HU-050 | POST | `api/eventos/{id}/medidas-correctivas` | Agregar una medida, que es una tarea del plan con origen `accidente` (`evento.medida.crear`: `responsable_sst`) | ✅ |
+| HU-051 | GET | `api/eventos/{id}/riesgos` | Riesgos que el evento reveló o hizo reevaluar (`evento.riesgos`: `admin_empresa`, `responsable_sst`); los enlaces se crean con `accidenteId` en `POST api/riesgos` y `POST api/riesgos/{id}/evaluaciones` | ✅ |
 | HU-050 | GET | `api/eventos/{id}/medidas-correctivas` | Medidas del evento con su avance (`evento.medida.listar`: `admin_empresa`, `responsable_sst`) | ✅ |
 | HU-042 | GET | `api/plan-trabajo/propuesta` | Vista previa del plan (permiso `plan.propuesta`) | ✅ |
 | HU-042 | POST | `api/plan-trabajo/generacion` | Confirmar el plan (permiso `plan.generar`) | ✅ |
@@ -396,6 +397,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-049 | PATCH | `/api/eventos/{id}/descarte` | JSON | JSON | Eventos |
 | HU-050 | POST | `/api/eventos/{id}/medidas-correctivas` | JSON | JSON | Eventos |
 | HU-050 | GET | `/api/eventos/{id}/medidas-correctivas` | — | array | Eventos |
+| HU-051 | GET | `/api/eventos/{id}/riesgos` | — | array | Eventos |
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
 | HU-117 | PATCH | `/api/notificaciones/{id}/lectura` | — | 204 | Notificaciones |
 | encuestado | GET | `/api/politicas/vigentes` | — | array | Políticas |
@@ -1496,12 +1498,14 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
 {
   "peligroId": "01933000-....",
   "descripcionPeligro": null,
-  "actividad": "Bodega de carga"
+  "actividad": "Bodega de carga",
+  "accidenteId": null
 }
 ```
 
 - **Peligro:** se envía `peligroId` (del catálogo y activo) **o** `descripcionPeligro` (hasta 300 caracteres), no los dos.
 - **`actividad`:** obligatoria, hasta 200 caracteres.
+- **`accidenteId`** (HU-051): opcional. El evento que reveló el riesgo; tiene que ser de la empresa y no estar descartado.
 
 **Response 201** — `RiesgoResponseDto`
 
@@ -1516,6 +1520,7 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
   "actividad": "Bodega de carga",
   "encuestaId": null,
   "encuestaTitulo": null,
+  "accidenteId": null,
   "creadoEn": "2026-11-16T12:00:00Z",
   "evaluacion": null,
   "evaluacionResidual": null,
@@ -1526,6 +1531,7 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
 - **`peligroNombre` y `peligroClasificacion`:** son null si el peligro se describió; entonces viene `descripcionPeligro`.
 - **`evaluacion`:** es la última evaluación inicial (HU-037, mismo formato que `EvaluacionResponseDto`); null si todavía no se evaluó.
 - **`encuestaId` y `encuestaTitulo`:** indican la encuesta que lo sugirió (HU-035); null si se agregó a mano.
+- **`accidenteId`:** el evento que lo reveló (HU-051); null si no salió de un evento. Un riesgo tiene como máximo un origen: encuesta o evento.
 - **`evaluacionResidual`:** la última evaluación residual, con los controles aplicados (HU-040, mismo formato); null si no hay. La matriz y su orden usan la inicial.
 - **`totalControles`:** cuántos controles tiene (HU-039). Un riesgo alto o crítico con 0 se señala como "sin control" (RN-19).
 
@@ -1535,6 +1541,7 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
 |---|---|
 | 400 `ValidationProblemDetails` | Falta el peligro, vienen los dos, falta la actividad o algún texto pasa su largo |
 | 400 `riesgos.peligro_invalido` | El peligro no existe o está inactivo |
+| 400 `riesgos.evento_invalido` | `accidenteId` no es un evento de la empresa o está descartado (HU-051) |
 | 409 `riesgos.duplicado` | La matriz ya tiene ese peligro con la misma actividad (sin distinguir mayúsculas) |
 
 #### `POST /api/riesgos/{id}/evaluaciones` — `EvaluarRiesgoRequestDto` (HU-037) — ✅
@@ -1546,9 +1553,12 @@ Evaluación **inicial** de un riesgo de la matriz. La residual, después de los 
 ```json
 {
   "probabilidad": 3,
-  "severidad": 4
+  "severidad": 4,
+  "accidenteId": null
 }
 ```
+
+- **`accidenteId`** (HU-051): opcional. El evento a raíz del cual se reevalúa el riesgo; tiene que ser de la empresa y no estar descartado. Queda guardado en la evaluación, y el evento la muestra (`GET /api/eventos/{id}/riesgos`).
 
 **Response 201** — `EvaluacionResponseDto`
 
@@ -1562,7 +1572,8 @@ Evaluación **inicial** de un riesgo de la matriz. La residual, después de los 
   "clasificacion": "alto",
   "evaluadoPorId": "01932000-....",
   "evaluadoPorNombre": "Lucía Bonilla",
-  "evaluadoEn": "2026-11-16T12:05:00Z"
+  "evaluadoEn": "2026-11-16T12:05:00Z",
+  "accidenteId": null
 }
 ```
 
@@ -1573,6 +1584,7 @@ Evaluación **inicial** de un riesgo de la matriz. La residual, después de los 
 | HTTP | Cuándo |
 |---|---|
 | 400 `ValidationProblemDetails` | Falta la probabilidad o la severidad, o alguna no está entre 1 y 5 |
+| 400 `riesgos.evento_invalido` | `accidenteId` no es un evento de la empresa o está descartado (HU-051) |
 | 404 `riesgos.no_encontrado` | El riesgo no existe o es de otra empresa |
 | 409 `riesgos.no_en_matriz` | El riesgo está sugerido o descartado: solo se evalúan los confirmados (RN-18) |
 
@@ -1640,7 +1652,7 @@ Confirma o descarta un peligro sugerido por la encuesta. `riesgoId` es el `riesg
 
 El historial de evaluaciones del riesgo, para demostrar su evolución (art. 47.b): **todas**, iniciales y residuales, la más reciente primero, con fecha y quién evaluó. Ninguna se borra al evaluar de nuevo (RN-20, D10); la vigente de cada tipo es la primera de su tipo en la lista.
 
-**Response 200:** `EvaluacionResponseDto[]` (mismo item que devuelve evaluar). Un riesgo sin evaluar devuelve `[]`.
+**Response 200:** `EvaluacionResponseDto[]` (mismo item que devuelve evaluar, con `accidenteId` si se hizo a raíz de un evento). Un riesgo sin evaluar devuelve `[]`.
 
 ```json
 [
@@ -2025,7 +2037,7 @@ Pasa una tarea por `pendiente`, `en_progreso` y `completada`, en cualquier orden
 
 ---
 
-### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049 ✅; HU-050 ✅)
+### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049 ✅; HU-050 ✅; HU-051 ✅)
 
 Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`): el servidor toma `EmpresaId` del JWT, pero no guarda `ReportadoPorId` ni expondrá `SubidoPorId` en los adjuntos del evento (`D11`, `RN-27`, `RN-74`). Los permisos de consulta (`GET`) corresponden a `admin_empresa` y `responsable_sst`.
 
@@ -2143,6 +2155,29 @@ Cierra el evento si cumple `RN-28`: tiene investigación y al menos una medida c
 **Response 200 (`EventoDetalleResponseDto`):** evento con `estado: "descartado"`, `motivoDescarte`, `descartadoEn` y `descartadoPorNombre`.
 
 **Errores:** 400 validación · 404 `eventos.no_encontrado` · 409 `eventos.terminado` · 401 · 403.
+
+#### `GET /api/eventos/{id}/riesgos` (HU-051 — ✅)
+
+**Auth:** Bearer de empresa (`evento.riesgos`: `admin_empresa`, `responsable_sst`).
+
+Lo que el evento cambió en la matriz (art. 47.b). Los enlaces se hacen desde riesgos: `POST /api/riesgos` y `POST /api/riesgos/{id}/evaluaciones` con `accidenteId`.
+
+**Response 200 (`RiesgoDelEventoResponseDto[]`):**
+
+```json
+[
+  { "riesgoId": "…", "nombre": "Estantes sin anclar a la pared", "actividad": "Almacenaje en bodega", "relacion": "revelado",
+    "nivelAnterior": null, "clasificacionAnterior": null, "nivel": 12, "clasificacion": "alto", "evaluadoEn": "2026-11-24T17:10:00Z" },
+  { "riesgoId": "…", "nombre": "Cajas apiladas sin sujetar", "actividad": "Almacenaje en bodega", "relacion": "reevaluado",
+    "nivelAnterior": 4, "clasificacionAnterior": "bajo", "nivel": 16, "clasificacion": "critico", "evaluadoEn": "2026-11-24T17:12:00Z" }
+]
+```
+
+- **`revelado`:** el riesgo se agregó a raíz del evento (`RiesgoEmpresa.AccidenteId`). `nivel` es su nivel inicial actual (null si todavía no se evalúa).
+- **`reevaluado`:** el riesgo ya estaba en la matriz y se reevaluó a raíz del evento (`EvaluacionRiesgo.AccidenteId`). `nivel` es el de esa evaluación y `nivelAnterior` el de la evaluación inicial previa (null si no había). Si se reevaluó varias veces por el mismo evento, cuenta la última.
+- **Orden:** primero los revelados y luego los reevaluados; dentro de cada grupo, la evaluación más reciente primero.
+
+**Errores:** 404 `eventos.no_encontrado` · 401 · 403.
 
 #### `POST /api/eventos/{id}/medidas-correctivas` (HU-050 — ✅) — `CrearMedidaCorrectivaRequestDto`
 
