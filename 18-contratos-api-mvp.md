@@ -261,6 +261,8 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-049 | PUT | `api/eventos/{id}/investigacion` | Registrar o corregir la investigación (`evento.investigar`: `responsable_sst`) | ✅ |
 | HU-049 | POST | `api/eventos/{id}/cierre` | Cerrar con investigación y medidas, `RN-28` (`evento.cerrar`: `responsable_sst`) | ✅ |
 | HU-049 | PATCH | `api/eventos/{id}/descarte` | Descartar un reporte inválido (`evento.descartar`: `responsable_sst`) | ✅ |
+| HU-050 | POST | `api/eventos/{id}/medidas-correctivas` | Agregar una medida, que es una tarea del plan con origen `accidente` (`evento.medida.crear`: `responsable_sst`) | ✅ |
+| HU-050 | GET | `api/eventos/{id}/medidas-correctivas` | Medidas del evento con su avance (`evento.medida.listar`: `admin_empresa`, `responsable_sst`) | ✅ |
 | HU-042 | GET | `api/plan-trabajo/propuesta` | Vista previa del plan (permiso `plan.propuesta`) | ✅ |
 | HU-042 | POST | `api/plan-trabajo/generacion` | Confirmar el plan (permiso `plan.generar`) | ✅ |
 | HU-042, HU-046 | GET | `api/plan-trabajo/tareas?…` | Tareas del plan con filtros (permiso `tarea.listar`) | ✅ |
@@ -393,6 +395,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-049 | POST | `/api/eventos/{id}/cierre` | — | JSON | Eventos |
 | HU-049 | PATCH | `/api/eventos/{id}/descarte` | JSON | JSON | Eventos |
 | HU-050 | POST | `/api/eventos/{id}/medidas-correctivas` | JSON | JSON | Eventos |
+| HU-050 | GET | `/api/eventos/{id}/medidas-correctivas` | — | array | Eventos |
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
 | HU-117 | PATCH | `/api/notificaciones/{id}/lectura` | — | 204 | Notificaciones |
 | encuestado | GET | `/api/politicas/vigentes` | — | array | Políticas |
@@ -1862,12 +1865,14 @@ Tareas de la empresa, en orden: prioridad, riesgo de nivel más alto y, dentro d
     "riesgoNivel": 10,
     "riesgoClasificacion": "alto",
     "controlTipo": "ingenieria",
+    "accidenteId": null,
     "creadaEn": "2026-11-24T06:00:00Z"
   }
 ]
 ```
 
 - `origen`: `riesgo`, `accidente` o `manual` (RN-23).
+- `accidenteId`: con origen `accidente`, el evento del que sale la medida correctiva (HU-050); `null` en los demás.
 - `riesgoNivel` y `riesgoClasificacion`: la última evaluación inicial del riesgo, en el momento de consultar.
 
 #### `GET /api/plan-trabajo/tareas/mias` (HU-044) — ✅
@@ -2020,7 +2025,7 @@ Pasa una tarea por `pendiente`, `en_progreso` y `completada`, en cualquier orden
 
 ---
 
-### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049 ✅; HU-050 🚧)
+### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049 ✅; HU-050 ✅)
 
 Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`): el servidor toma `EmpresaId` del JWT, pero no guarda `ReportadoPorId` ni expondrá `SubidoPorId` en los adjuntos del evento (`D11`, `RN-27`, `RN-74`). Los permisos de consulta (`GET`) corresponden a `admin_empresa` y `responsable_sst`.
 
@@ -2139,17 +2144,57 @@ Cierra el evento si cumple `RN-28`: tiene investigación y al menos una medida c
 
 **Errores:** 400 validación · 404 `eventos.no_encontrado` · 409 `eventos.terminado` · 401 · 403.
 
-#### `POST /api/eventos/{id}/medidas-correctivas` (HU-050)
+#### `POST /api/eventos/{id}/medidas-correctivas` (HU-050 — ✅) — `CrearMedidaCorrectivaRequestDto`
+
+**Auth:** Bearer de empresa (`evento.medida.crear`: `responsable_sst`). El `admin_empresa` solo consulta.
+
+Cada medida correctiva crea una `Tarea` del plan de trabajo con origen `accidente` (`AccidenteId` = el evento; RN-23, D6). Pide lo mismo que una tarea manual (`POST /api/plan-trabajo/tareas`): nace pendiente y asignada. Se trabaja desde el plan (`HU-044`) como cualquier otra tarea. Solo se agrega mientras el evento esté `abierto` o `en_investigacion`.
 
 ```json
 {
-  "descripcion": "Instalar señalización de piso mojado",
+  "titulo": "Señalizar el piso mojado",
+  "descripcion": "Conos amarillos en la entrada de la bodega",
+  "prioridad": 1,
+  "responsableId": "01933f40-....",
   "fechaLimite": "2026-11-30",
-  "responsableId": "01933f40-...."
+  "requiereEvidencia": false
 }
 ```
 
-**Response 201:** crea `Tarea` vinculada al evento.
+- `titulo`: obligatorio, máx. 200. `descripcion`: opcional, máx. 2000.
+- `prioridad`: 1 (alta), 2 (media) o 3 (baja).
+- `responsableId`: vínculo activo de la empresa con rol `admin_empresa`, `responsable_sst` o `colaborador` (lista en `GET /api/plan-trabajo/responsables`).
+- `fechaLimite`: no anterior a hoy (fecha de Honduras).
+
+**Response 201 (`MedidaCorrectivaResponseDto`):**
+
+```json
+{
+  "id": "01935a10-....",
+  "titulo": "Señalizar el piso mojado",
+  "descripcion": "Conos amarillos en la entrada de la bodega",
+  "estado": "pendiente",
+  "prioridad": 1,
+  "responsableId": "01933f40-....",
+  "responsableNombre": "Carlos Colaborador",
+  "fechaLimite": "2026-11-30",
+  "requiereEvidencia": false,
+  "creadaEn": "2026-11-24T16:40:00Z",
+  "completadaEn": null
+}
+```
+
+**Errores:** 400 validación · 400 `eventos.responsable_invalido` · 400 `eventos.fecha_pasada` · 404 `eventos.no_encontrado` · 409 `eventos.terminado` (cerrado o descartado) · 401 · 403.
+
+*(Antes el contrato pedía solo `descripcion`, `fechaLimite` y `responsableId`. Ahora pide lo mismo que una tarea manual, porque la medida es una tarea del plan y necesita título y prioridad.)*
+
+#### `GET /api/eventos/{id}/medidas-correctivas` (HU-050 — ✅)
+
+**Auth:** Bearer de empresa (`evento.medida.listar`: `admin_empresa`, `responsable_sst`).
+
+**Response 200 (`MedidaCorrectivaResponseDto[]`):** las medidas del evento con su avance, también las canceladas y también si el evento ya está cerrado. **Orden:** primero las pendientes y en progreso, por fecha límite más próxima y prioridad; luego las completadas y al final las canceladas. "Vencida" no se guarda: la web la calcula (pendiente o en progreso con la fecha límite pasada).
+
+**Errores:** 404 `eventos.no_encontrado` · 401 · 403.
 
 ---
 

@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-050 completada:** el Responsable SST agrega medidas correctivas a un evento; cada una es una **tarea del plan** con origen "accidente", y desde el evento se ve su avance (completadas, vencidas). Con esto un evento ya se puede cerrar desde la web | [Ver cambio](#cambio-2026-11-24-hu-050) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-049 completada:** el Responsable SST registra y corrige la investigación de un evento (causas inmediatas y de fondo, conclusiones, quién investigó y cuándo), lo **cierra** solo con investigación y al menos una medida correctiva (RN-28) y descarta reportes inválidos con motivo opcional; el admin solo consulta | [Ver cambio](#cambio-2026-11-24-hu-049) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-047 completada en la web:** reportar un evento de forma anónima (cualquier persona de la empresa, también encuestados) con fecha y hora de Honduras, y lista y detalle de eventos para el admin y el Responsable SST; primer **campo de hora** del design system | [Ver cambio](#cambio-2026-11-24-hu-047-web) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-023 completada en la web:** pantallas del staff para mantener categorías, preguntas (tipo, peligro y opciones de exposición), peligros, rubros y plantillas de documento; se agrega la API de **plantillas de tarea** (controles sugeridos y tareas modelo) y la **navegación de sección** del design system | [Ver cambio](#cambio-2026-11-24-hu-023-web) |
@@ -59,6 +60,70 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-050` {#cambio-2026-11-24-hu-050}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (medidas correctivas y `accidenteId` en las tareas del plan). En el código: 2 casos de uso y 2 permisos en el backend, pruebas, la sección de medidas en el detalle del evento y el enlace desde el plan de trabajo en la web. El modelo de datos no cambia: la medida es una `Tarea` con `AccidenteId` |
+
+### El problema (por qué hubo que cambiar)
+
+1. Desde HU-049 un evento solo se cierra con al menos una medida correctiva (RN-28), pero no había forma de crearlas: el evento quedaba en investigación para siempre.
+2. El contrato pedía solo descripción, fecha límite y responsable. Una tarea del plan también necesita título y prioridad, así que la medida no se podía guardar como tarea.
+3. Desde el evento no se veía si sus medidas se estaban cumpliendo.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **La medida es una tarea** | `POST …/medidas-correctivas` crea una tarea pendiente con el evento como origen (RN-23, D6); pide lo mismo que una tarea manual | Se trabaja, filtra y vence en el plan como cualquier otra; no hay una segunda lista de pendientes |
+| **El avance se ve en el evento** | `GET …/medidas-correctivas` las lista con su estado; la web muestra "1 de 2 completadas · 1 vencida" | Cumple "desde el evento veo el avance de sus medidas" |
+| **Las canceladas no cuentan** | Se muestran tachadas, pero no suman al avance ni sirven para cerrar | Una medida cancelada no corrige nada |
+| **Solo mientras está abierto** | Cerrado o descartado, el evento ya no recibe medidas (409 `eventos.terminado`); las que tiene se siguen viendo | El cierre significa que el plan de acción está definido |
+| **Del plan al evento** | Las tareas del plan traen `accidenteId` y la lista enlaza "Medida de un evento" al evento | Quien gestiona el plan llega a la investigación en un clic |
+| **Solo el Responsable SST agrega** | Agregar: `responsable_sst`; ver: también `admin_empresa` | Igual que investigar y cerrar (HU-049) |
+
+### Cómo quedó (resumen)
+
+- **Detalle del evento (`/eventos/:id`):** entre la investigación y el cierre hay una sección **Medidas correctivas**:
+  - muestra el avance y la lista, primero las abiertas por fecha límite;
+  - cada medida muestra estado, "Vencida", responsable, fecha límite, prioridad y cuándo se completó;
+  - "Agregar una medida" abre un modal con qué hay que hacer, detalle, prioridad, responsable, fecha límite y si pide evidencia;
+  - al agregar la primera, se habilita "Cerrar el evento".
+- **Plan de trabajo:** las medidas aparecen con "Medida de un evento" (enlace al evento), y el filtro de origen dice "De un evento". En "Mis tareas", quien es responsable la ve como "Medida de un evento".
+- **API:** `POST` y `GET /api/eventos/{id}/medidas-correctivas`; errores nuevos `eventos.responsable_invalido`, `eventos.fecha_pasada` (400) y `eventos.sin_vinculo` (403).
+
+### Trabajo hecho
+
+- 5 pruebas nuevas en el backend:
+  - cada medida es una tarea con origen accidente, aparece en el plan y permite cerrar;
+  - orden y avance, donde la cancelada no cuenta;
+  - validaciones de título, fecha y responsable;
+  - un evento cerrado o descartado no recibe medidas;
+  - permisos y aislamiento entre empresas.
+
+  Pasan las 210 pruebas.
+- La web se probó de punta a punta contra la API real (8 casos):
+  - sin medidas no se cierra;
+  - agregar con validaciones;
+  - avance con vencidas y completadas;
+  - el colaborador la ve en sus tareas;
+  - enlace y filtro en el plan;
+  - cerrado, sin agregar;
+  - el admin solo consulta;
+  - celular y modo oscuro.
+
+  Siguen pasando los e2e de HU-043 y HU-046.
+- En la web, estados de tarea, prioridades, "vencida" y el esquema de una tarea asignada pasaron a `shared/tareas`, porque ahora los usan el plan y los eventos.
+- **Pendiente:** cancelar una tarea todavía no tiene pantalla ni API; la regla de que las canceladas no cuentan queda lista para cuando exista.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-050 | Sin construir; el contrato no alcanzaba para crear una tarea | Medidas correctivas como tareas del plan, con su avance en el evento y enlace desde el plan |
+| HU-049 | El cierre pedía medidas que no se podían crear | Un evento se cierra de punta a punta desde la web |
 
 ## Cambio `2026-11-24-hu-049` {#cambio-2026-11-24-hu-049}
 
