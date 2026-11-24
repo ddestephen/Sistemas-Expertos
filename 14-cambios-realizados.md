@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-097 completada:** contenido SST inicial (12 categorías en los 4 rubros, 34 preguntas de los 3 tipos, 21 peligros y 94 plantillas de tareas), cargado al arrancar sin duplicar ni pisar lo que edite el staff. **Pendiente: revisión por alguien con conocimiento de SST** | [Ver cambio](#cambio-2026-11-24-hu-097-catalogos) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-041 implementada:** historial de todas las evaluaciones de un riesgo (iniciales y residuales) con fecha y autor, y la vigente de cada tipo marcada | [Ver cambio](#cambio-2026-11-24-hu-041-historial) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-046 implementada:** filtrar el plan por estado, vencidas, responsable, origen, prioridad y fecha límite; las vencidas se cuentan y se filtran con un toque. Los enums de la consulta aceptan snake_case | [Ver cambio](#cambio-2026-11-24-hu-046-filtrar-plan) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-044 implementada:** "Mis tareas" para atender las tareas asignadas (pendiente, en progreso, completada y reabrir), solo por su responsable o el Responsable SST (**RN-24**), sin completar las que piden evidencia (**RN-25**) | [Ver cambio](#cambio-2026-11-24-hu-044-mis-tareas) |
@@ -55,6 +56,80 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-097-catalogos` {#cambio-2026-11-24-hu-097-catalogos}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `16-arquitectura-backend-frontend.md` §8 (datos iniciales al arrancar). En el código: `CatalogoSst` (contenido), `CatalogoSstSeeder`, la opción `CatalogoSst:Cargar` y su línea en `example.env`. Sin cambios de modelo |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-097 estaba a medias: se cargaban los roles con sus permisos y los cuatro rubros, pero no había categorías, preguntas, peligros ni plantillas.
+2. Por eso, una empresa nueva no podía armar una encuesta (HU-029, HU-030), la encuesta no sugería peligros (HU-033), y Norvia no sugería controles (HU-039) ni tareas modelo (HU-042). Solo funcionaba si alguien cargaba datos a mano por la API.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Contenido en código, cargado al arrancar** | `CatalogoSst` tiene el contenido y `CatalogoSstSeeder` lo carga junto con los demás seeders | Toda instalación nueva arranca con contenido, sin pasos manuales |
+| **Solo agrega lo que falta** | Cada elemento tiene un Id estable derivado de su clave. Si ya existe, no se toca, aunque el staff lo haya editado o desactivado (HU-023) | "Las cargas repetidas no generan información duplicada", y las correcciones del staff no se pierden al reiniciar |
+| **Respeta lo cargado a mano** | Si ya hay un peligro con el mismo código o una categoría con el mismo nombre en el rubro, se usa ese; si la posición de una pregunta está ocupada, esa pregunta no se agrega | No choca con lo que el staff haya creado antes de la carga |
+| **No se reordena ni se borra** | Lo nuevo se agrega al final de su lista; lo que sobre se desactiva desde la administración de catálogos | Los Id dependen de la posición |
+| **Pruebas con catálogos vacíos** | `CatalogoSst:Cargar=false` en las pruebas de integración; la carga se prueba en una base propia del mismo contenedor | Las pruebas existentes no cambian y la carga se prueba de verdad |
+| **Roles y permisos, como estaban** | Los cuatro grupos de acceso (también `encuestado`) ya se cargaban con sus permisos (`CatalogoBase`, `PermisosSeeder`); ahora una prueba lo comprueba | Cubre el tercer criterio de la historia |
+
+### Cómo quedó (resumen)
+
+**Peligros (21)**, cada uno con 3 a 6 plantillas: controles por tipo, del más al menos efectivo, y al menos una tarea modelo (94 plantillas):
+
+| Clasificación | Peligros |
+|---|---|
+| Locativo | Caída al mismo nivel, caída de altura, caída de objetos almacenados, derrumbe en excavaciones |
+| Mecánico | Atrapamiento con partes de máquinas, cortes con herramientas, golpes por montacargas o vehículos |
+| Eléctrico | Contacto eléctrico |
+| Físico | Ruido, calor, iluminación deficiente |
+| Químico | Sustancias químicas, polvo en el aire |
+| Biológico | Agentes biológicos |
+| Ergonómico | Trabajo prolongado frente a pantalla, levantar y cargar peso a mano, movimientos repetitivos, trabajo de pie prolongado |
+| Psicosocial | Sobrecarga de trabajo, violencia de terceros |
+| Otro | Incendio |
+
+**Categorías por rubro (12), con 34 preguntas.** Hay selección única y múltiple con la opción que indica exposición, y en cada rubro una pregunta abierta opcional:
+
+| Rubro | Categorías |
+|---|---|
+| Oficina administrativa | Puesto de trabajo y pantallas · Instalaciones y orden · Carga de trabajo y bienestar |
+| Comercio o tienda | Bodega y almacenamiento · Atención al público y caja · Limpieza y local |
+| Maquila o fábrica | Máquinas y herramientas · Ambiente de la planta · Tareas y ritmo de trabajo |
+| Construcción | Trabajo en alturas · Excavaciones, materiales y herramientas · Condiciones del sitio |
+
+- **Redacción:** propia, basada en la práctica habitual de SST y en el reglamento STSS-053-04, dirigida a quien responde ("tú").
+- **Pendiente para el equipo:** que lo revise alguien con conocimiento de SST, como pide la historia. Las correcciones se hacen desde la administración de catálogos (HU-023) o editando `CatalogoSst` sin reordenar.
+- **Plantillas sin pantalla:** HU-023 no tiene todavía pantalla para las plantillas de tareas. Hasta entonces, se corrigen en `CatalogoSst`, y solo llegan a las instalaciones donde el elemento aún no exista.
+
+### Trabajo hecho
+
+- Se escribió el contenido y el seeder, con 3 pruebas nuevas sobre una base propia:
+  - todo se carga y una segunda carga no duplica;
+  - los cuatro rubros tienen categorías con preguntas;
+  - las preguntas cumplen las reglas de D26 y RN-68 (tipos, opciones y exposición);
+  - cada peligro tiene controles y tareas modelo;
+  - los roles, incluido `encuestado`, tienen sus permisos;
+  - no se pisa lo editado por el staff y no se duplica lo cargado a mano.
+
+  Pasan las 192 pruebas del backend.
+- Se probó de punta a punta con la API real y una base nueva:
+  - la carga agregó 161 elementos, y al reiniciar la API no agregó nada;
+  - una empresa de oficina ve sus tres categorías, publica la encuesta y recibe respuestas;
+  - Norvia sugiere los tres peligros elegidos como exposición;
+  - el riesgo confirmado recibe controles desde las plantillas, y el plan propone la tarea del control y la tarea modelo.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-097 | Solo roles, permisos y rubros | Contenido SST de los cuatro rubros, peligros y plantillas, cargado sin duplicar; pendiente de revisión por SST |
 
 ## Cambio `2026-11-24-hu-041-historial` {#cambio-2026-11-24-hu-041-historial}
 

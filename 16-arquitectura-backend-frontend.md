@@ -269,6 +269,9 @@ Request → ValidacionFiltro → IValidator<Request> (FluentValidation)
 2. **Los servicios reciben `IOptions<T>`,** nunca `IConfiguration`. Así la clave del JWT se lee en un solo lugar.
 3. **La autenticación HTTP (`AddJwtBearer`) se configura en la API** (`Extensiones/AutenticacionExtensiones`), usando `JwtOpciones`. Infrastructure solo **genera** tokens.
 4. **Los secretos van en `.env`** (`Norvia.API/.env`, a partir de `example.env`) y nunca en el código ni en `appsettings.json`.
+5. **Datos iniciales al arrancar (`Persistence/Seed/`):** permisos, plantillas de correo, catálogos cerrados, el primer staff y el contenido SST inicial (`CatalogoSst` → `CatalogoSstSeeder`, HU-097).
+   - **El contenido SST solo agrega lo que falta:** usa Id estables derivados de una clave, así no duplica ni pisa lo que el staff edite o desactive.
+   - **Se apaga con `CatalogoSst__Cargar=false`:** las pruebas de integración lo apagan para trabajar con catálogos vacíos, y la carga se prueba sobre una base propia.
 
 ## 9. Frontend (React + TypeScript + Vite)
 
