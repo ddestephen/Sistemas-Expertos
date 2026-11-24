@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **HU-040 implementada:** evaluación residual (con los controles aplicados) guardada aparte de la inicial y mostrada a su lado, con la comparación de niveles | [Ver cambio](#cambio-2026-11-23-hu-040-residual) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-039 implementada:** controles de un riesgo sugeridos desde las plantillas del peligro (aceptar, editar o descartar) o propios, y señal de los riesgos altos y críticos sin control (**RN-19**); `Control` gana `PlantillaTareaId` | [Ver cambio](#cambio-2026-11-23-hu-039-controles) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-038 implementada:** mapa de la matriz (riesgos por celda de probabilidad × severidad) y lista filtrable por peligro, su clasificación, nivel y estado, con el nivel más alto primero | [Ver cambio](#cambio-2026-11-23-hu-038-ver-matriz) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-037 implementada:** evaluar un riesgo (probabilidad × severidad) con la explicación de cada valor (**RN-80**, nueva), el nivel calculado y quién evaluó y cuándo | [Ver cambio](#cambio-2026-11-23-hu-037-evaluar-riesgo) |
@@ -49,6 +50,62 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-hu-040-residual` {#cambio-2026-11-23-hu-040-residual}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (HU-040 y `evaluacionResidual` en `RiesgoResponseDto`), `design-system.md` (Etiqueta de riesgo: inicial y residual). En el código: slice `EvaluarRiesgoResidual`, última residual en la respuesta del riesgo, y la sección de evaluación y la columna "Residual" en la web. Sin cambios de modelo: `EvaluacionRiesgo.Tipo` ya tenía `residual` (D10) |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-040 pide evaluar el riesgo con los controles aplicados, separado de la inicial, y ver ambos niveles lado a lado.
+2. El contrato dejaba abierto si el tipo `residual` venía en el cuerpo o lo fijaba el servidor, y no decía cuándo se puede hacer una residual.
+3. El riesgo solo traía la última evaluación inicial.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Ruta propia y tipo fijo** | `POST /api/riesgos/{id}/evaluaciones-residual`, con el tipo `residual` fijado por el servidor | El cliente no puede guardar una residual como inicial ni al revés |
+| **Pide la inicial y un control** | Sin evaluación inicial responde 409 `riesgos.sin_evaluacion_inicial`; sin controles, 409 `riesgos.sin_controles` | La residual mide "el riesgo con los controles aplicados" y se compara con la inicial: sin una de las dos no tiene sentido |
+| **La matriz sigue con la inicial** | El mapa, el orden y los filtros de nivel usan la última evaluación inicial; la residual va en `evaluacionResidual` y en su propia columna | La matriz no cambia de significado según el riesgo, y el residual se ve sin perder el nivel original |
+| **Comparación a la vista** | En el detalle, los paneles "Inicial" y "Residual" lado a lado y una frase: bajó, siguió igual o subió (estas dos últimas sugieren revisar los controles) | Responde directo "para saber si bajó" |
+| **Historial** | Cada residual es una fila nueva (RN-20); volver a evaluar la inicial no toca la residual | El historial completo queda para HU-041 |
+
+### Cómo quedó (resumen)
+
+- **Backend:** `POST /api/riesgos/{id}/evaluaciones-residual` (permiso `riesgo.evaluar_residual` para `admin_empresa` y `responsable_sst`) y `evaluacionResidual` en la lista y el detalle del riesgo.
+- **Web:**
+  - **Detalle del riesgo:** paneles "Inicial" y "Residual" con su botón para evaluar; el residual se habilita con al menos un control y usa el mismo formulario (mapa y escalas de RN-80).
+  - **Matriz:** columna "Residual"; en celular, bajo el nivel. El texto del mapa aclara que ubica por la evaluación inicial.
+
+### Trabajo hecho
+
+- Se implementó el backend con 10 pruebas nuevas:
+  - se guarda aparte y el riesgo trae las dos;
+  - una residual nueva no borra la anterior;
+  - la matriz sigue usando la inicial;
+  - condiciones (inicial y controles), validaciones y riesgo fuera de la matriz;
+  - aislamiento entre empresas y permisos.
+
+  Pasan las 141 pruebas del backend.
+- Se construyó la web y se probó de punta a punta contra la API real (8 casos):
+  - paneles lado a lado;
+  - habilitar con un control;
+  - guardar y comparar;
+  - volver a evaluar y cancelar;
+  - reevaluar la inicial sin tocar la residual;
+  - riesgo sin evaluar;
+  - columna en la matriz, celular y modo oscuro.
+
+  Siguen pasando los e2e de HU-037, HU-038 y HU-039 (el de HU-037 se ajustó al nuevo formato del resumen, en dos líneas).
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-040 | Contrato con la ruta y el cuerpo, sin reglas | Residual aparte de la inicial, con sus condiciones, mostrada lado a lado con la comparación de niveles |
 
 ## Cambio `2026-11-23-hu-039-controles` {#cambio-2026-11-23-hu-039-controles}
 

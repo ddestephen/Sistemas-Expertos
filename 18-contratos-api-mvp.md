@@ -237,6 +237,7 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `EvaluarRiesgoRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-038 | GET | `api/riesgos?…` (filtros) | `FiltrosRiesgosDto` (consulta) | `RiesgoResponseDto[]` | `riesgo.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-040 | POST | `api/riesgos/{id}/evaluaciones-residual` | `EvaluarRiesgoResidualRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar_residual` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-039 | GET | `api/riesgos/{id}/controles` | — | `ControlResponseDto[]` | `riesgo.control.listar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-039 | GET | `api/riesgos/{id}/controles/sugeridos` | — | `ControlSugeridoResponseDto[]` | `riesgo.control.sugeridos` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-039 | POST | `api/riesgos/{id}/controles` | `CrearControlRequestDto` | 201 `ControlResponseDto` | `riesgo.control.crear` | `admin_empresa`, `responsable_sst` | ✅ |
@@ -1471,6 +1472,7 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
   "encuestaTitulo": null,
   "creadoEn": "2026-11-16T12:00:00Z",
   "evaluacion": null,
+  "evaluacionResidual": null,
   "totalControles": 0
 }
 ```
@@ -1478,6 +1480,7 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
 - **`peligroNombre` y `peligroClasificacion`:** son null si el peligro se describió; entonces viene `descripcionPeligro`.
 - **`evaluacion`:** es la última evaluación inicial (HU-037, mismo formato que `EvaluacionResponseDto`); null si todavía no se evaluó.
 - **`encuestaId` y `encuestaTitulo`:** indican la encuesta que lo sugirió (HU-035); null si se agregó a mano.
+- **`evaluacionResidual`:** la última evaluación residual, con los controles aplicados (HU-040, mismo formato); null si no hay. La matriz y su orden usan la inicial.
 - **`totalControles`:** cuántos controles tiene (HU-039). Un riesgo alto o crítico con 0 se señala como "sin control" (RN-19).
 
 **Errores:**
@@ -1585,7 +1588,7 @@ Confirma o descarta un peligro sugerido por la encuesta. `riesgoId` es el `riesg
 
 #### `GET /api/riesgos/{id}`
 
-**Response 200:** `RiesgoResponseDto` en cualquier estado, con la última evaluación inicial en `evaluacion` (HU-037). **404** `riesgos.no_encontrado` si no existe o es de otra empresa.
+**Response 200:** `RiesgoResponseDto` en cualquier estado, con la última evaluación inicial en `evaluacion` (HU-037) y la última residual en `evaluacionResidual` (HU-040). **404** `riesgos.no_encontrado` si no existe o es de otra empresa.
 
 #### `GET /api/riesgos/{id}/historial` (HU-041)
 
@@ -1609,9 +1612,12 @@ Confirma o descarta un peligro sugerido por la encuesta. `riesgoId` es el `riesg
 }
 ```
 
-#### `POST /api/riesgos/{id}/evaluaciones-residual` (HU-040)
+#### `POST /api/riesgos/{id}/evaluaciones-residual` — `EvaluarRiesgoResidualRequestDto` (HU-040) — ✅
 
-Mismo body que evaluación inicial; `tipo` fijo `residual` en servidor o en body:
+Evaluación **residual**: el riesgo con sus controles aplicados, para saber si bajó.
+- **Aparte de la inicial:** se guarda con `tipo` `residual`, que fija el servidor (D10). Una nueva no reemplaza la anterior (RN-20), y la vigente es la más reciente.
+- **Mismo cálculo:** probabilidad y severidad del 1 al 5; nivel y clasificación calculados (RN-15, RN-16).
+- **Condiciones:** el riesgo tiene que estar en la matriz, tener evaluación inicial y al menos un control.
 
 ```json
 {
@@ -1620,7 +1626,17 @@ Mismo body que evaluación inicial; `tipo` fijo `residual` en servidor o en body
 }
 ```
 
-**Response 201:** `EvaluacionResponseDto` con `tipo`: `"residual"`.
+**Response 201:** `EvaluacionResponseDto` con `tipo`: `"residual"` (mismo formato que la inicial).
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta la probabilidad o la severidad, o alguna no está entre 1 y 5 |
+| 404 `riesgos.no_encontrado` | El riesgo no existe o es de otra empresa |
+| 409 `riesgos.no_en_matriz` | El riesgo está sugerido o descartado (RN-18) |
+| 409 `riesgos.sin_evaluacion_inicial` | Todavía no tiene evaluación inicial: no hay con qué comparar |
+| 409 `riesgos.sin_controles` | No tiene controles: no hay "riesgo con los controles aplicados" |
 
 #### `GET /api/riesgos/{id}/controles/sugeridos` (HU-039) — ✅
 

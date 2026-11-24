@@ -613,6 +613,7 @@ Muestra la clasificación de un riesgo en listas, tablas y detalle.
 | Sin evaluar | "Sin evaluar", sin cuadrado y en `--color-text-secondary` |
 
 - **No es un badge de color:** así "Bajo" no se confunde con "Activo" (éxito) ni "Crítico" con un error.
+- **Inicial y residual (HU-040):** en el detalle del riesgo, dos paneles lado a lado ("Inicial · Antes de los controles" y "Residual · Con los controles aplicados"), cada uno con su etiqueta, la probabilidad y la severidad, y quién evaluó. Debajo, una frase dice si el riesgo bajó, siguió igual o subió. En celular los paneles se apilan. En la lista de la matriz, el residual va en su propia columna; en celular, bajo el nivel con el rótulo "Residual".
 - **Los badges de estado siguen aparte:** un riesgo puede llevar los dos, por ejemplo "Alto · 12" y "Por revisar", o "Alto · 12" y "Sin control".
 
 ### Mapa de calor de riesgo
