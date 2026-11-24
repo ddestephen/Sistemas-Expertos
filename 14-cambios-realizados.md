@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-049 completada:** el Responsable SST registra y corrige la investigación de un evento (causas inmediatas y de fondo, conclusiones, quién investigó y cuándo), lo **cierra** solo con investigación y al menos una medida correctiva (RN-28) y descarta reportes inválidos con motivo opcional; el admin solo consulta | [Ver cambio](#cambio-2026-11-24-hu-049) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-047 completada en la web:** reportar un evento de forma anónima (cualquier persona de la empresa, también encuestados) con fecha y hora de Honduras, y lista y detalle de eventos para el admin y el Responsable SST; primer **campo de hora** del design system | [Ver cambio](#cambio-2026-11-24-hu-047-web) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-023 completada en la web:** pantallas del staff para mantener categorías, preguntas (tipo, peligro y opciones de exposición), peligros, rubros y plantillas de documento; se agrega la API de **plantillas de tarea** (controles sugeridos y tareas modelo) y la **navegación de sección** del design system | [Ver cambio](#cambio-2026-11-24-hu-023-web) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-097 completada:** contenido SST inicial (12 categorías en los 4 rubros, 34 preguntas de los 3 tipos, 21 peligros y 94 plantillas de tareas), cargado al arrancar sin duplicar ni pisar lo que edite el staff. **Pendiente: revisión por alguien con conocimiento de SST** | [Ver cambio](#cambio-2026-11-24-hu-097-catalogos) |
@@ -58,6 +59,51 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-049` {#cambio-2026-11-24-hu-049}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (investigación, cierre y descarte de eventos; detalle del evento). En el código: entidad `InvestigacionAccidente` con su migración, 3 casos de uso y 3 permisos en el backend, pruebas, y la sección de investigación en el detalle del evento de la web. El modelo de datos (`12`) ya describía la tabla y no cambia |
+
+### El problema (por qué hubo que cambiar)
+
+1. Los eventos reportados (HU-047) se quedaban en "Abierto": no había forma de registrar por qué ocurrieron, de cerrarlos ni de descartar un reporte falso o duplicado.
+2. El contrato decía que guardar la investigación cerraba el evento solo, en cuanto cumpliera RN-28. Así el Responsable SST no decidía cuándo terminó, y una medida agregada después lo habría cerrado sin que nadie lo revisara.
+3. El contrato no pedía quién investigó, aunque la historia y el modelo sí (`InvestigadaPorId`).
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Una investigación por evento, corregible** | `PUT …/investigacion` la registra o la reemplaza mientras el evento siga abierto o en investigación; la primera vez lo deja "En investigación" | Se corrige un error sin duplicar registros |
+| **Cierre explícito** | `POST …/cierre` cierra solo si hay investigación y al menos una medida correctiva (tarea con origen en el evento que no esté cancelada); si falta algo, responde qué falta | RN-28 se cumple y es el Responsable SST quien decide cuándo terminó |
+| **Quién investigó** | Una persona activa de la empresa que no sea encuestada (la misma lista de responsables del plan); por defecto, quien registra | Cumple "registro responsables de la investigación" (art. 46.1.a) |
+| **Fecha de la investigación** | No puede ser futura (fecha de Honduras) ni anterior al día del evento | Evita fechas imposibles |
+| **Descartar con rastro** | Guarda quién descartó, cuándo y el motivo opcional; un descartado ya no se investiga ni se cierra | Limpia el historial sin perder la explicación |
+| **Solo el Responsable SST gestiona** | Investigar, cerrar y descartar: solo `responsable_sst`; el admin ve todo pero no edita | La historia es del Responsable SST |
+| **Medidas, en HU-050** | El detalle cuenta las medidas (`totalMedidas`), pero crearlas desde el evento es HU-050 | Hasta entonces un evento no se puede cerrar desde la web; la pantalla dice qué falta |
+
+### Cómo quedó (resumen)
+
+- **Detalle del evento (`/eventos/:id`):**
+  - sección **Investigación**: sin investigar, "Registrar la investigación"; con investigación, causas, conclusiones, quién y cuándo, con "Editar la investigación";
+  - sección **Cierre**: número de medidas correctivas, "Cerrar el evento" (deshabilitado con "Para cerrarlo falta…" si falta algo) y "Descartar el reporte" con motivo opcional; ambos piden confirmación;
+  - cerrado o descartado: aviso con la fecha (y, si se descartó, quién y por qué), sin botones.
+- **API:** `PUT /api/eventos/{id}/investigacion`, `POST /api/eventos/{id}/cierre`, `PATCH /api/eventos/{id}/descarte`; los tres devuelven el detalle del evento, que ahora incluye la investigación, `totalMedidas` y los datos de cierre y descarte.
+- **Errores nuevos:** `eventos.terminado` (409), `eventos.sin_investigacion` (409), `eventos.sin_medidas` (409), `eventos.investigador_invalido` (400), `eventos.fecha_investigacion_invalida` (400).
+
+### Trabajo hecho
+
+- Migración `InvestigacionAccidenteHu049`: tabla `InvestigacionAccidente` con FK compuestas a `Accidente` y a `VinculoEmpresa`, y una sola investigación por evento.
+- 5 pruebas nuevas en el backend (registrar y corregir sin duplicar; validaciones de causas, fecha e investigador; no cerrar sin investigación ni sin medidas, y una medida cancelada no cuenta; descartar; solo el Responsable SST de la empresa). Pasan las 205 pruebas.
+- La web se probó de punta a punta contra la API real (8 casos): sin investigar no se cierra, registrar con validaciones, corregir sin duplicar, cerrar con una medida, descartar con motivo, lista con los estados nuevos, el admin solo consulta, y celular y modo oscuro.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-049 | Sin construir; el contrato cerraba el evento solo y no pedía quién investigó | Investigación corregible, cierre explícito con RN-28 y descarte con rastro, en la API y en la web. Las medidas se crean en HU-050 |
 
 ## Cambio `2026-11-24-hu-047-web` {#cambio-2026-11-24-hu-047-web}
 

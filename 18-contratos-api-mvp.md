@@ -258,6 +258,9 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-047 | GET | `api/eventos` | Listar eventos de la empresa (`admin_empresa`, `responsable_sst`) con filtros | ✅ |
 | HU-047 | GET | `api/eventos/{id}` | Detalle completo de evento (`admin_empresa`, `responsable_sst`) | ✅ |
 | HU-047 | POST | `api/eventos/{id}/evidencias` | Adjuntar evidencias (`Archivo`; pendiente `HU-100` almacenamiento externo) | 🚧 |
+| HU-049 | PUT | `api/eventos/{id}/investigacion` | Registrar o corregir la investigación (`evento.investigar`: `responsable_sst`) | ✅ |
+| HU-049 | POST | `api/eventos/{id}/cierre` | Cerrar con investigación y medidas, `RN-28` (`evento.cerrar`: `responsable_sst`) | ✅ |
+| HU-049 | PATCH | `api/eventos/{id}/descarte` | Descartar un reporte inválido (`evento.descartar`: `responsable_sst`) | ✅ |
 | HU-042 | GET | `api/plan-trabajo/propuesta` | Vista previa del plan (permiso `plan.propuesta`) | ✅ |
 | HU-042 | POST | `api/plan-trabajo/generacion` | Confirmar el plan (permiso `plan.generar`) | ✅ |
 | HU-042, HU-046 | GET | `api/plan-trabajo/tareas?…` | Tareas del plan con filtros (permiso `tarea.listar`) | ✅ |
@@ -386,7 +389,8 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-047 | POST | `/api/eventos/{id}/evidencias` | multipart | JSON | Eventos *(pendiente HU-100)* |
 | HU-047 | GET | `/api/eventos` | query opcional | array | Eventos |
 | HU-047 | GET | `/api/eventos/{id}` | — | JSON | Eventos |
-| HU-049 | PATCH | `/api/eventos/{id}/investigacion` | JSON | JSON | Eventos |
+| HU-049 | PUT | `/api/eventos/{id}/investigacion` | JSON | JSON | Eventos |
+| HU-049 | POST | `/api/eventos/{id}/cierre` | — | JSON | Eventos |
 | HU-049 | PATCH | `/api/eventos/{id}/descarte` | JSON | JSON | Eventos |
 | HU-050 | POST | `/api/eventos/{id}/medidas-correctivas` | JSON | JSON | Eventos |
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
@@ -2016,7 +2020,7 @@ Pasa una tarea por `pendiente`, `en_progreso` y `completada`, en cualquier orden
 
 ---
 
-### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049, HU-050 🚧)
+### M6 — Eventos y accidentes (HU-047 ✅ base, evidencias 🚧 HU-100; HU-049 ✅; HU-050 🚧)
 
 Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`, `colaborador`, `encuestado`): el servidor toma `EmpresaId` del JWT, pero no guarda `ReportadoPorId` ni expondrá `SubidoPorId` en los adjuntos del evento (`D11`, `RN-27`, `RN-74`). Los permisos de consulta (`GET`) corresponden a `admin_empresa` y `responsable_sst`.
 
@@ -2078,28 +2082,50 @@ Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`
 
 **Auth:** Bearer de empresa (`evento.ver`: `admin_empresa`, `responsable_sst`).
 
-**Response 200 (`EventoDetalleResponseDto`):** detalle completo (`id`, `tipo`, `estado`, `estadoEnfermedad`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` completa, `registradoEn`). Adjuntos (`HU-100`) e investigación/cierre (`HU-049`) se integrarán al implementar dichas HUs; nunca incluye datos de quien reportó.
+**Response 200 (`EventoDetalleResponseDto`):** detalle completo (`id`, `tipo`, `estado`, `estadoEnfermedad`, `esGrave`, `fechaHoraEvento`, `lugar`, `descripcion` completa, `registradoEn`). Desde `HU-049` también trae `investigacion` (`null` o `{ causasInmediatas, causasBasicas, conclusiones, investigadaPorId, investigadaPorNombre, fechaInvestigacion }`), `totalMedidas` (tareas con origen en el evento que no están canceladas), `cerradoEn`, `descartadoEn`, `descartadoPorNombre` y `motivoDescarte`. Los adjuntos llegan con `HU-100`. Nunca incluye datos de quien reportó.
 
 **Errores:** 404 `eventos.no_encontrado` · 401 · 403.
 
-#### `PATCH /api/eventos/{id}/investigacion` (HU-049) — `ActualizarInvestigacionRequestDto`
+#### `PUT /api/eventos/{id}/investigacion` (HU-049 — ✅) — `RegistrarInvestigacionRequestDto`
 
-Roles: `responsable_sst`.
+**Auth:** Bearer de empresa (`evento.investigar`: `responsable_sst`). El `admin_empresa` solo consulta.
+
+Registra la investigación del evento o la corrige (una sola por evento; volver a enviarla la reemplaza, no la duplica). La primera vez el evento pasa de `abierto` a `en_investigacion`. Ya no cierra el evento: el cierre es una acción aparte (`POST …/cierre`).
 
 ```json
 {
   "causasInmediatas": "Piso mojado sin señalización",
   "causasBasicas": "Falta de procedimiento de limpieza",
   "conclusiones": "Capacitar al personal de limpieza y colocar conos",
+  "investigadaPorId": "01933f40-....",
   "fechaInvestigacion": "2026-11-15"
 }
 ```
 
-**Response 200:** evento actualizado (`estado`: `"en_investigacion"` o `"cerrado"` si cumple `RN-28`).
+- `causasInmediatas` y `causasBasicas`: obligatorias, máx. 4000 caracteres (se recortan los espacios).
+- `conclusiones`: opcional, máx. 4000.
+- `investigadaPorId`: `VinculoEmpresa` activo de la empresa con rol `admin_empresa`, `responsable_sst` o `colaborador` (la lista sale de `GET /api/plan-trabajo/responsables`).
+- `fechaInvestigacion`: fecha sin hora; no puede ser futura (fecha de Honduras) ni anterior al día del evento.
 
-#### `PATCH /api/eventos/{id}/descarte` (HU-049) — `DescartarEventoRequestDto`
+**Response 200 (`EventoDetalleResponseDto`):** el evento con su `investigacion`.
 
-Roles: `responsable_sst`. Marca un reporte inválido o duplicado como `descartado` sin requerir investigación ni medidas (`RN-28`).
+**Errores:** 400 validación · 400 `eventos.investigador_invalido` · 400 `eventos.fecha_investigacion_invalida` · 404 `eventos.no_encontrado` · 409 `eventos.terminado` (ya cerrado o descartado) · 401 · 403.
+
+*(Antes el contrato tenía `PATCH …/investigacion` sin investigador, y el evento se cerraba solo al cumplir `RN-28`. Se cambió a `PUT` porque reemplaza la investigación completa, y a un cierre explícito para que el Responsable SST decida cuándo terminó.)*
+
+#### `POST /api/eventos/{id}/cierre` (HU-049 — ✅)
+
+**Auth:** Bearer de empresa (`evento.cerrar`: `responsable_sst`). Sin cuerpo.
+
+Cierra el evento si cumple `RN-28`: tiene investigación y al menos una medida correctiva (tarea del plan con origen en el evento que no esté cancelada; las crea `HU-050`). Guarda `CerradoEn`. Cerrado, ya no se edita la investigación; las medidas siguen en el plan de trabajo.
+
+**Response 200 (`EventoDetalleResponseDto`):** evento con `estado: "cerrado"` y `cerradoEn`.
+
+**Errores:** 404 `eventos.no_encontrado` · 409 `eventos.sin_investigacion` · 409 `eventos.sin_medidas` · 409 `eventos.terminado` · 401 · 403.
+
+#### `PATCH /api/eventos/{id}/descarte` (HU-049 — ✅) — `DescartarEventoRequestDto`
+
+**Auth:** Bearer de empresa (`evento.descartar`: `responsable_sst`). Marca un reporte falso, inválido o duplicado como `descartado` sin investigación ni medidas (`RN-28`). Guarda quién lo descartó y cuándo. Un evento descartado no se investiga ni se cierra.
 
 ```json
 {
@@ -2107,7 +2133,11 @@ Roles: `responsable_sst`. Marca un reporte inválido o duplicado como `descartad
 }
 ```
 
-**Response 200:** evento con `estado`: `"descartado"`, `motivoDescarte` y `descartadoEn`.
+- `motivo`: opcional, máx. 1000 caracteres; vacío se guarda como `null`.
+
+**Response 200 (`EventoDetalleResponseDto`):** evento con `estado: "descartado"`, `motivoDescarte`, `descartadoEn` y `descartadoPorNombre`.
+
+**Errores:** 400 validación · 404 `eventos.no_encontrado` · 409 `eventos.terminado` · 401 · 403.
 
 #### `POST /api/eventos/{id}/medidas-correctivas` (HU-050)
 
