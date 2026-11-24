@@ -234,7 +234,7 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-036 | GET | `api/riesgos/{id}` | — | `RiesgoResponseDto` | `riesgo.leer` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-036 | GET | `api/riesgos/peligros-disponibles` | — | `PeligroDisponibleResponseDto[]` | `riesgo.peligros` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-036 | POST | `api/riesgos` | `CrearRiesgoRequestDto` | 201 `RiesgoResponseDto` | `riesgo.crear` | `admin_empresa`, `responsable_sst` | ✅ |
-| HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `CrearEvaluacionRequestDto` | `EvaluacionResponseDto` | `riesgo.evaluar` | `responsable_sst` | 🚧 |
+| HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `EvaluarRiesgoRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | 🚧 |
 | HU-035 | PATCH | `api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | `RevisarPeligroSugeridoRequestDto` | `PeligroSugeridoRevisadoResponseDto` | `encuesta.peligro_sugerido.revisar` | `admin_empresa`, `responsable_sst` | ✅ |
 
@@ -1452,11 +1452,13 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
   "actividad": "Bodega de carga",
   "encuestaId": null,
   "encuestaTitulo": null,
-  "creadoEn": "2026-11-16T12:00:00Z"
+  "creadoEn": "2026-11-16T12:00:00Z",
+  "evaluacion": null
 }
 ```
 
 - **`peligroNombre`:** es null si el peligro se describió; entonces viene `descripcionPeligro`.
+- **`evaluacion`:** es la última evaluación inicial (HU-037, mismo formato que `EvaluacionResponseDto`); null si todavía no se evaluó.
 - **`encuestaId` y `encuestaTitulo`:** indican la encuesta que lo sugirió (HU-035); null si se agregó a mano.
 
 **Errores:**
@@ -1467,11 +1469,14 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
 | 400 `riesgos.peligro_invalido` | El peligro no existe o está inactivo |
 | 409 `riesgos.duplicado` | La matriz ya tiene ese peligro con la misma actividad (sin distinguir mayúsculas) |
 
-#### `POST /api/riesgos/{id}/evaluaciones` — `CrearEvaluacionRequestDto`
+#### `POST /api/riesgos/{id}/evaluaciones` — `EvaluarRiesgoRequestDto` (HU-037) — ✅
+
+Evaluación **inicial** de un riesgo de la matriz. La residual, después de los controles, es HU-040.
+- **Historial:** cada evaluación se guarda aparte, con quién y cuándo. Una nueva no reemplaza la anterior (RN-20, D10), y la vigente es la más reciente.
+- **Explicación de los valores:** la web muestra qué significa cada valor del 1 al 5 (RN-80).
 
 ```json
 {
-  "tipo": "inicial",
   "probabilidad": 3,
   "severidad": 4
 }
@@ -1487,11 +1492,21 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
   "severidad": 4,
   "nivel": 12,
   "clasificacion": "alto",
+  "evaluadoPorId": "01932000-....",
+  "evaluadoPorNombre": "Lucía Bonilla",
   "evaluadoEn": "2026-11-16T12:05:00Z"
 }
 ```
 
-`nivel` y `clasificacion` se **calculan** en servidor (RN-15, RN-16), no se persisten.
+`nivel` (P × S) y `clasificacion` (`bajo`, `medio`, `alto`, `critico`) se **calculan** al responder (RN-15, RN-16); no se guardan.
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta la probabilidad o la severidad, o alguna no está entre 1 y 5 |
+| 404 `riesgos.no_encontrado` | El riesgo no existe o es de otra empresa |
+| 409 `riesgos.no_en_matriz` | El riesgo está sugerido o descartado: solo se evalúan los confirmados (RN-18) |
 
 #### `GET /api/riesgos/matriz`
 
@@ -1556,7 +1571,7 @@ Confirma o descarta un peligro sugerido por la encuesta. `riesgoId` es el `riesg
 
 #### `GET /api/riesgos/{id}`
 
-**Response 200:** `RiesgoResponseDto` (HU-036, en cualquier estado). HU-037 le agregará la última evaluación inicial y residual. **404** `riesgos.no_encontrado` si no existe o es de otra empresa.
+**Response 200:** `RiesgoResponseDto` en cualquier estado, con la última evaluación inicial en `evaluacion` (HU-037). **404** `riesgos.no_encontrado` si no existe o es de otra empresa.
 
 #### `GET /api/riesgos/{id}/historial` (HU-041)
 

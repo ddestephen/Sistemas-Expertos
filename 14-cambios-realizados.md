@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **HU-037 implementada:** evaluar un riesgo (probabilidad × severidad) con la explicación de cada valor (**RN-80**, nueva), el nivel calculado y quién evaluó y cuándo | [Ver cambio](#cambio-2026-11-23-hu-037-evaluar-riesgo) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-036 implementada:** agregar riesgos a la matriz (peligro del catálogo o descrito, con su actividad) y ver la lista de riesgos de la empresa | [Ver cambio](#cambio-2026-11-23-hu-036-agregar-riesgos) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** colores de **riesgo** (semáforo de 4 niveles, iguales en claro y oscuro), **etiqueta de riesgo** y **mapa de calor** 5 × 5 para la matriz | [Ver cambio](#cambio-2026-11-23-design-system-riesgo) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-035 completa:** confirmar o descartar los peligros sugeridos desde los resultados de la encuesta; el contrato pasa a la ruta implementada | [Ver cambio](#cambio-2026-11-23-hu-035-revisar-peligros) |
@@ -46,6 +47,51 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-hu-037-evaluar-riesgo` {#cambio-2026-11-23-hu-037-evaluar-riesgo}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `07-reglas-negocio.md` (RN-80 nueva), `12-modelo-datos.md` §9, `10-historias-usuario.md` (reglas de HU-037), `18-contratos-api-mvp.md` (HU-037 y `RiesgoResponseDto`), `design-system.md` (Mapa de calor, fila "Elegir"). En el código: slice `EvaluarRiesgo`, clasificación en el dominio, última evaluación en la lista y el detalle del riesgo, y la página del riesgo en la web |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-037 pide elegir probabilidad y severidad "con su explicación visible", pero ningún documento decía qué significa cada valor del 1 al 5.
+2. El contrato de la evaluación no incluía quién evaluó, y la lista de riesgos no traía la evaluación.
+3. El design system definía el mapa de calor como un grupo de radios. Así, la explicación de cada valor quedaba fuera del control.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **RN-80: escalas con explicación** | Probabilidad: rara, improbable, posible, probable, casi segura. Severidad: insignificante, menor, moderada, mayor, catastrófica. Cada una con su descripción; propuesta por validar, igual que RN-16 | Quien evalúa sabe qué elegir, y dos personas evalúan con el mismo criterio |
+| **Listas con explicación como control principal** | Probabilidad y severidad se eligen en dos listas de radios con la explicación; el mapa es un atajo sincronizado (tocar una celda elige las dos) | La explicación queda a la vista y es accesible, y el mapa sigue sirviendo para elegir rápido |
+| **Solo riesgos confirmados** | Un riesgo sugerido o descartado responde 409 `riesgos.no_en_matriz` | Solo se evalúa lo que está en la matriz (RN-18) |
+| **Historial y vigente** | Cada evaluación es una fila con quién y cuándo; la lista y el detalle muestran la más reciente (RN-20) | Volver a evaluar no pierde lo anterior |
+| **Nivel y clasificación calculados** | El backend los calcula al responder (dominio: `EvaluacionRiesgo.Clasificar`); no se guardan | Una sola regla para el cálculo (RN-15, RN-16); la web solo la repite para la vista previa |
+
+### Cómo quedó (resumen)
+
+- **Backend:** `POST /api/riesgos/{id}/evaluaciones` crea la evaluación inicial. `GET /api/riesgos` y `GET /api/riesgos/{id}` traen la última en `evaluacion`, con el nombre de quien evaluó.
+- **Web, página del riesgo (`/riesgos/:id`):**
+  - datos del riesgo y su evaluación vigente: etiqueta "Medio · 6", los dos valores con su nombre, y "Evaluado por … el …";
+  - "Volver a evaluar" parte de la vigente;
+  - el formulario tiene el mapa de calor, las dos listas con explicación y el nivel calculado con el aviso de control para alto y crítico.
+- **Web, matriz:** muestra la etiqueta de nivel con su color.
+
+### Trabajo hecho
+
+- Se implementó el caso de uso con 17 pruebas nuevas:
+  - umbrales de RN-16;
+  - valores fuera de escala y faltantes;
+  - historial con evaluador;
+  - riesgo fuera de la matriz;
+  - aislamiento entre empresas y permisos.
+- Pasan las 110 pruebas del backend.
+- Se construyó la web y se probó de punta a punta contra la API real: elegir en las listas o en el mapa (también con teclado), guardar, volver a evaluar, Cancelar, celular, modo oscuro y riesgo inexistente.
+- Se documentó RN-80 siguiendo la cadena de verdad (reglas, trazabilidad, historia) y se actualizaron el contrato y el design system.
 
 ## Cambio `2026-11-23-hu-036-agregar-riesgos` {#cambio-2026-11-23-hu-036-agregar-riesgos}
 

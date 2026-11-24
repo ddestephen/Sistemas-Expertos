@@ -557,7 +557,7 @@ Cada historia termina con estos datos:
 - El sistema calcula el nivel y lo clasifica.
 - Se registran evaluador y fecha.
 
-**Módulo:** M4 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-035 · **Reglas:** art. 46.1.b, RN-15, RN-16, D10
+**Módulo:** M4 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-035 · **Reglas:** art. 46.1.b, RN-15, RN-16, RN-80, D10
 
 ### HU-038 | Ver la matriz de riesgos
 

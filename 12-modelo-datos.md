@@ -966,6 +966,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-18 | BD | `RiesgoEmpresa.Estado` |
 | RN-19 | App | Validación al evaluar |
 | RN-20 | BD | Una fila por evaluación |
+| RN-80 | App | Escalas con su explicación en la pantalla de evaluación; el valor guardado es solo el número del 1 al 5 |
 | RN-21 | BD | CHECK `Control.Tipo` |
 | RN-22 | BD | CHECK en Tarea |
 | RN-23 | BD | Columnas de origen con CHECK |

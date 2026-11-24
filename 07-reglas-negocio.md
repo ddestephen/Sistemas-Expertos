@@ -60,6 +60,7 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-19 | Un riesgo alto o crítico exige al menos un control |
 | RN-76 | Al definir controles, Norvia sugiere los de las plantillas del peligro del riesgo. El Responsable SST acepta, edita o descarta cada sugerencia; ninguna se guarda sin su confirmación |
 | RN-20 | Cada evaluación se conserva; una nueva no reemplaza a la anterior |
+| RN-80 | Al evaluar se muestra qué significa cada valor. **Probabilidad:** 1 rara (solo en circunstancias excepcionales), 2 improbable (no se espera; ha pasado en el sector), 3 posible (ya ha pasado en la empresa), 4 probable (ha pasado varias veces en la empresa), 5 casi segura (cada mes o más). **Severidad:** 1 insignificante (sin lesión o primeros auxilios), 2 menor (atención médica, sin incapacidad o de un día), 3 moderada (incapacidad temporal de más de un día), 4 mayor (lesión grave o incapacidad permanente parcial), 5 catastrófica (muerte, incapacidad permanente total o varias personas afectadas). Estas escalas son una propuesta por validar |
 | RN-21 | Cada control indica su tipo: eliminación, sustitución, ingeniería, administrativo o equipo de protección personal |
 
 ## Plan de trabajo
