@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-041 implementada:** historial de todas las evaluaciones de un riesgo (iniciales y residuales) con fecha y autor, y la vigente de cada tipo marcada | [Ver cambio](#cambio-2026-11-24-hu-041-historial) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-046 implementada:** filtrar el plan por estado, vencidas, responsable, origen, prioridad y fecha límite; las vencidas se cuentan y se filtran con un toque. Los enums de la consulta aceptan snake_case | [Ver cambio](#cambio-2026-11-24-hu-046-filtrar-plan) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-044 implementada:** "Mis tareas" para atender las tareas asignadas (pendiente, en progreso, completada y reabrir), solo por su responsable o el Responsable SST (**RN-24**), sin completar las que piden evidencia (**RN-25**) | [Ver cambio](#cambio-2026-11-24-hu-044-mis-tareas) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-043 implementada:** asignar responsable y fecha límite a cada tarea (solo personas activas de la empresa, sin encuestados), crear tareas manuales y marcar las vencidas; primer **campo de fecha** del design system en el código | [Ver cambio](#cambio-2026-11-24-hu-043-asignar) |
@@ -54,6 +55,58 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-041-historial` {#cambio-2026-11-24-hu-041-historial}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (HU-041: la ruta pasa a `GET /api/riesgos/{id}/evaluaciones`), `12-modelo-datos.md` §9 (RN-20). En el código: slice `ListarEvaluaciones` y la sección "Historial de evaluaciones" del riesgo en la web |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-041 pide ver todas las evaluaciones de un riesgo, con fecha y autor, para demostrar su evolución. Desde HU-037 y HU-040 se guardan todas, pero solo se mostraban las vigentes.
+2. El contrato tenía `GET /api/riesgos/{id}/historial` con una línea de tiempo de eventos variados ("creado", "evaluacion_inicial"…). Las evaluaciones son lo único que se guarda como historial.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **`GET …/evaluaciones`** | Lista de `EvaluacionResponseDto`, la más reciente primero, iniciales y residuales juntas | Es lo que pide la historia, con el mismo formato que evaluar y la misma ruta que el `POST` |
+| **"Vigente" marcada** | La más reciente de cada tipo lleva el badge éxito "Vigente" (design system § Badges: vigente) | Se ve qué cuenta hoy y qué es historia |
+| **Solo con evaluaciones** | Si el riesgo no tiene evaluaciones, la sección no aparece | No se muestra una tabla vacía junto al formulario de la primera evaluación |
+| **Se actualiza sola** | Al guardar una evaluación, el historial se vuelve a pedir | "Una evaluación nueva no borra las anteriores" se ve en el momento |
+
+### Cómo quedó (resumen)
+
+- **Backend:** `GET /api/riesgos/{id}/evaluaciones` con el permiso `riesgo.historial` para `admin_empresa` y `responsable_sst`.
+- **Web, detalle del riesgo, "Historial de evaluaciones":**
+  - **Encabezado:** cuántas evaluaciones hay y desde cuándo.
+  - **Tabla:** fecha y quién evaluó, tipo (con "Vigente"), nivel, y probabilidad × severidad con sus nombres (RN-80).
+  - **En celular:** el tipo y el detalle van bajo la fecha, así el nivel queda a la vista.
+
+### Trabajo hecho
+
+- Se implementó el backend con 3 pruebas nuevas:
+  - todas las evaluaciones en orden, con fecha y autor;
+  - historial vacío;
+  - aislamiento entre empresas y permisos.
+
+  Pasan las 189 pruebas del backend.
+- Se probó la web de punta a punta contra la API real (5 casos):
+  - primera evaluación;
+  - residual sumada arriba;
+  - reevaluar la inicial sin borrar la anterior;
+  - riesgo sin evaluar;
+  - celular y modo oscuro.
+
+  Siguen pasando los e2e de HU-037 y HU-040.
+- **Ajuste:** la primera versión de la tabla no cabía en el ancho del detalle. El autor pasó bajo la fecha y el detalle baja de línea.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-041 | Contrato con una línea de tiempo de eventos sin respaldo | Historial de evaluaciones con fecha, autor, tipo, nivel y la vigente de cada tipo |
 
 ## Cambio `2026-11-24-hu-046-filtrar-plan` {#cambio-2026-11-24-hu-046-filtrar-plan}
 

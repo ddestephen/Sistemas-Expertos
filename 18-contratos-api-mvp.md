@@ -237,6 +237,7 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `EvaluarRiesgoRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-038 | GET | `api/riesgos?…` (filtros) | `FiltrosRiesgosDto` (consulta) | `RiesgoResponseDto[]` | `riesgo.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-041 | GET | `api/riesgos/{id}/evaluaciones` | — | `EvaluacionResponseDto[]` | `riesgo.historial` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-040 | POST | `api/riesgos/{id}/evaluaciones-residual` | `EvaluarRiesgoResidualRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar_residual` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-039 | GET | `api/riesgos/{id}/controles` | — | `ControlResponseDto[]` | `riesgo.control.listar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-039 | GET | `api/riesgos/{id}/controles/sugeridos` | — | `ControlSugeridoResponseDto[]` | `riesgo.control.sugeridos` | `admin_empresa`, `responsable_sst` | ✅ |
@@ -362,7 +363,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-036 | GET | `/api/riesgos/{id}` | — | `RiesgoResponseDto` | Riesgos |
 | HU-037 | POST | `/api/riesgos/{id}/evaluaciones` | JSON | `EvaluacionResponseDto` | Riesgos |
 | HU-040 | POST | `/api/riesgos/{id}/evaluaciones-residual` | JSON | `EvaluacionResponseDto` | Riesgos |
-| HU-041 | GET | `/api/riesgos/{id}/historial` | — | JSON | Riesgos |
+| HU-041 | GET | `/api/riesgos/{id}/evaluaciones` | — | `EvaluacionResponseDto[]` | Riesgos |
 | HU-038 | GET | `/api/riesgos/matriz` | — | JSON | Riesgos |
 | HU-075 | GET | `/api/riesgos/matriz/pdf` | — | PDF | Riesgos |
 | HU-039 | POST | `/api/riesgos/{id}/controles` | JSON | `ControlResponseDto` | Riesgos |
@@ -1601,27 +1602,24 @@ Confirma o descarta un peligro sugerido por la encuesta. `riesgoId` es el `riesg
 
 **Response 200:** `RiesgoResponseDto` en cualquier estado, con la última evaluación inicial en `evaluacion` (HU-037) y la última residual en `evaluacionResidual` (HU-040). **404** `riesgos.no_encontrado` si no existe o es de otra empresa.
 
-#### `GET /api/riesgos/{id}/historial` (HU-041)
+#### `GET /api/riesgos/{id}/evaluaciones` (HU-041) — ✅
+
+El historial de evaluaciones del riesgo, para demostrar su evolución (art. 47.b): **todas**, iniciales y residuales, la más reciente primero, con fecha y quién evaluó. Ninguna se borra al evaluar de nuevo (RN-20, D10); la vigente de cada tipo es la primera de su tipo en la lista.
+
+**Response 200:** `EvaluacionResponseDto[]` (mismo item que devuelve evaluar). Un riesgo sin evaluar devuelve `[]`.
 
 ```json
-{
-  "riesgoId": "01935000-....",
-  "eventos": [
-    {
-      "tipo": "creado",
-      "fecha": "2026-11-16T12:00:00Z",
-      "detalle": "Riesgo confirmado manualmente"
-    },
-    {
-      "tipo": "evaluacion_inicial",
-      "fecha": "2026-11-16T12:05:00Z",
-      "probabilidad": 3,
-      "severidad": 4,
-      "nivel": 12
-    }
-  ]
-}
+[
+  { "id": "…", "tipo": "residual", "probabilidad": 2, "severidad": 3, "nivel": 6, "clasificacion": "medio",
+    "evaluadoPorId": "…", "evaluadoPorNombre": "Sara Responsable", "evaluadoEn": "2026-11-24T14:05:00Z" },
+  { "id": "…", "tipo": "inicial", "probabilidad": 3, "severidad": 4, "nivel": 12, "clasificacion": "alto",
+    "evaluadoPorId": "…", "evaluadoPorNombre": "Sara Responsable", "evaluadoEn": "2026-11-24T14:00:00Z" }
+]
 ```
+
+**Errores:** 404 `riesgos.no_encontrado` (no existe o es de otra empresa).
+
+*(Antes el contrato tenía `GET …/historial` con una línea de tiempo de eventos variados, como "creado". HU-041 pide las evaluaciones, y no hay otros eventos guardados; la ruta es la misma del `POST` de evaluaciones.)*
 
 #### `POST /api/riesgos/{id}/evaluaciones-residual` — `EvaluarRiesgoResidualRequestDto` (HU-040) — ✅
 

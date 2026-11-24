@@ -970,7 +970,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-15, RN-16 | BD y App | CHECK de 1 a 5; nivel y clasificación calculados |
 | RN-18 | BD | `RiesgoEmpresa.Estado` |
 | RN-19 | App | Se señala mientras falte: la matriz cuenta y filtra los altos o críticos sin controles, y el riesgo muestra un aviso (HU-039) |
-| RN-20 | BD | Una fila por evaluación |
+| RN-20 | BD y App | Una fila por evaluación; el historial (HU-041) las muestra todas, iniciales y residuales |
 | RN-80 | App | Escalas con su explicación en la pantalla de evaluación; el valor guardado es solo el número del 1 al 5 |
 | RN-21 | BD | CHECK `Control.Tipo` |
 | RN-22 | BD y App | CHECK en Tarea; al asignar, la aplicación exige responsable activo de la empresa (no encuestado) y fecha límite no anterior a hoy (HU-043) |
