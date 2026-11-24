@@ -233,7 +233,7 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-036 | POST | `api/riesgos` | `CrearRiesgoRequestDto` | `RiesgoResponseDto` | `riesgo.crear` | `responsable_sst` | 🚧 |
 | HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `CrearEvaluacionRequestDto` | `EvaluacionResponseDto` | `riesgo.evaluar` | `responsable_sst` | 🚧 |
 | HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | 🚧 |
-| HU-035 | POST | `api/riesgos/sugeridos/{id}/confirmacion` | — | `RiesgoResponseDto` | `riesgo.confirmar_sugerido` | `responsable_sst` | 🚧 |
+| HU-035 | PATCH | `api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | `RevisarPeligroSugeridoRequestDto` | `PeligroSugeridoRevisadoResponseDto` | `encuesta.peligro_sugerido.revisar` | `admin_empresa`, `responsable_sst` | ✅ |
 
 ---
 
@@ -340,8 +340,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-031 | POST | `/api/encuestas/{id}/respuestas` | JSON | 204/JSON | Encuestado |
 | HU-032 | GET | `/api/encuestas/{id}/reporte` | — | JSON | Reporte |
 | HU-033 | GET | `/api/encuestas/{id}/peligros-sugeridos` | — | `PeligrosSugeridosResponseDto` | Reporte |
-| HU-035 | POST | `/api/riesgos/sugeridos/{id}/confirmacion` | — | `RiesgoResponseDto` | Riesgos |
-| HU-035 | POST | `/api/riesgos/sugeridos/{id}/descarte` | JSON opc. | `RiesgoResponseDto` | Riesgos |
+| HU-035 | PATCH | `/api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | JSON | `PeligroSugeridoRevisadoResponseDto` | Riesgos |
 | HU-036 | POST | `/api/riesgos` | JSON | `RiesgoResponseDto` | Riesgos |
 | HU-036 | GET | `/api/riesgos/{id}` | — | `RiesgoResponseDto` | Riesgos |
 | HU-037 | POST | `/api/riesgos/{id}/evaluaciones` | JSON | `EvaluacionResponseDto` | Riesgos |
@@ -1382,6 +1381,7 @@ Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distri
       "peligroId": "01933000-....",
       "peligroNombre": "Manipulación manual de cargas",
       "estado": "sugerido",
+      "actividad": null,
       "respuestasConExposicion": 8,
       "preguntas": [
         { "preguntaId": "01934110-....", "texto": "¿Levantas cargas pesadas?", "respuestasConExposicion": 8 }
@@ -1393,6 +1393,7 @@ Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distri
 
 - `sugerencias` va ordenada de mayor a menor respaldo.
 - `riesgoSugeridoId` es el `RiesgoEmpresa` que se confirma o descarta en HU-035.
+- `actividad` es la que se indicó al confirmarlo en HU-035; `null` si no se indicó o todavía no se revisó.
 - `preguntas` indica qué pregunta originó la sugerencia y cuántas respuestas la respaldan en cada una.
 
 **Errores:** 403 `permiso.prohibido` (otro rol o staff) · 404 `encuestas.no_encontrada` (no existe o es de otra empresa).
@@ -1473,21 +1474,45 @@ Uno de `peligroId` o `descripcionPeligro` obligatorio.
 }
 ```
 
-#### `POST /api/riesgos/sugeridos/{id}/confirmacion` (HU-035)
+#### `PATCH /api/encuestas/{id}/peligros-sugeridos/{riesgoId}` (HU-035) — ✅
 
-Body vacío. Pasa `estado` de `sugerido` → `confirmado`.
+Confirma o descarta un peligro sugerido por la encuesta. `riesgoId` es el `riesgoSugeridoId` de HU-033.
+- **Confirmar:** el riesgo queda en la matriz de la empresa.
+- **Descartar:** el riesgo no aparece en la matriz (RN-18).
+- **Una sola vez:** cada sugerencia se revisa una sola vez y se guarda quién la revisó y cuándo.
 
-**Response 200:** `RiesgoResponseDto` actualizado.
+**Auth:** permiso `encuesta.peligro_sugerido.revisar` para `admin_empresa` y `responsable_sst`.
 
-#### `POST /api/riesgos/sugeridos/{id}/descarte` (HU-035)
-
-**Request opcional:**
+**Request** — `RevisarPeligroSugeridoRequestDto`
 
 ```json
-{ "motivo": "No aplica a nuestra operación" }
+{ "estado": "confirmado", "actividad": "Carga de camiones" }
 ```
 
-**Response 200:** `RiesgoResponseDto` con `estado`: `"descartado"`.
+- `estado`: `confirmado` o `descartado`.
+- `actividad`: opcional al confirmar, hasta 200 caracteres. No se envía al descartar.
+
+**Response 200** — `PeligroSugeridoRevisadoResponseDto`
+
+```json
+{
+  "riesgoId": "01934200-....",
+  "encuestaId": "01934100-....",
+  "peligroId": "01933000-....",
+  "estado": "confirmado",
+  "actividad": "Carga de camiones",
+  "revisadoPorId": "01932000-....",
+  "revisadoEn": "2026-11-23T18:00:00Z"
+}
+```
+
+**Errores:**
+
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | `estado` falta o no es `confirmado`/`descartado`; `actividad` pasa de 200 caracteres o viene al descartar |
+| 404 `encuestas.sugerencia_no_encontrada` | La sugerencia no es de esa encuesta o es de otra empresa |
+| 409 `encuestas.sugerencia_ya_revisada` | Ya se confirmó o descartó |
 
 #### `GET /api/riesgos/{id}`
 

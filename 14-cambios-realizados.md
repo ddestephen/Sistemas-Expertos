@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **HU-035 completa:** confirmar o descartar los peligros sugeridos desde los resultados de la encuesta; el contrato pasa a la ruta implementada | [Ver cambio](#cambio-2026-11-23-hu-035-revisar-peligros) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-022 implementada:** cambiar la contraseña con confirmación por correo (enlace firmado, de un solo uso y con vencimiento), también desde "¿Olvidaste tu contraseña?" | [Ver cambio](#cambio-2026-11-23-hu-022-cambio-contrasena) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** cómo se adapta una **tabla con acción por fila** en celular (pantalla de personas, HU-021) | [Ver cambio](#cambio-2026-11-23-design-system-tabla-celular) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **Design system:** cómo se muestran los **peligros sugeridos** de una encuesta (HU-033) en la pantalla de resultados y qué badge lleva cada sugerencia | [Ver cambio](#cambio-2026-11-23-design-system-peligros-sugeridos) |
@@ -43,6 +44,41 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-hu-035-revisar-peligros` {#cambio-2026-11-23-hu-035-revisar-peligros}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (HU-033 y HU-035). En el código: backend de HU-035 de la rama `feature/hu-035` integrado con `development`, campo `actividad` en la respuesta de HU-033 y la revisión en la web. No cambia el modelo de datos, las reglas de negocio ni las historias |
+
+### El problema (por qué hubo que cambiar)
+
+1. El contrato describía HU-035 con dos rutas (`POST /api/riesgos/sugeridos/{id}/confirmacion` y `/descarte`), pero el backend se implementó con una sola: `PATCH /api/encuestas/{id}/peligros-sugeridos/{riesgoId}`, con el estado en el cuerpo.
+2. La lista de peligros sugeridos (HU-033) no devolvía la actividad indicada al confirmar: al volver a la página se perdía.
+3. La web mostraba las sugerencias, pero no permitía revisarlas.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **El contrato sigue a la ruta implementada** | HU-035 queda documentada como `PATCH` sobre la sugerencia de la encuesta, con `estado` y `actividad` | El documento coincide con lo que la API responde |
+| **`actividad` en la respuesta de HU-033** | Campo nuevo, `null` si no se indicó o no se revisó | La web muestra dónde se presenta cada riesgo confirmado |
+| **Revisión desde los resultados** | Cada sugerencia "Por revisar" ofrece "Confirmar…" (con la actividad opcional) y "Descartar…" (con diálogo de confirmación) | Se decide con el respaldo y las preguntas a la vista, y como no se puede deshacer, se confirma antes |
+| **Revisión concurrente** | Si otra persona ya la revisó (409), se avisa y la lista se recarga con su decisión | Nadie cree que su decisión se guardó cuando no fue así |
+
+### Cómo quedó (resumen)
+
+- **Backend:** HU-035 con sus 7 pruebas. Además, la prueba de HU-033 ahora confirma con el endpoint real y comprueba que la actividad vuelve en la lista.
+- **Web:** la sección "Peligros sugeridos" dice cuántas sugerencias quedan por revisar. Las confirmadas muestran "En la matriz" y su actividad; las descartadas, "Descartado".
+
+### Trabajo hecho
+
+- Se integró la rama `feature/hu-035` con `development`, sin conflictos, y pasan las 82 pruebas del backend.
+- Se agregó `actividad` a la respuesta de HU-033.
+- Se construyó la revisión en la web y se probó de punta a punta contra la API real: confirmar con actividad y sin ella, descartar, cancelar, revisión concurrente, recarga, celular y modo oscuro.
+- Se actualizó el contrato en `18-contratos-api-mvp.md`.
 
 ## Cambio `2026-11-23-hu-022-cambio-contrasena` {#cambio-2026-11-23-hu-022-cambio-contrasena}
 
