@@ -2040,7 +2040,7 @@ Reporte **anónimo** con sesión de vínculo (`admin_empresa`, `responsable_sst`
 | `tipo` | `accidente` \| `incidente` \| `enfermedad_profesional` \| `condicion_insegura` (obligatorio) |
 | `estadoEnfermedad` | `sospechosa` \| `diagnosticada` (obligatorio si y solo si `tipo = enfermedad_profesional`; `null` en otro caso) |
 | `esGrave` | booleano (opcional, `false` por defecto; aplica a cualquier tipo) |
-| `fechaHoraEvento` | ISO-8601 UTC obligatorio; no puede ser futura (margen de 5 min por desfase de reloj) |
+| `fechaHoraEvento` | ISO-8601 obligatorio, en UTC o con zona (la web envía la hora de Honduras con `-06:00`, p. ej. `2026-11-14T09:30:00-06:00`; se guarda en UTC); no puede ser futura (margen de 5 min por desfase de reloj) |
 | `lugar` | string opcional, máx. 200 caracteres |
 | `descripcion` | string obligatorio, no vacío ni solo espacios |
 

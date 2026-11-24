@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-24 | Equipo (redactado con Claude Code) | **HU-047 completada en la web:** reportar un evento de forma anónima (cualquier persona de la empresa, también encuestados) con fecha y hora de Honduras, y lista y detalle de eventos para el admin y el Responsable SST; primer **campo de hora** del design system | [Ver cambio](#cambio-2026-11-24-hu-047-web) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-023 completada en la web:** pantallas del staff para mantener categorías, preguntas (tipo, peligro y opciones de exposición), peligros, rubros y plantillas de documento; se agrega la API de **plantillas de tarea** (controles sugeridos y tareas modelo) y la **navegación de sección** del design system | [Ver cambio](#cambio-2026-11-24-hu-023-web) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-097 completada:** contenido SST inicial (12 categorías en los 4 rubros, 34 preguntas de los 3 tipos, 21 peligros y 94 plantillas de tareas), cargado al arrancar sin duplicar ni pisar lo que edite el staff. **Pendiente: revisión por alguien con conocimiento de SST** | [Ver cambio](#cambio-2026-11-24-hu-097-catalogos) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-041 implementada:** historial de todas las evaluaciones de un riesgo (iniciales y residuales) con fecha y autor, y la vigente de cada tipo marcada | [Ver cambio](#cambio-2026-11-24-hu-041-historial) |
@@ -57,6 +58,58 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-24-hu-047-web` {#cambio-2026-11-24-hu-047-web}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 24 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (zona horaria de `fechaHoraEvento`), `design-system.md` (badge "Grave" y campo de hora). En el código, solo la web: la feature `eventos`, el componente `CampoHora` y el `maximo` de `CampoFecha`. El backend es el de Jesús Zepeda (22-11) y no cambia |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-047 tenía backend (reportar, listar y ver) pero no tenía pantallas.
+2. El reporte necesita fecha **y hora**. El design system definía la hora (12 horas, a. m./p. m., escrita), pero no existía el componente.
+3. La API guarda la fecha y hora en UTC. Si la web enviara la hora del navegador sin zona, un reporte hecho desde una computadora con otra zona quedaría corrido.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Hora de Honduras con zona** | La web envía `…T14:30:00-06:00`; la API la guarda en UTC y la muestra de nuevo en la hora de Honduras | La hora reportada es la que la persona escribió, sin importar la zona de su equipo |
+| **No futura, también en la web** | La fecha no admite días después de hoy (el calendario los deshabilita) y, si es hoy, la hora no puede haber pasado más allá del margen de 5 minutos del backend | Mismo resultado que el backend, con el error junto al campo |
+| **Anonimato a la vista** | Un aviso antes del formulario explica que no se guarda quién reporta y sugiere no poner el nombre en la descripción; la confirmación y el detalle lo repiten | RN-27: que nadie deje de reportar por temor |
+| **Cualquier persona reporta** | "Reportar un evento" en Inicio para los cuatro roles, también encuestados; la lista y el detalle, solo para admin y Responsable SST | Igual que los permisos del backend |
+| **"Grave" junto al estado** | Badge de error "Grave" al lado del estado (Abierto es advertencia) | Lo urgente se ve en la lista sin abrirlo |
+| **Sin adjuntos por ahora** | Adjuntar imágenes o PDF espera a HU-100 (almacenamiento de archivos), igual que en el backend | No bloquea el reporte |
+
+### Cómo quedó (resumen)
+
+- **`/eventos/reportar`:**
+  - **Formulario:** qué pasó (los cuatro tipos con su explicación), si es enfermedad profesional (sospechosa o diagnosticada), fecha (`CampoFecha` con `maximo`), hora (`CampoHora`), lugar opcional, qué ocurrió y "Es grave".
+  - **Confirmación:** dice cuándo se recibió el reporte, con "Reportar otro evento" y "Volver al inicio".
+- **`/eventos`:** lista, el último recibido primero, con filtros por tipo, estado y gravedad.
+- **`/eventos/:id`:** detalle con cuándo ocurrió, dónde, cuándo se recibió y la descripción. No hay dato de quién reportó.
+
+### Trabajo hecho
+
+- Se construyó la web y se probó de punta a punta contra la API real (8 casos):
+  - un encuestado reporta y ve los errores;
+  - enfermedad profesional;
+  - fechas y horas futuras, y la hora en 12 horas;
+  - envío, comprobando que la hora quedó en UTC y que la tabla no tiene columnas de quién reportó;
+  - el encuestado no ve la lista;
+  - lista y filtros del Responsable SST;
+  - detalle;
+  - celular y modo oscuro.
+
+  Sigue pasando el e2e de HU-043, que también usa el campo de fecha.
+- **Hallazgo:** el aviso "Esa hora todavía no llega" quedaba visible después de cambiar la fecha. Ahora la hora se revisa de nuevo cuando cambia la fecha.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-047 | Solo backend | Reporte anónimo en la web para toda la empresa; lista y detalle para la gestión. Adjuntos pendientes de HU-100 |
 
 ## Cambio `2026-11-24-hu-023-web` {#cambio-2026-11-24-hu-023-web}
 

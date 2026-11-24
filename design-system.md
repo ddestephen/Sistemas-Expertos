@@ -516,10 +516,12 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 | Riesgo | — | — | — | Sin control (alto o crítico sin controles, RN-19) | — |
 | Control | Propuesto | — | Implementado | — | — |
 | Tarea del plan | Pendiente · Cancelada | En progreso | Completada | — | Vencida |
-| Accidente | Cerrado · Descartado | En investigación | — | Abierto | — |
+| Accidente | Cerrado · Descartado | En investigación | — | Abierto | Grave (junto al estado) |
 | Política | Borrador · Reemplazada | — | Vigente | — | — |
 
 - **Accidente cerrado es neutro,** no éxito: que termine el caso no es una buena noticia.
+- **"Grave" no es un estado:** es una marca del reporte (HU-047) que va junto al badge de estado, en error, para que
+  un evento grave se distinga en la lista sin abrirlo.
 - **"Vencida" no es un estado guardado:** es una tarea pendiente o en progreso con la fecha límite
   pasada. Se muestran dos badges ("En progreso" + "Vencida") para no perder el estado.
 
@@ -557,7 +559,8 @@ Usos: fecha y hora del accidente; fecha límite de una tarea (sin hora).
 - **Restricciones:** el accidente no admite fechas futuras. La fecha límite no admite fechas pasadas
   al crear la tarea; al editar se conserva la que tenía, aunque esté vencida.
 - **Hora del accidente:** campo aparte, junto a la fecha, en 12 horas con a. m. / p. m.; se escribe,
-  sin selector de reloj.
+  sin selector de reloj. Acepta "2:30 pm", "230p" o "14:30" y al salir del campo lo deja como "02:30 p. m.", con el
+  ícono `clock` a la derecha. Si la fecha es hoy, la hora no puede ser futura; al cambiar la fecha se vuelve a revisar.
 
 ### Estados de pantalla
 
