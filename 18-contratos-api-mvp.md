@@ -237,6 +237,9 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-037 | POST | `api/riesgos/{id}/evaluaciones` | `EvaluarRiesgoRequestDto` | 201 `EvaluacionResponseDto` | `riesgo.evaluar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-038 | GET | `api/riesgos/matriz` | — | `MatrizRiesgosResponseDto` | `riesgo.matriz` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-038 | GET | `api/riesgos?…` (filtros) | `FiltrosRiesgosDto` (consulta) | `RiesgoResponseDto[]` | `riesgo.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-039 | GET | `api/riesgos/{id}/controles` | — | `ControlResponseDto[]` | `riesgo.control.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-039 | GET | `api/riesgos/{id}/controles/sugeridos` | — | `ControlSugeridoResponseDto[]` | `riesgo.control.sugeridos` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-039 | POST | `api/riesgos/{id}/controles` | `CrearControlRequestDto` | 201 `ControlResponseDto` | `riesgo.control.crear` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-035 | PATCH | `api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | `RevisarPeligroSugeridoRequestDto` | `PeligroSugeridoRevisadoResponseDto` | `encuesta.peligro_sugerido.revisar` | `admin_empresa`, `responsable_sst` | ✅ |
 
 ---
@@ -249,7 +252,6 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 | HU-047 | GET | `api/eventos` | Listar eventos de la empresa (`admin_empresa`, `responsable_sst`) con filtros | ✅ |
 | HU-047 | GET | `api/eventos/{id}` | Detalle completo de evento (`admin_empresa`, `responsable_sst`) | ✅ |
 | HU-047 | POST | `api/eventos/{id}/evidencias` | Adjuntar evidencias (`Archivo`; pendiente `HU-100` almacenamiento externo) | 🚧 |
-| HU-039 | POST | `api/riesgos/{id}/controles` | Definir controles | 🚧 |
 | HU-042–045 | varios | `api/plan-trabajo/...` | Plan de acción | 🚧 |
 | HU-075 | GET | `api/riesgos/matriz/pdf` | Impresión matriz (M10) | 🚧 |
 
@@ -356,6 +358,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-075 | GET | `/api/riesgos/matriz/pdf` | — | PDF | Riesgos |
 | HU-039 | POST | `/api/riesgos/{id}/controles` | JSON | `ControlResponseDto` | Riesgos |
 | HU-039 | GET | `/api/riesgos/{id}/controles` | — | array | Riesgos |
+| HU-039 | GET | `/api/riesgos/{id}/controles/sugeridos` | — | array | Riesgos |
 | HU-042 | POST | `/api/plan-trabajo/generacion` | JSON | JSON | Plan |
 | HU-043 | PATCH | `/api/plan-trabajo/tareas/{id}` | JSON | `TareaResponseDto` | Plan |
 | HU-044 | GET | `/api/plan-trabajo/tareas/mias` | — | array | Plan |
@@ -1423,9 +1426,10 @@ Riesgos de la empresa de la sesión.
 | `clasificacionPeligro` | `fisico`, `mecanico`, … | Clasificación del peligro del catálogo; los descritos por la empresa no tienen |
 | `nivel` | `bajo`, `medio`, `alto`, `critico` | Clasificación de la última evaluación (RN-16) |
 | `sinEvaluar` | `true` | Los que no tienen evaluación |
+| `sinControl` | `true` | Los altos o críticos que todavía no tienen controles (RN-19, HU-039) |
 | `probabilidad` y `severidad` | 1 a 5, las dos o ninguna | Una celda del mapa |
 
-**Response 200:** `RiesgoResponseDto[]` (ver abajo). **400** si `probabilidad` o `severidad` van solas o fuera de 1–5, o si se pide `sinEvaluar` junto con un nivel o una celda.
+**Response 200:** `RiesgoResponseDto[]` (ver abajo). **400** si `probabilidad` o `severidad` van solas o fuera de 1–5, si se pide `sinEvaluar` junto con un nivel o una celda, o `sinControl` junto con `sinEvaluar` o un nivel bajo o medio.
 
 #### `GET /api/riesgos/peligros-disponibles` (HU-036) — ✅
 
@@ -1466,13 +1470,15 @@ Agrega a la matriz un riesgo que la encuesta no detectó.
   "encuestaId": null,
   "encuestaTitulo": null,
   "creadoEn": "2026-11-16T12:00:00Z",
-  "evaluacion": null
+  "evaluacion": null,
+  "totalControles": 0
 }
 ```
 
 - **`peligroNombre` y `peligroClasificacion`:** son null si el peligro se describió; entonces viene `descripcionPeligro`.
 - **`evaluacion`:** es la última evaluación inicial (HU-037, mismo formato que `EvaluacionResponseDto`); null si todavía no se evaluó.
 - **`encuestaId` y `encuestaTitulo`:** indican la encuesta que lo sugirió (HU-035); null si se agregó a mano.
+- **`totalControles`:** cuántos controles tiene (HU-039). Un riesgo alto o crítico con 0 se señala como "sin control" (RN-19).
 
 **Errores:**
 
@@ -1523,12 +1529,13 @@ Evaluación **inicial** de un riesgo de la matriz. La residual, después de los 
 
 #### `GET /api/riesgos/matriz` (HU-038) — ✅
 
-El mapa de la matriz: cuántos riesgos confirmados hay en cada celda de probabilidad × severidad, según su última evaluación inicial (art. 47.b). Solo trae las celdas con riesgos; los riesgos de cada una se piden con `GET /api/riesgos?probabilidad=…&severidad=…`.
+El mapa de la matriz: cuántos riesgos confirmados hay en cada celda de probabilidad × severidad, según su última evaluación inicial (art. 47.b). Solo trae las celdas con riesgos; los riesgos de cada una se piden con `GET /api/riesgos?probabilidad=…&severidad=…`. `altosSinControl` cuenta los altos o críticos sin controles (RN-19, HU-039); se listan con `GET /api/riesgos?sinControl=true`.
 
 ```json
 {
   "total": 5,
   "sinEvaluar": 1,
+  "altosSinControl": 2,
   "celdas": [
     { "probabilidad": 4, "severidad": 5, "nivel": 20, "clasificacion": "critico", "cantidad": 1 },
     { "probabilidad": 3, "severidad": 4, "nivel": 12, "clasificacion": "alto", "cantidad": 2 }
@@ -1615,33 +1622,67 @@ Mismo body que evaluación inicial; `tipo` fijo `residual` en servidor o en body
 
 **Response 201:** `EvaluacionResponseDto` con `tipo`: `"residual"`.
 
-#### `POST /api/riesgos/{id}/controles` (HU-039) — `CrearControlRequestDto`
+#### `GET /api/riesgos/{id}/controles/sugeridos` (HU-039) — ✅
+
+Controles que Norvia sugiere a partir de las plantillas **activas** del peligro del riesgo que tienen tipo de control (RN-76), ordenados del más efectivo al menos efectivo según la jerarquía (RN-21): eliminación, sustitución, ingeniería, administrativo y equipo de protección personal.
+- **No se guardan:** son plantillas del catálogo; solo se guarda la que se acepta con `POST …/controles`.
+- **Ya aceptadas:** no se vuelven a sugerir.
+- **Peligro descrito por la empresa:** no tiene plantillas; responde `[]`.
+
+```json
+[
+  { "plantillaId": "01936000-....", "tipo": "eliminacion", "titulo": "Hacer el trabajo desde el suelo", "descripcion": null },
+  { "plantillaId": "01936001-....", "tipo": "epp", "titulo": "Usar arnés de cuerpo completo", "descripcion": "Con doble línea de vida." }
+]
+```
+
+**Errores:** 404 `riesgos.no_encontrado` (no existe o es de otra empresa).
+
+#### `POST /api/riesgos/{id}/controles` — `CrearControlRequestDto` (HU-039) — ✅
+
+Agrega un control propio o acepta una sugerencia, tal cual o editada (tipo y descripción). El control queda `propuesto`; se implementa con el plan de trabajo (M5).
 
 ```json
 {
-  "tipo": "administrativo",
-  "descripcion": "Capacitación trimestral en ergonomía"
+  "tipo": "ingenieria",
+  "descripcion": "Instalar barandas de 1 m con rodapié en el borde del techo.",
+  "plantillaId": "01936000-...."
 }
 ```
 
-| `tipo` | `eliminacion` \| `sustitucion` \| `ingenieria` \| `administrativo` \| `epp` |
+| Campo | Regla |
+|---|---|
+| `tipo` | Obligatorio: `eliminacion` \| `sustitucion` \| `ingenieria` \| `administrativo` \| `epp` (RN-21) |
+| `descripcion` | Obligatoria, hasta 1000 caracteres; se guarda sin espacios al inicio ni al final |
+| `plantillaId` | Solo al aceptar una sugerencia: la plantilla de la que sale (RN-76). Sin él, el control es propio |
 
-**Response 201:**
+**Response 201** — `ControlResponseDto`
 
 ```json
 {
   "id": "01935200-....",
   "riesgoId": "01935000-....",
-  "tipo": "administrativo",
-  "descripcion": "Capacitación trimestral en ergonomía",
+  "tipo": "ingenieria",
+  "descripcion": "Instalar barandas de 1 m con rodapié en el borde del techo.",
   "estado": "propuesto",
-  "creadoEn": "2026-11-16T13:00:00Z"
+  "plantillaId": "01936000-....",
+  "creadoEn": "2026-11-23T13:00:00Z"
 }
 ```
 
-#### `GET /api/riesgos/{id}/controles`
+**Errores:**
 
-**Response 200:** array de `ControlResponseDto`.
+| HTTP | Cuándo |
+|---|---|
+| 400 `ValidationProblemDetails` | Falta el tipo o no es válido, o falta la descripción o pasa de 1000 caracteres |
+| 400 `riesgos.sugerencia_invalida` | La plantilla no es del peligro del riesgo, está inactiva o no tiene tipo de control |
+| 404 `riesgos.no_encontrado` | El riesgo no existe o es de otra empresa |
+| 409 `riesgos.no_en_matriz` | El riesgo está sugerido o descartado (RN-18) |
+| 409 `riesgos.sugerencia_aceptada` | Esa sugerencia ya es un control del riesgo |
+
+#### `GET /api/riesgos/{id}/controles` (HU-039) — ✅
+
+**Response 200:** `ControlResponseDto[]`, del más efectivo al menos efectivo y, dentro de cada tipo, del más antiguo al más reciente. **404** `riesgos.no_encontrado`.
 
 #### `GET /api/riesgos/matriz/pdf` (HU-075)
 

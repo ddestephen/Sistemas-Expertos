@@ -513,6 +513,8 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 | Vínculo | De baja | — | Activo | Suspendido | — |
 | Encuesta | Borrador · Cerrada | Publicada | — | — | — |
 | Peligro sugerido | Por revisar · Descartado | — | En la matriz | — | — |
+| Riesgo | — | — | — | Sin control (alto o crítico sin controles, RN-19) | — |
+| Control | Propuesto | — | Implementado | — | — |
 | Tarea del plan | Pendiente · Cancelada | En progreso | Completada | — | Vencida |
 | Accidente | Cerrado · Descartado | En investigación | — | Abierto | — |
 | Política | Borrador · Reemplazada | — | Vigente | — | — |
@@ -611,7 +613,7 @@ Muestra la clasificación de un riesgo en listas, tablas y detalle.
 | Sin evaluar | "Sin evaluar", sin cuadrado y en `--color-text-secondary` |
 
 - **No es un badge de color:** así "Bajo" no se confunde con "Activo" (éxito) ni "Crítico" con un error.
-- **Los badges de estado siguen aparte:** un riesgo puede llevar los dos, por ejemplo "Alto · 12" y "Por revisar".
+- **Los badges de estado siguen aparte:** un riesgo puede llevar los dos, por ejemplo "Alto · 12" y "Por revisar", o "Alto · 12" y "Sin control".
 
 ### Mapa de calor de riesgo
 

@@ -143,6 +143,7 @@ erDiagram
     RiesgoEmpresa |o--o{ Tarea : "genera"
     Control |o--o{ Tarea : "se implementa con"
     PlantillaTarea |o--o{ Tarea : "modela"
+    PlantillaTarea |o--o{ Control : "sugiere"
     Accidente ||--o| InvestigacionAccidente : "se investiga en"
     Accidente |o--o{ Tarea : "genera medidas"
     Tarea |o--o{ Archivo : "tiene evidencia"
@@ -688,12 +689,15 @@ El nivel (`Probabilidad × Severidad`) y su clasificación se calculan; no se gu
 | Id | uuid | No | PK | |
 | EmpresaId | uuid | No | FK → Empresa | |
 | RiesgoEmpresaId | uuid | No | FK compuesta → RiesgoEmpresa | |
+| PlantillaTareaId | uuid | Sí | FK → PlantillaTarea | Plantilla del peligro de la que salió, si se aceptó una sugerencia (RN-76); null si el control es propio |
 | Tipo | varchar(15) | No | | `eliminacion`, `sustitucion`, `ingenieria`, `administrativo`, `epp` (RN-21) |
 | Descripcion | text | No | | |
 | Estado | varchar(12) | No | | `propuesto`, `implementado` |
 | CreadoEn | timestamptz | No | | |
 
-**Restricciones:** UQ `(RiesgoEmpresaId, Id)`, para que una tarea pueda verificar que su control es del mismo riesgo.
+**Restricciones:**
+- UQ `(RiesgoEmpresaId, Id)`, para que una tarea pueda verificar que su control es del mismo riesgo.
+- UQ parcial `(RiesgoEmpresaId, PlantillaTareaId) WHERE PlantillaTareaId IS NOT NULL`: una sugerencia se acepta una sola vez por riesgo.
 
 #### Tarea
 
@@ -964,7 +968,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-13, RN-14 | App | Consulta determinista sobre DetalleRespuesta y DetalleRespuestaOpcion (`IndicaExposicion`) |
 | RN-15, RN-16 | BD y App | CHECK de 1 a 5; nivel y clasificación calculados |
 | RN-18 | BD | `RiesgoEmpresa.Estado` |
-| RN-19 | App | Validación al evaluar |
+| RN-19 | App | Se señala mientras falte: la matriz cuenta y filtra los altos o críticos sin controles, y el riesgo muestra un aviso (HU-039) |
 | RN-20 | BD | Una fila por evaluación |
 | RN-80 | App | Escalas con su explicación en la pantalla de evaluación; el valor guardado es solo el número del 1 al 5 |
 | RN-21 | BD | CHECK `Control.Tipo` |
@@ -985,7 +989,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-73 | App | Conteo de respuestas antes de mostrar el reporte |
 | RN-74 | BD y App | Rol `encuestado` con sus permisos en RolPermiso (incluye reporte anónimo) |
 | RN-75 | BD y App | Notificacion por vínculo activo al aprobar la versión; UQ parcial por versión y destinatario |
-| RN-76 | App | Sugerencias leídas de PlantillaTarea del peligro; solo se guarda el Control confirmado |
+| RN-76 | App y BD | Sugerencias leídas de PlantillaTarea del peligro; solo se guarda el Control aceptado, con `PlantillaTareaId` y UQ parcial por riesgo |
 | RN-77 | App | Notificacion al asignar responsable |
 | RN-78 | BD y App | `CorreoEstado`, `CorreoIntentos` y proceso de reintento |
 | RN-79 | App | Filtro por `DestinatarioId` del token |

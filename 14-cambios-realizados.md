@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-23 | Equipo (redactado con Claude Code) | **HU-039 implementada:** controles de un riesgo sugeridos desde las plantillas del peligro (aceptar, editar o descartar) o propios, y señal de los riesgos altos y críticos sin control (**RN-19**); `Control` gana `PlantillaTareaId` | [Ver cambio](#cambio-2026-11-23-hu-039-controles) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-038 implementada:** mapa de la matriz (riesgos por celda de probabilidad × severidad) y lista filtrable por peligro, su clasificación, nivel y estado, con el nivel más alto primero | [Ver cambio](#cambio-2026-11-23-hu-038-ver-matriz) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-037 implementada:** evaluar un riesgo (probabilidad × severidad) con la explicación de cada valor (**RN-80**, nueva), el nivel calculado y quién evaluó y cuándo | [Ver cambio](#cambio-2026-11-23-hu-037-evaluar-riesgo) |
 | 2026-11-23 | Equipo (redactado con Claude Code) | **HU-036 implementada:** agregar riesgos a la matriz (peligro del catálogo o descrito, con su actividad) y ver la lista de riesgos de la empresa | [Ver cambio](#cambio-2026-11-23-hu-036-agregar-riesgos) |
@@ -48,6 +49,64 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-23-hu-039-controles` {#cambio-2026-11-23-hu-039-controles}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 23 de noviembre de 2026 |
+| **Alcance** | `12-modelo-datos.md` (`Control.PlantillaTareaId`, su UQ parcial y §9 RN-19 y RN-76), `15-diagramas-drawio.md` (columna y relación), `18-contratos-api-mvp.md` (HU-039, filtro `sinControl`, `altosSinControl` y `totalControles`), `design-system.md` (badges "Sin control" y de control). En el código: slices `ListarControlesSugeridos`, `CrearControl` y `ListarControles`, migración `ControlPlantillaHu039`, y la sección de controles en la web |
+
+### El problema (por qué hubo que cambiar)
+
+1. HU-039 pide que Norvia sugiera controles desde las plantillas del peligro y que cada sugerencia se acepte, edite o descarte. `Control` no guardaba de qué plantilla salía, así que no había forma de saber cuáles ya se habían aceptado, sobre todo si se aceptaban editadas.
+2. RN-19 ("un riesgo alto o crítico exige al menos un control") figuraba en `12` §9 como "validación al evaluar". Pero al evaluar todavía no se sabe si el riesgo será alto, y no puede tener controles antes de existir la evaluación. Bloquear la evaluación tampoco sirve: el criterio pide además que "se señalen los riesgos altos sin control", es decir, que puedan existir un tiempo.
+3. El contrato solo tenía `POST` y `GET …/controles`; faltaban las sugerencias.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **`Control.PlantillaTareaId` (opcional)** | FK a `PlantillaTarea` cuando el control sale de una sugerencia, con UQ parcial `(RiesgoEmpresaId, PlantillaTareaId)`. Null en los controles propios | Una sugerencia aceptada, aunque se haya editado, no vuelve a sugerirse ni se acepta dos veces. También deja el rastro para el plan de trabajo (M5) |
+| **RN-19 se señala** | La matriz cuenta los altos y críticos sin controles (`altosSinControl`), los filtra (`sinControl=true`) y les pone el badge "Sin control". El riesgo muestra un aviso hasta que tenga uno | Cumple los dos criterios ("exige" y "se señalan") sin impedir evaluar. `12` §9 queda con este punto de aplicación |
+| **Orden por efectividad** | Sugerencias y controles van por la jerarquía de RN-21: eliminación, sustitución, ingeniería, administrativo y equipo de protección personal | Es lo que pide el criterio "de mayor a menor efectividad"; la jerarquía ya era el orden del tipo |
+| **Descartar no se guarda** | Descartar quita la sugerencia de la vista mientras el riesgo está abierto; al volver, reaparece | RN-76 dice que nada se guarda sin confirmar, y el modelo no tiene dónde guardar un descarte. Si el equipo quiere que el descarte dure, hace falta una tabla o columna nueva |
+| **Sugerencia válida** | Solo se aceptan plantillas activas, del peligro del riesgo y con tipo de control (400 `riesgos.sugerencia_invalida`). Un riesgo sugerido o descartado no recibe controles (409 `riesgos.no_en_matriz`) | El cliente no puede colgar a un riesgo una plantilla de otro peligro |
+| **Estado inicial `propuesto`** | Todo control nace propuesto; pasar a `implementado` queda para el plan de trabajo | HU-039 solo define controles |
+
+### Cómo quedó (resumen)
+
+- **Backend:**
+  - `GET /api/riesgos/{id}/controles/sugeridos`, `POST` y `GET /api/riesgos/{id}/controles`, con los permisos `riesgo.control.sugeridos`, `riesgo.control.crear` y `riesgo.control.listar` para `admin_empresa` y `responsable_sst`.
+  - `totalControles` en el riesgo, `altosSinControl` en el mapa y el filtro `sinControl`.
+- **Web:**
+  - **Detalle del riesgo:** sección "Controles" con la lista, las sugerencias (aceptar, editar o descartar), el formulario de control propio y el aviso de RN-19.
+  - **Matriz:** badge "Sin control", enlace junto al mapa y opción en el filtro de nivel.
+
+### Trabajo hecho
+
+- Se implementó el backend con 12 pruebas nuevas:
+  - orden y filtro de las sugerencias;
+  - que nada se guarde sin aceptar y que una aceptada no se repita;
+  - controles propios y su orden;
+  - validaciones, sugerencia de otro peligro y riesgo fuera de la matriz;
+  - señal de altos sin control, aislamiento entre empresas y permisos.
+
+  Pasan las 131 pruebas del backend.
+- Se construyó la web y se probó de punta a punta contra la API real (10 casos):
+  - señal en la matriz;
+  - sugerencias en orden;
+  - descartar y mostrar;
+  - aceptar, aceptar editada y control propio con sus errores;
+  - recarga, peligro sin plantillas, celular y modo oscuro.
+
+  Siguen pasando los e2e de HU-036, HU-037 y HU-038.
+- **Pendiente para el equipo:** no hay pantalla ni carga inicial de `PlantillaTarea` (HU-023 la lista entre los catálogos del staff), así que hasta cargarlas Norvia no sugiere controles.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-039 | Contrato con alta y lista de controles; RN-19 "al evaluar" | Sugerencias desde las plantillas, aceptar (tal cual o editada), descartar o agregar propio; RN-19 se señala en la matriz y el riesgo |
 
 ## Cambio `2026-11-23-hu-038-ver-matriz` {#cambio-2026-11-23-hu-038-ver-matriz}
 
