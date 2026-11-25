@@ -705,7 +705,10 @@ Contenido de una política o un procedimiento (HU-070). Se guarda en Markdown y 
 - **Encabezado de la página:** título del documento (Título 1), badges de tipo (neutro: no es un estado) y de estado, y una línea en Caption con la versión, quién la generó o aprobó y cuándo, y la plantilla de origen.
 - **Avisos sobre un borrador:** info "Revisa el contenido antes de aprobarlo" (HU-070: la empresa debe revisarlo) y, si quedan `[Completar: …]`, advertencia "Faltan datos por completar" con la lista de lo que falta. La lista va en viñetas: los propios datos llevan comas y "y".
 - **Generar:** plantillas como radios (título y tipo debajo), título opcional y botón principal "Generar borrador". Sin rubro en el perfil, un aviso de advertencia con el enlace al perfil en lugar del formulario.
-- **Editar:** botón principal "Editar borrador" junto al título, solo para el Responsable SST y solo si la versión es un borrador.
+- **Acciones del borrador:** junto al título, solo para el Responsable SST y solo si la versión es un borrador. Un solo botón principal: el siguiente paso.
+  - **Con datos por completar:** solo "Editar borrador", principal. El aviso de advertencia agrega "Cuando no falte ninguno, podrás aprobarlo."
+  - **Sin datos por completar:** "Editar borrador" secundario y "Aprobar" principal (ícono `circle-check`).
+- **Aprobar:** diálogo de confirmación "¿Aprobar «{título}»?" con la consecuencia: "Quedará vigente y ya no se podrá editar." (o "Reemplazará a la versión vigente…" si ya hay una) y, si es una política, "Norvia avisará en Norvia y por correo a las personas con acceso vigente a la empresa." Botón "Aprobar" principal, no de peligro: no quita nada. Al aprobar, aviso de éxito "«{título}» quedó vigente." y el documento se muestra ya vigente, sin acciones. Si alguien lo aprobó antes, aviso de error con lo que pasó y el documento como quedó.
 
 ### Editor de documento
 

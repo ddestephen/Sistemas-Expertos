@@ -1035,11 +1035,12 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - La versión aprobada registra aprobador y fecha.
+- No se puede aprobar mientras queden datos por completar.
 - Si es una política, aprobarla avisa a las personas con acceso vigente (HU-116).
 - Una versión aprobada no se puede editar.
 - Cada documento tiene una sola versión vigente.
 
-**Módulo:** M9 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-071 · **Reglas:** RN-50, RN-51, D13
+**Módulo:** M9 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-071 · **Reglas:** RN-49, RN-50, RN-51, D13
 
 ### HU-073 | Crear una versión nueva
 
@@ -2053,12 +2054,13 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
 
 - **Título:** `HU-072 Front — Revisar y aprobar el documento`
   - **Criterios de aceptación:**
-    - permite a la persona Responsable SST aprobar el documento
+    - permite a la persona Responsable SST aprobar el documento cuando ya no le faltan datos por completar
     - muestra la confirmación del resultado
     - cuando se aprueba una política, informa que se avisará a las personas con acceso vigente.
 - **Título:** `HU-072 Back — Registrar aprobación y versión vigente`
   - **Criterios de aceptación:**
     - registra quién aprobó y la fecha
+    - rechaza la aprobación si quedan datos por completar
     - una versión aprobada no se puede editar
     - cada documento conserva una sola versión vigente y la aprobación de políticas genera el aviso previsto en HU-116.
 

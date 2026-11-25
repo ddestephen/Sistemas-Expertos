@@ -289,9 +289,9 @@ Implementación de endpoints: 🚧.
 
 ---
 
-## M9 — Documentos (HU-070 y HU-071 ✅; HU-072 a HU-074 🚧)
+## M9 — Documentos (HU-070 a HU-072 ✅; HU-073 y HU-074 🚧)
 
-Políticas y procedimientos de la empresa (D13). El Responsable SST genera y edita el borrador; el admin consulta. Detalle en el [anexo](#anexo-documentos).
+Políticas y procedimientos de la empresa (D13). El Responsable SST genera, edita y aprueba el borrador; el admin consulta. Detalle en el [anexo](#anexo-documentos).
 
 | HU | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|---|
@@ -300,6 +300,7 @@ Políticas y procedimientos de la empresa (D13). El Responsable SST genera y edi
 | HU-070 | GET | `api/documentos` | — | `DocumentoResumenResponseDto[]` | `documento.listar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-070 | GET | `api/documentos/{id}` | — | `DocumentoDetalleResponseDto` | `documento.ver` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-071 | PUT | `api/documentos/{id}/borrador` | `EditarBorradorRequestDto` | `DocumentoDetalleResponseDto` | `documento.editar` | `responsable_sst` | ✅ |
+| HU-072 | POST | `api/documentos/{id}/aprobacion` | — | `DocumentoDetalleResponseDto` | `documento.aprobar` | `responsable_sst` | ✅ |
 
 ---
 
@@ -2290,7 +2291,7 @@ Cada medida correctiva crea una `Tarea` del plan de trabajo con origen `accident
 
 ---
 
-### M9 — Documentos (HU-070 y HU-071 ✅; HU-072 a HU-074 🚧) {#anexo-documentos}
+### M9 — Documentos (HU-070 a HU-072 ✅; HU-073 y HU-074 🚧) {#anexo-documentos}
 
 La **versión de trabajo** de un documento es su borrador si tiene uno; si no, la vigente. Los enums van en snake_case: `tipoDocumento` (`politica`, `procedimiento`) y `estado` (`borrador`, `vigente`, `reemplazada`).
 
@@ -2372,7 +2373,16 @@ Los documentos de la empresa, el último actualizado primero. `actualizadoEn` es
 
 #### `POST /api/documentos/{id}/aprobacion` (HU-072)
 
-Sin body. **Response 200:** `{ "id": "...", "estado": "vigente", "aprobadoEn": "..." }`
+Sin body.
+
+- Aprueba el borrador: queda `vigente` con quién lo aprobó y cuándo, y ya no se edita (RN-50).
+- Si el documento tenía una versión vigente, pasa a `reemplazada`: una sola vigente por documento (RN-51).
+- No se aprueba mientras el borrador tenga un `[Completar: …]` (RN-49): la versión aprobada ya no cambia.
+- Si es una `politica`, crea una notificación `politica_publicada` para cada vínculo activo de la empresa, también quien aprueba (RN-75, HU-116). Se guarda con la aprobación y el correo sale después, con reintentos (RN-78). Un procedimiento no avisa.
+
+**Response 200 (`DocumentoDetalleResponseDto`):** igual que la generación, con la versión ya vigente (`aprobadaEn` y `aprobadaPorNombre` con valor) y `porCompletar` vacío.
+
+**Errores:** 404 `documentos.no_encontrado` (también si es de otra empresa) · 409 `documentos.sin_borrador` (no tiene borrador: ya está aprobado) · 409 `documentos.por_completar` (quedan datos por completar) · 401 · 403.
 
 #### `GET /api/documentos/vigentes` (HU-074)
 

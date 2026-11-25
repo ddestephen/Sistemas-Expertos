@@ -628,6 +628,8 @@ svg.icon-32 { width: 32px; height: 32px; }
 .editor-doc-pie { display: flex; justify-content: space-between; gap: var(--space-4); }
 .editor-doc-pie .counter { white-space: nowrap; }
 .editor-doc-cab { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-4); }
+.doc-pagina { display: grid; gap: var(--space-4); width: min(720px, 100%); }
+.doc-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--space-4); }
 .completar { padding: 0 var(--space-1); border: var(--border-width) solid var(--color-warning-border); border-radius: var(--radius-sm); background: var(--color-warning-bg); color: var(--color-warning-text); }
 .question { border: 0; padding: 0; margin: var(--space-8) 0 0; min-width: 0; }
 .question legend { padding: 0; }

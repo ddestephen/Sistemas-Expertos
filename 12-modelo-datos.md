@@ -851,7 +851,7 @@ Las medidas correctivas son tareas con `AccidenteId`.
 - UQ parcial `(DocumentoId) WHERE Estado = 'vigente'`: una sola versión vigente (RN-51).
 - UQ parcial `(DocumentoId) WHERE Estado = 'borrador'`: un solo borrador a la vez.
 - CHECK: si `Estado` no es `borrador`, `AprobadaPorId` y `AprobadaEn` tienen valor.
-- La aplicación solo modifica el contenido de la versión en `borrador`; la vigente y las reemplazadas no se editan (RN-50). No hay disparador: el esquema es 100 % Code-First (acuerdo del 25-11-2026).
+- La aplicación solo modifica el contenido de la versión en `borrador`; la vigente y las reemplazadas no se editan (RN-50). Al aprobar el borrador (HU-072), la vigente anterior pasa primero a `reemplazada` y después el borrador a `vigente`, en una sola transacción, porque PostgreSQL revisa el UQ parcial en cada cambio. No hay disparador: el esquema es 100 % Code-First (acuerdo del 25-11-2026).
 - `Contenido` en Markdown, ya con los marcadores reemplazados (ver PlantillaDocumento).
 
 
@@ -1006,7 +1006,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-27 | BD y App | Permiso de reporte anónimo para vínculos activos; `Accidente` sin `ReportadoPorId` y `Archivo` con `SubidoPorId` nulo si pertenece a un evento |
 | RN-28 | App y BD | Validación al cerrar (investigación y medida); estado `descartado` con `DescartadoPorId` y excluido de estadísticas |
 | RN-31 | BD | `RegistradoEn DEFAULT now()` |
-| RN-49, RN-50, RN-51 | BD y App | Estados y UQ parciales en VersionDocumento; la aplicación reemplaza los marcadores (los datos que faltan quedan como `[Completar: …]`) y solo edita la versión en `borrador` |
+| RN-49, RN-50, RN-51 | BD y App | Estados y UQ parciales en VersionDocumento; la aplicación reemplaza los marcadores (los datos que faltan quedan como `[Completar: …]`), solo edita la versión en `borrador` y no la aprueba mientras quede un `[Completar: …]` |
 | RN-52 | App | La matriz en PDF se genera desde las tablas |
 | RN-68 | BD y App | CHECK de `TipoRespuesta`; validación de la respuesta según el tipo (FluentValidation y Zod) |
 | RN-69 | App | Validación al enviar |

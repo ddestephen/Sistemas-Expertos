@@ -205,7 +205,7 @@ public sealed class AuthController : ControllerBase
 ## 5. Acceso a datos
 
 1. **Los repositorios no llaman a `SaveChanges`.** Solo consultan, agregan (`Add`) o marcan para borrar (`Remove`).
-2. **`IUnidadDeTrabajo.GuardarCambiosAsync`** confirma todo en una sola transacción, y el servicio lo invoca **una vez** por caso de uso. Ejemplo: la rotación del refresh (borrar el token anterior y crear el nuevo, RN-66) queda en un único guardado.
+2. **`IUnidadDeTrabajo.GuardarCambiosAsync`** confirma todo en una sola transacción, y el servicio lo invoca **una vez** por caso de uso. Ejemplo: la rotación del refresh (borrar el token anterior y crear el nuevo, RN-66) queda en un único guardado. **Excepción:** cuando la base debe ver los cambios en un orden fijo (liberar un valor único antes de que otra fila lo tome), el servicio usa `IUnidadDeTrabajo.EnTransaccionAsync` y guarda un paso a la vez; todo se confirma junto al terminar. Ejemplo: aprobar un documento (HU-072) deja reemplazada la vigente anterior antes de dejar vigente el borrador.
 3. **Los `Include` son responsabilidad del repositorio** y se documentan en la interfaz (`/// Incluye Empresa y Rol`), porque el servicio depende de ellos.
 4. **Las consultas de solo lectura** (listados, matriz y reportes) proyectan directo al Response con `Select` dentro del repositorio y usan `AsNoTracking`.
 5. **Application no conoce EF Core:** no hay `IQueryable`, `DbSet` ni `Include` en sus firmas.

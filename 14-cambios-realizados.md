@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-25 | Equipo (redactado con Claude Code) | **HU-072 completada:** el Responsable SST aprueba el borrador de un documento cuando ya no le faltan datos; queda **vigente** con quién y cuándo, la vigente anterior pasa a reemplazada (**RN-51**) y, si es una política, Norvia avisa a cada vínculo activo en Norvia y por correo (**RN-75**). **RN-49 crece:** no se aprueba con datos por completar | [Ver cambio](#cambio-2026-11-25-hu-072) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-071 completada:** el Responsable SST edita el borrador de un documento en Markdown, con la vista previa al lado y el conteo de lo que falta completar; solo se edita el borrador (**RN-50**) y la plantilla no cambia. Primer **editor de documento** del design system | [Ver cambio](#cambio-2026-11-25-hu-071) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-070 completada:** el Responsable SST genera la política de SST o el procedimiento de investigación de accidentes desde una plantilla de su rubro; se llena con los datos del perfil, lo que falta queda resaltado como `[Completar: …]` y el documento queda como borrador para revisarlo. Tablas `Documento` y `VersionDocumento` creadas en el código; el admin consulta | [Ver cambio](#cambio-2026-11-25-hu-070) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **Decisiones de M9 antes de HU-070:** contenido en Markdown, seis marcadores con datos de la empresa (los que faltan quedan como `[Completar: …]`), política de SST y procedimiento de investigación de accidentes en el contenido inicial, y versión aprobada protegida por la aplicación y los valores únicos, **sin disparador** (D13, RN-49) | [Ver cambio](#cambio-2026-11-25-decisiones-m9) |
@@ -63,6 +64,70 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-25-hu-072` {#cambio-2026-11-25-hu-072}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 25 de noviembre de 2026 |
+| **Alcance** | `07-reglas-negocio.md` (RN-49), `12-modelo-datos.md` (VersionDocumento y §9), `10-historias-usuario.md` (HU-072 y sus tareas), `16-arquitectura-backend-frontend.md` §5 (guardar en pasos dentro de una transacción), `18-contratos-api-mvp.md` (contrato de `POST api/documentos/{id}/aprobacion`), `design-system.md` y la guía visual (acciones del borrador y diálogo de aprobar). En el código: un caso de uso con su permiso, pruebas y el botón con su confirmación en el documento. El modelo de datos no cambia y no hay migración |
+
+### El problema (por qué hubo que cambiar)
+
+1. Un documento se generaba (HU-070) y se editaba (HU-071), pero nunca llegaba a estar vigente.
+2. El aviso de política nueva (HU-116) ya tenía su texto en el código, pero nada lo disparaba.
+3. Nada impedía aprobar un documento con `[Completar: dirección]`; como la versión aprobada ya no cambia, el texto pendiente quedaría para siempre en la política vigente.
+4. El contrato provisional respondía `{ id, estado, aprobadoEn }`, distinto del resto del módulo.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **No se aprueba con datos por completar (RN-49)** | Si el borrador tiene un `[Completar: …]`, responde 409 `documentos.por_completar`. En la web, el botón "Aprobar" no aparece y el aviso dice "Cuando no falte ninguno, podrás aprobarlo." | La versión aprobada no se edita (RN-50): un dato pendiente quedaría en la versión vigente |
+| **Una sola vigente (RN-51)** | Si ya hay una vigente, pasa a `reemplazada` antes de que el borrador quede vigente | Deja listo el camino de la versión nueva (HU-073) |
+| **Guardar en dos pasos dentro de una transacción** | `IUnidadDeTrabajo.EnTransaccionAsync`: primero se guarda la anterior como reemplazada y luego el borrador como vigente; se confirman juntos | PostgreSQL revisa el valor único "una vigente por documento" en cada cambio, y EF no garantiza el orden: una prueba lo mostró fallando según el orden de los id |
+| **Aviso de política (RN-75, HU-116)** | Al aprobar una `politica`, una notificación para cada vínculo activo de la empresa, también quien aprueba; un procedimiento no avisa. Se guarda con la aprobación y el correo sale después, con reintentos (RN-78) | Si la aprobación falla, no queda un aviso suelto; si el correo falla, la aprobación no se pierde |
+| **Respuesta igual al resto del módulo** | Devuelve el `DocumentoDetalleResponseDto` con la versión ya vigente | La web muestra el resultado sin otra consulta y con los mismos tipos |
+| **Confirmación antes de aprobar** | Diálogo "¿Aprobar «título»?" con la consecuencia; botón principal, no de peligro | Aprobar no se deshace, pero no quita nada (design-system § Diálogo de confirmación) |
+| **Solo el Responsable SST** | Permiso `documento.aprobar`; el admin consulta | Igual que generar y editar (05-actores-roles) |
+
+### Cómo quedó (resumen)
+
+- **API:** `POST api/documentos/{id}/aprobacion`, sin body. Responde 404 si es de otra empresa o no existe, y 409 `documentos.sin_borrador` si ya está aprobado.
+- **Web:** en `/documentos/{id}`, para el Responsable SST y solo si es un borrador:
+  - **Con datos por completar:** solo "Editar borrador", principal.
+  - **Sin datos por completar:** "Editar borrador" secundario y "Aprobar" principal.
+  - **Diálogo:** "Quedará vigente y ya no se podrá editar." (o "Reemplazará a la versión vigente…") y, si es una política, que Norvia avisará en Norvia y por correo a las personas con acceso vigente.
+  - **Al aprobar:** aviso de éxito y el documento ya vigente, con quién lo aprobó y cuándo y sin acciones.
+  - **Si alguien lo aprobó antes:** aviso de error con lo que pasó y el documento como quedó.
+- **Notificaciones:** el aviso aparece en la bandeja (HU-117). **Pendiente:** abrir la política desde el aviso necesita la pantalla de documentos vigentes (HU-074), porque el colaborador y el encuestado no tienen acceso a `/documentos/{id}`.
+
+### Trabajo hecho
+
+- **6 pruebas nuevas en el backend:**
+  - una política aprobada queda vigente con quién y cuándo, avisa a cada vínculo activo (no al suspendido), y después no se edita ni se aprueba otra vez;
+  - un procedimiento se aprueba sin avisos;
+  - no se aprueba con datos por completar;
+  - la vigente anterior pasa a reemplazada, con los id en los dos órdenes;
+  - solo el Responsable SST de la empresa aprueba.
+
+  Pasan las 264 pruebas.
+- **La web se probó de punta a punta contra la API real** con una empresa de prueba, que después se borró:
+  - con datos por completar no aparece "Aprobar";
+  - completados los datos, aparecen los dos botones;
+  - cancelar el diálogo no aprueba;
+  - al aprobar, queda vigente, sin acciones y con dos avisos creados;
+  - el admin ve la notificación de la política;
+  - en celular no hay desplazamiento horizontal;
+  - si otra persona lo aprobó antes, se muestra el error y el documento como quedó.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-072 | Sin construir; contrato provisional con otra respuesta | El Responsable SST aprueba el borrador sin datos pendientes; queda vigente, reemplaza a la anterior y, si es política, avisa |
+| HU-116 | El texto del aviso existía, pero nada lo creaba | Aprobar una política crea el aviso para cada vínculo activo, en Norvia y por correo. Falta el enlace a la política (llega con HU-074) |
 
 ---
 
