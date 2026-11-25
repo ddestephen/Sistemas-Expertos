@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-25 | Equipo (redactado con Claude Code) | **HU-071 completada:** el Responsable SST edita el borrador de un documento en Markdown, con la vista previa al lado y el conteo de lo que falta completar; solo se edita el borrador (**RN-50**) y la plantilla no cambia. Primer **editor de documento** del design system | [Ver cambio](#cambio-2026-11-25-hu-071) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-070 completada:** el Responsable SST genera la política de SST o el procedimiento de investigación de accidentes desde una plantilla de su rubro; se llena con los datos del perfil, lo que falta queda resaltado como `[Completar: …]` y el documento queda como borrador para revisarlo. Tablas `Documento` y `VersionDocumento` creadas en el código; el admin consulta | [Ver cambio](#cambio-2026-11-25-hu-070) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **Decisiones de M9 antes de HU-070:** contenido en Markdown, seis marcadores con datos de la empresa (los que faltan quedan como `[Completar: …]`), política de SST y procedimiento de investigación de accidentes en el contenido inicial, y versión aprobada protegida por la aplicación y los valores únicos, **sin disparador** (D13, RN-49) | [Ver cambio](#cambio-2026-11-25-decisiones-m9) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-052 completada:** estadísticas de eventos por tipo, gravedad y mes en un periodo, sin descartados y solo con cifras; con ella queda completo M6 (sin evidencias, que esperan a HU-100) | [Ver cambio](#cambio-2026-11-24-hu-052) |
@@ -62,6 +63,66 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-25-hu-071` {#cambio-2026-11-25-hu-071}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 25 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (contrato de `PUT api/documentos/{id}/borrador`), `design-system.md` y la guía visual (sección "Editor de documento", excepción del área de texto y botón "Editar borrador"). En el código: un caso de uso con su permiso, pruebas, la pantalla del editor y el botón en el documento. El modelo de datos no cambia y no hay migración |
+
+### El problema (por qué hubo que cambiar)
+
+1. Un documento generado (HU-070) quedaba como borrador con datos por completar, como `[Completar: dirección]`, pero no había cómo corregirlo ni adaptarlo a la empresa.
+2. El contrato provisional usaba `contenidoMarkdown` y respondía "documento actualizado" sin definir la forma.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Se reemplaza el contenido completo** | `PUT api/documentos/{id}/borrador` con `{ "contenido": "…" }`: obligatorio, sin quedar en blanco y de hasta 50 000 caracteres | Simple y sin estados intermedios; las plantillas iniciales tienen unos 4000 caracteres |
+| **Solo el borrador (RN-50)** | Si el documento no tiene borrador (su versión está aprobada), responde 409 `documentos.sin_borrador` | La versión aprobada nunca cambia; una edición después de aprobar llega con la versión nueva (HU-073) |
+| **Los marcadores ya no se reemplazan** | Un `{{RazonSocial}}` escrito al editar queda tal cual | Reemplazar es parte de generar (HU-070); así el borrador muestra exactamente lo que se guardó |
+| **Texto normalizado** | Los saltos de línea se guardan como `\n` y se quitan los espacios del final; si no cambió nada, no se escribe | El mismo contenido se guarda igual desde cualquier navegador o sistema |
+| **Solo el Responsable SST** | Permiso `documento.editar`; el admin consulta | Igual que generar (05-actores-roles) |
+| **Editor con vista previa al lado** | En escritorio, dos columnas; en celular, la vista previa debajo. El área de texto crece con todo el documento | Se ve cómo quedará mientras se escribe (criterio de HU-071) sin dos barras de desplazamiento |
+| **Aviso al salir sin guardar** | Dentro de Norvia, diálogo de confirmación; al recargar o cerrar la pestaña, el aviso del navegador | Un documento largo no se pierde por un clic en "Volver" |
+
+### Cómo quedó (resumen)
+
+- **API:** `PUT api/documentos/{id}/borrador` devuelve el `DocumentoDetalleResponseDto` con `porCompletar` recalculado. Otra empresa o un documento inexistente responden 404.
+- **Web:**
+  - **Botón "Editar borrador":** en `/documentos/{id}`, para el Responsable SST y solo si la versión es un borrador.
+  - **`/documentos/{id}/editar`:** el contenido con su contador y la ayuda del formato, la vista previa con "N datos por completar" y los botones "Cancelar" y "Guardar borrador".
+  - **Al guardar:** vuelve al documento con "Se guardaron los cambios del borrador." y los avisos actualizados. "Volver" desde ahí lleva a la lista.
+  - **Sin borrador:** el editor lo explica con un aviso.
+- **Compartido:** `porCompletar` (`shared/documentos/`) cuenta los `[Completar: …]` igual que el backend. El `Contador` ya no parte su cifra en dos líneas.
+
+### Trabajo hecho
+
+- **4 pruebas nuevas en el backend:**
+  - guarda el contenido sin tocar la plantilla y recalcula lo que falta;
+  - no acepta un documento vacío ni uno demasiado largo;
+  - una versión aprobada no se edita;
+  - solo el Responsable SST de la empresa edita.
+
+  Pasan las 258 pruebas.
+- **La web se probó de punta a punta contra la API real** con una empresa de prueba, que después se borró:
+  - el editor muestra el contenido, la vista previa y lo que falta;
+  - la vista previa se actualiza en vivo;
+  - salir con cambios pide confirmación, y cancelar se queda en el editor;
+  - un documento vacío no se guarda;
+  - al guardar, los avisos se actualizan y "Volver" lleva a la lista;
+  - en celular no hay desplazamiento horizontal;
+  - una versión vigente no tiene botón y el editor lo explica;
+  - el admin no edita.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-071 | Sin construir; contrato provisional con `contenidoMarkdown` | El Responsable SST edita el borrador con vista previa; solo el borrador, sin alterar la plantilla |
 
 ---
 

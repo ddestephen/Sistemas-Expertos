@@ -702,6 +702,43 @@
         </ul>
       </div>
 
+      <!-- Editor de documento -->
+      <div class="sub"><h3 class="t-h2">Editor de documento</h3><p class="muted">Editar el borrador (HU-071): Markdown a la izquierda y la vista previa a la derecha; en celular, la vista previa va debajo.</p></div>
+      <div class="panel anatomy">
+        <div class="anatomy-stage">
+          <div class="editor-doc">
+            <div class="card">
+              <div class="field maxw-none">
+                <label>Contenido <span class="req">*</span></label>
+                <textarea class="input textarea editor-doc-area" aria-label="Contenido"># Política de seguridad y salud en el trabajo
+
+**Ferretería El Roble S. de R.L.**, con domicilio en [Completar: dirección].
+
+## Compromisos
+
+1. **Ofrecer condiciones de trabajo seguras**</textarea>
+                <div class="editor-doc-pie"><span class="t-caption muted">#, ##, -, 1., **negrita**. Reemplaza cada [Completar: …].</span><span class="counter tabular">164 / 50000</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="editor-doc-cab"><span class="t-h3">Vista previa</span><span class="t-caption muted">1 dato por completar</span></div>
+              <div class="doc">
+                <div class="doc-h1">Política de seguridad y salud en el trabajo</div>
+                <p><b>Ferretería El Roble S. de R.L.</b>, con domicilio en <mark class="completar">[Completar: dirección]</mark>.</p>
+                <div class="doc-h2">Compromisos</div>
+                <ol><li><b>Ofrecer condiciones de trabajo seguras</b></li></ol>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">▯</span><span><b>Área de texto que crece</b> con todo el documento, desde 384px, sin desplazamiento propio; con contador y ayuda del formato</span></li>
+          <li><span class="pin-static">👁</span><span><b>Vista previa</b> en su card, actualizada al escribir, con cuántos datos quedan por completar<br><span class="tok">--color-text-secondary</span></span></li>
+          <li><span class="pin-static">↔</span><span><b>Dos columnas desde 1024px</b>, separadas por <span class="tok">--space-6</span>; abajo, "Cancelar" y "Guardar borrador"</span></li>
+          <li><span class="pin-static">!</span><span><b>Cambios sin guardar:</b> diálogo "¿Salir sin guardar los cambios?" con botón de peligro</span></li>
+        </ul>
+      </div>
+
       <!-- Riesgo -->
       <div class="sub"><h3 class="t-h2">Riesgo: etiqueta y mapa de calor</h3><p class="muted">Semáforo de cuatro niveles (RN-16) con los mismos valores en claro y en oscuro. El color nunca va solo: siempre lo acompañan el nivel y el número.</p></div>
       <div class="panel anatomy">

@@ -622,6 +622,12 @@ svg.icon-32 { width: 32px; height: 32px; }
 .doc li + li { margin-top: var(--space-2); }
 .doc li { padding-left: var(--space-1); }
 .doc b { font-weight: var(--font-weight-semibold); }
+/* Editor de documento (HU-071) */
+.editor-doc { display: grid; gap: var(--space-6); width: min(760px, 100%); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+.input.textarea.editor-doc-area { min-height: 240px; max-height: none; overflow-y: hidden; }
+.editor-doc-pie { display: flex; justify-content: space-between; gap: var(--space-4); }
+.editor-doc-pie .counter { white-space: nowrap; }
+.editor-doc-cab { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-4); }
 .completar { padding: 0 var(--space-1); border: var(--border-width) solid var(--color-warning-border); border-radius: var(--radius-sm); background: var(--color-warning-bg); color: var(--color-warning-text); }
 .question { border: 0; padding: 0; margin: var(--space-8) 0 0; min-width: 0; }
 .question legend { padding: 0; }

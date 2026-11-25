@@ -289,9 +289,9 @@ Implementación de endpoints: 🚧.
 
 ---
 
-## M9 — Documentos (HU-070 ✅; HU-071 a HU-074 🚧)
+## M9 — Documentos (HU-070 y HU-071 ✅; HU-072 a HU-074 🚧)
 
-Políticas y procedimientos de la empresa (D13). El Responsable SST genera; el admin consulta. Detalle en el [anexo](#anexo-documentos).
+Políticas y procedimientos de la empresa (D13). El Responsable SST genera y edita el borrador; el admin consulta. Detalle en el [anexo](#anexo-documentos).
 
 | HU | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|---|
@@ -299,6 +299,7 @@ Políticas y procedimientos de la empresa (D13). El Responsable SST genera; el a
 | HU-070 | POST | `api/documentos/generacion` | `GenerarDocumentoRequestDto` | 201 `DocumentoDetalleResponseDto` | `documento.generar` | `responsable_sst` | ✅ |
 | HU-070 | GET | `api/documentos` | — | `DocumentoResumenResponseDto[]` | `documento.listar` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-070 | GET | `api/documentos/{id}` | — | `DocumentoDetalleResponseDto` | `documento.ver` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-071 | PUT | `api/documentos/{id}/borrador` | `EditarBorradorRequestDto` | `DocumentoDetalleResponseDto` | `documento.editar` | `responsable_sst` | ✅ |
 
 ---
 
@@ -2289,7 +2290,7 @@ Cada medida correctiva crea una `Tarea` del plan de trabajo con origen `accident
 
 ---
 
-### M9 — Documentos (HU-070 ✅; HU-071 a HU-074 🚧) {#anexo-documentos}
+### M9 — Documentos (HU-070 y HU-071 ✅; HU-072 a HU-074 🚧) {#anexo-documentos}
 
 La **versión de trabajo** de un documento es su borrador si tiene uno; si no, la vigente. Los enums van en snake_case: `tipoDocumento` (`politica`, `procedimiento`) y `estado` (`borrador`, `vigente`, `reemplazada`).
 
@@ -2357,12 +2358,17 @@ Los documentos de la empresa, el último actualizado primero. `actualizadoEn` es
 #### `PUT /api/documentos/{id}/borrador` (HU-071)
 
 ```json
-{
-  "contenidoMarkdown": "# Política\n\nLa empresa se compromete..."
-}
+{ "contenido": "# Política de seguridad y salud en el trabajo\n\n**Ferretería El Roble S. de R.L.**, con domicilio en Col. Palmira…" }
 ```
 
-**Response 200:** documento actualizado.
+- Reemplaza el contenido completo del borrador (Markdown). Es obligatorio, no puede quedar en blanco y tiene hasta 50 000 caracteres.
+- Los saltos de línea se guardan como `\n` y se quitan los espacios del final.
+- Los marcadores `{{…}}` ya no se reemplazan: eso pasa solo al generar (HU-070). La plantilla no cambia.
+- Solo se edita la versión en `borrador` (RN-50). Se conservan su número y su estado.
+
+**Response 200 (`DocumentoDetalleResponseDto`):** igual que la generación, con `porCompletar` calculado sobre el contenido nuevo.
+
+**Errores:** 400 validación (`Contenido`) · 404 `documentos.no_encontrado` (también si es de otra empresa) · 409 `documentos.sin_borrador` (el documento no tiene borrador: su versión está aprobada) · 401 · 403.
 
 #### `POST /api/documentos/{id}/aprobacion` (HU-072)
 

@@ -445,7 +445,7 @@ borde `--color-border-default` (si tiene), cursor no permitido.
 | Input | borde `--color-border-input`, placeholder `--color-text-tertiary` | borde `--color-border-input-hover` (P) | — | Error: borde `--color-error-icon` + mensaje con ícono en `--color-error-text` |
 | Checkbox | borde `--color-border-input`, caja 16px, `--radius-sm` | borde `--color-border-input-hover` | Marcado: fondo `--color-action-primary`, tilde `--color-text-on-brand` | Área tocable ≥ 44px en celular |
 | Radio | fondo `--color-bg-surface`, borde `--color-border-input`, círculo 16px, `--radius-full` | borde `--color-border-input-hover` | Seleccionado: fondo `--color-action-primary`, punto central 6px `--color-text-on-brand` | Texto Cuerpo a `--space-2`; el texto también selecciona. Área tocable ≥ 44px en celular |
-| Área de texto | igual que el input; padding `--space-3` | igual que el input | — | Mínimo 3 líneas (~80px), crece hasta ~8 y luego desplaza; sin tirador. Contador opcional (ver abajo) |
+| Área de texto | igual que el input; padding `--space-3` | igual que el input | — | Mínimo 3 líneas (~80px), crece hasta ~8 y luego desplaza; sin tirador. Contador opcional (ver abajo). Excepción: el editor de documento (ver § Editor de documento) |
 | Ítem de menú | texto `--color-text-secondary` | fondo `--color-bg-subtle`, texto `--color-text-primary` | Seleccionado: fondo `--color-bg-selected`, texto `--color-text-selected` | — |
 | Fila de tabla | fondo `--color-bg-surface` | fondo `--color-bg-subtle` | Seleccionada: fondo `--color-bg-selected` | En celular, las columnas secundarias se ocultan y su dato (por ejemplo, rol y estado) baja debajo del dato principal, para que la acción de la fila quede a la vista sin desplazar la tabla |
 | Card clickeable | borde `--color-border-default`, sin sombra | `--shadow-1` + borde `--color-border-strong` | — | — |
@@ -705,6 +705,20 @@ Contenido de una política o un procedimiento (HU-070). Se guarda en Markdown y 
 - **Encabezado de la página:** título del documento (Título 1), badges de tipo (neutro: no es un estado) y de estado, y una línea en Caption con la versión, quién la generó o aprobó y cuándo, y la plantilla de origen.
 - **Avisos sobre un borrador:** info "Revisa el contenido antes de aprobarlo" (HU-070: la empresa debe revisarlo) y, si quedan `[Completar: …]`, advertencia "Faltan datos por completar" con la lista de lo que falta. La lista va en viñetas: los propios datos llevan comas y "y".
 - **Generar:** plantillas como radios (título y tipo debajo), título opcional y botón principal "Generar borrador". Sin rubro en el perfil, un aviso de advertencia con el enlace al perfil en lugar del formulario.
+- **Editar:** botón principal "Editar borrador" junto al título, solo para el Responsable SST y solo si la versión es un borrador.
+
+### Editor de documento
+
+Pantalla para editar el borrador de un documento (HU-071), al ancho general (`--layout-max-width`).
+
+| Parte | Decisión |
+|---|---|
+| Columnas | En escritorio (≥1024px), el editor a la izquierda y la vista previa a la derecha, cada uno en su card, con `--space-6` entre ellas. En celular y tablet, la vista previa va debajo del editor |
+| Área de texto | La del design system, con una excepción: arranca en 384px (16 líneas) y **crece con todo el documento**, sin desplazamiento propio, para no tener dos barras de desplazamiento. Lleva contador ("2451 / 50000") y la ayuda del formato (`#`, `##`, `-`, `1.`, `**negrita**`, `[Completar: …]`) |
+| Vista previa | Título 3 "Vista previa" y, a la derecha en Caption `--color-text-secondary`, cuántos datos quedan por completar ("2 datos por completar", "Nada por completar"); se anuncia al cambiar. Debajo, el documento como en § Documento, actualizado al escribir |
+| Acciones | Abajo: "Cancelar" (link) y el botón principal "Guardar borrador". Al guardar, vuelve al documento con un aviso de éxito; "Volver" desde ahí lleva a la lista, no al editor |
+| Cambios sin guardar | Salir dentro de Norvia abre el diálogo de confirmación "¿Salir sin guardar los cambios?" con "Cancelar" y "Salir sin guardar" (peligro). Al recargar o cerrar la pestaña avisa el navegador |
+| Versión aprobada | Si el documento ya no tiene borrador, en lugar del editor va un aviso info "Este documento no tiene un borrador" con el enlace al documento |
 
 ### Etiqueta de riesgo
 
