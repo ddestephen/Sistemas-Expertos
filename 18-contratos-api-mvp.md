@@ -278,20 +278,21 @@ Calcula las sugerencias a partir de las respuestas de todas las versiones y regi
 
 ---
 
-## Notificaciones y políticas (encuestado — ya en catálogo ejemplo)
+## Notificaciones (HU-117 ✅)
 
-| Permiso actual en seed | Método | Ruta | Rol |
+La bandeja propia, para los cuatro roles de empresa: las políticas avisan a cada vínculo activo (RN-75) y cada quien ve y marca solo las suyas (RN-79). Las políticas y los procedimientos vigentes están en [M9](#anexo-documentos) (HU-074); el permiso provisional `politica.vigentes` (`api/politicas/vigentes`) se retiró.
+
+| Permiso | Método | Ruta | Roles |
 |---|---|---|---|
-| `notificacion.listar` | GET | `api/notificaciones` | `encuestado` |
-| `politica.vigentes` | GET | `api/politicas/vigentes` | `encuestado` |
-
-Implementación de endpoints: 🚧.
+| `notificacion.listar` | GET | `api/notificaciones` | `admin_empresa`, `responsable_sst`, `colaborador`, `encuestado` |
+| `notificacion.no_leidas` | GET | `api/notificaciones/no-leidas` | los mismos |
+| `notificacion.leer` | PATCH | `api/notificaciones/{id}/lectura` | los mismos |
 
 ---
 
-## M9 — Documentos (HU-070 a HU-072 ✅; HU-073 y HU-074 🚧)
+## M9 — Documentos (HU-070 a HU-072 y HU-074 ✅; HU-073 🚧)
 
-Políticas y procedimientos de la empresa (D13). El Responsable SST genera, edita y aprueba el borrador; el admin consulta. Detalle en el [anexo](#anexo-documentos).
+Políticas y procedimientos de la empresa (D13). El Responsable SST genera, edita y aprueba el borrador; el admin consulta. Las versiones vigentes las consultan todas las personas de la empresa (HU-074). Detalle en el [anexo](#anexo-documentos).
 
 | HU | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|---|
@@ -301,6 +302,8 @@ Políticas y procedimientos de la empresa (D13). El Responsable SST genera, edit
 | HU-070 | GET | `api/documentos/{id}` | — | `DocumentoDetalleResponseDto` | `documento.ver` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-071 | PUT | `api/documentos/{id}/borrador` | `EditarBorradorRequestDto` | `DocumentoDetalleResponseDto` | `documento.editar` | `responsable_sst` | ✅ |
 | HU-072 | POST | `api/documentos/{id}/aprobacion` | — | `DocumentoDetalleResponseDto` | `documento.aprobar` | `responsable_sst` | ✅ |
+| HU-074 | GET | `api/documentos/vigentes` | `?buscar=` | `DocumentoVigenteResumenResponseDto[]` | `documento.vigentes` | `admin_empresa`, `responsable_sst`, `colaborador`, `encuestado` | ✅ |
+| HU-074 | GET | `api/documentos/vigentes/{id}` | — | `DocumentoVigenteResponseDto` | `documento.vigente.ver` | los mismos | ✅ |
 
 ---
 
@@ -417,14 +420,14 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-052 | GET | `/api/eventos/estadisticas?desde&hasta` | query | JSON | Eventos |
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
 | HU-117 | PATCH | `/api/notificaciones/{id}/lectura` | — | 204 | Notificaciones |
-| encuestado | GET | `/api/politicas/vigentes` | — | array | Políticas |
 | HU-070 | GET | `/api/documentos/plantillas` | — | array | Documentos |
 | HU-070 | POST | `/api/documentos/generacion` | JSON | JSON | Documentos |
 | HU-070 | GET | `/api/documentos` | — | array | Documentos |
 | HU-070 | GET | `/api/documentos/{id}` | — | JSON | Documentos |
 | HU-071 | PUT | `/api/documentos/{id}/borrador` | JSON | JSON | Documentos |
 | HU-072 | POST | `/api/documentos/{id}/aprobacion` | — | JSON | Documentos |
-| HU-074 | GET | `/api/documentos/vigentes` | — | array | Documentos |
+| HU-074 | GET | `/api/documentos/vigentes?buscar=` | query | array | Documentos |
+| HU-074 | GET | `/api/documentos/vigentes/{id}` | — | JSON | Documentos |
 | HU-076 | GET | `/api/documentos/{id}/pdf` | — | PDF | Documentos |
 
 ---
@@ -2020,34 +2023,32 @@ Pasa una tarea por `pendiente`, `en_progreso` y `completada`, en cualquier orden
 
 ---
 
-### Notificaciones y políticas — 🚧
+### Notificaciones (HU-117 ✅)
 
-#### `GET /api/notificaciones`
+#### `GET /api/notificaciones?limite=50` (HU-117)
 
-```json
-[
-  {
-    "id": "01936000-....",
-    "titulo": "Nueva encuesta disponible",
-    "cuerpo": "Diagnóstico 2026 ya puede responderse.",
-    "leida": false,
-    "creadaEn": "2026-11-16T09:00:00Z"
-  }
-]
-```
-
-#### `GET /api/politicas/vigentes`
+Las propias, de la más reciente a la más antigua (`limite` por defecto 50, máximo 100), y cuántas no se han leído. El front arma el enlace con `tipo` y el origen: `tareaId` (tarea asignada) o `documentoId` (política publicada: abre su versión vigente, HU-074 y HU-116).
 
 ```json
-[
-  {
-    "id": "01937000-....",
-    "titulo": "Política de seguridad 2026",
-    "version": 2,
-    "publicadaEn": "2026-01-10"
-  }
-]
+{
+  "noLeidas": 1,
+  "notificaciones": [
+    {
+      "id": "01936000-....",
+      "tipo": "politica_publicada",
+      "titulo": "Nueva política: Política SST 2026",
+      "mensaje": "Se aprobó una nueva versión de «Política SST 2026». Puedes consultarla en Norvia.",
+      "creadaEn": "2026-11-25T19:40:00Z",
+      "leidaEn": null,
+      "tareaId": null,
+      "versionDocumentoId": "01938101-....",
+      "documentoId": "01938100-...."
+    }
+  ]
+}
 ```
+
+Las políticas vigentes están en M9: `GET /api/documentos/vigentes` (HU-074).
 
 #### `PATCH /api/notificaciones/{id}/lectura` (HU-117)
 
@@ -2291,7 +2292,7 @@ Cada medida correctiva crea una `Tarea` del plan de trabajo con origen `accident
 
 ---
 
-### M9 — Documentos (HU-070 a HU-072 ✅; HU-073 y HU-074 🚧) {#anexo-documentos}
+### M9 — Documentos (HU-070 a HU-072 y HU-074 ✅; HU-073 🚧) {#anexo-documentos}
 
 La **versión de trabajo** de un documento es su borrador si tiene uno; si no, la vigente. Los enums van en snake_case: `tipoDocumento` (`politica`, `procedimiento`) y `estado` (`borrador`, `vigente`, `reemplazada`).
 
@@ -2384,19 +2385,35 @@ Sin body.
 
 **Errores:** 404 `documentos.no_encontrado` (también si es de otra empresa) · 409 `documentos.sin_borrador` (no tiene borrador: ya está aprobado) · 409 `documentos.por_completar` (quedan datos por completar) · 401 · 403.
 
-#### `GET /api/documentos/vigentes` (HU-074)
+#### `GET /api/documentos/vigentes?buscar=` (HU-074)
+
+Para todas las personas de la empresa. Solo los documentos con versión vigente: los borradores y las versiones reemplazadas no aparecen. Primero las políticas y después los procedimientos, cada grupo por título. `buscar` (opcional, hasta 100) filtra por el título sin distinguir mayúsculas. `id` es el del documento y `vigenteDesde`, la fecha de aprobación.
 
 ```json
-[
-  {
-    "id": "01938100-....",
-    "titulo": "Política SST 2026",
-    "tipo": "politica_sst",
-    "versionNumero": 2,
-    "vigenteDesde": "2026-01-15"
-  }
-]
+[{ "id": "01938100-....", "titulo": "Política SST 2026", "tipoDocumento": "politica", "numeroVersion": 2, "vigenteDesde": "2026-11-25T19:40:00Z" }]
 ```
+
+**Errores:** 400 validación (`Buscar`) · 401 · 403.
+
+#### `GET /api/documentos/vigentes/{id}` (HU-074)
+
+La versión vigente del documento, solo con lo que se publica: sin plantilla, sin quién la generó y sin borradores.
+
+```json
+{
+  "id": "01938100-....",
+  "titulo": "Política SST 2026",
+  "tipoDocumento": "politica",
+  "numeroVersion": 2,
+  "contenido": "# Política de seguridad y salud en el trabajo\n\n…",
+  "vigenteDesde": "2026-11-25T19:40:00Z",
+  "aprobadaPorNombre": "Sara Seguridad"
+}
+```
+
+**PDF:** no hay endpoint. La web imprime la vista del documento (16-arquitectura §9): el navegador lo guarda como PDF o lo imprime, y no se guarda nada.
+
+**Errores:** 404 `documentos.no_encontrado` (no existe, es de otra empresa o solo tiene un borrador) · 401 · 403.
 
 #### `GET /api/documentos/{id}/pdf` (HU-076)
 

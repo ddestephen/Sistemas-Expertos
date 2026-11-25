@@ -2073,7 +2073,7 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
 - **Título:** `HU-074 Back — Entregar documentos vigentes autorizados`
   - **Criterios de aceptación:**
     - entrega solo versiones vigentes autorizadas para el vínculo de la persona
-    - permite descargar el documento en PDF y buscarlo por nombre.
+    - permite buscarlo por nombre y entrega su contenido para verlo y descargarlo en PDF; el PDF no se guarda.
 
 ### HU-075 | Generar la matriz de riesgos en PDF
 

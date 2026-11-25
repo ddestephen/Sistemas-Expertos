@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-25 | Equipo (redactado con Claude Code) | **HU-074 completada y HU-116 cerrada:** todas las personas de la empresa (también encuestados) consultan las políticas y los procedimientos **vigentes**, los buscan por nombre y los descargan en PDF desde la impresión del navegador; la notificación de una política nueva ya abre su versión vigente | [Ver cambio](#cambio-2026-11-25-hu-074) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-072 completada:** el Responsable SST aprueba el borrador de un documento cuando ya no le faltan datos; queda **vigente** con quién y cuándo, la vigente anterior pasa a reemplazada (**RN-51**) y, si es una política, Norvia avisa a cada vínculo activo en Norvia y por correo (**RN-75**). **RN-49 crece:** no se aprueba con datos por completar | [Ver cambio](#cambio-2026-11-25-hu-072) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-071 completada:** el Responsable SST edita el borrador de un documento en Markdown, con la vista previa al lado y el conteo de lo que falta completar; solo se edita el borrador (**RN-50**) y la plantilla no cambia. Primer **editor de documento** del design system | [Ver cambio](#cambio-2026-11-25-hu-071) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-070 completada:** el Responsable SST genera la política de SST o el procedimiento de investigación de accidentes desde una plantilla de su rubro; se llena con los datos del perfil, lo que falta queda resaltado como `[Completar: …]` y el documento queda como borrador para revisarlo. Tablas `Documento` y `VersionDocumento` creadas en el código; el admin consulta | [Ver cambio](#cambio-2026-11-25-hu-070) |
@@ -64,6 +65,63 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-25-hu-074` {#cambio-2026-11-25-hu-074}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 25 de noviembre de 2026 |
+| **Alcance** | `10-historias-usuario.md` (tarea de backend de HU-074), `18-contratos-api-mvp.md` (contratos de los vigentes, bandeja de notificaciones con `documentoId` y retiro de `api/politicas/vigentes`), `design-system.md` y la guía visual (documentos vigentes y "Descargar PDF"). En el código: dos casos de uso con sus permisos, el documento en la notificación, pruebas, dos pantallas, estilos de impresión y el enlace desde el inicio y la notificación. El modelo de datos no cambia y no hay migración |
+
+### El problema (por qué hubo que cambiar)
+
+1. Una política aprobada (HU-072) solo la veían el admin y el Responsable SST, en la pantalla de trabajo, donde también están los borradores.
+2. La notificación de una política nueva (HU-116) no tenía a dónde llevar: el colaborador y el encuestado no tienen acceso a `/documentos/{id}`.
+3. El catálogo de permisos tenía un permiso provisional `politica.vigentes` (`api/politicas/vigentes`, solo para el encuestado) sin endpoint, y el contrato provisional de los vigentes usaba otros nombres (`tipo`, `versionNumero`).
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Consulta aparte, solo con lo publicado** | `GET api/documentos/vigentes` y `GET api/documentos/vigentes/{id}`: solo versiones vigentes, sin plantilla, sin quién generó el borrador. Si el documento solo tiene borrador, 404 | Todas las personas leen la política sin ver lo que todavía se está revisando (RN-05, HU-074) |
+| **Para los cuatro roles** | Permisos `documento.vigentes` y `documento.vigente.ver`; se retira `politica.vigentes` | La HU es para todo operador con vínculo, y el encuestado consulta las políticas vigentes (RN-74). También se muestran los procedimientos |
+| **Búsqueda por nombre en el servidor** | `?buscar=` filtra por título sin distinguir mayúsculas, hasta 100 caracteres | Igual que la búsqueda de la matriz (HU-038) |
+| **PDF desde la impresión del navegador** | "Descargar PDF" abre el diálogo de impresión, que guarda el PDF o lo imprime; se imprime solo el documento | Ya estaba acordado en 16-arquitectura §9; no agrega librerías y no se guarda ningún archivo |
+| **La notificación lleva el documento** | La bandeja agrega `documentoId` a cada aviso de política; "Ver la política" abre su versión vigente | Si después se aprueba otra versión, la persona ve la más nueva, que es la que rige |
+
+### Cómo quedó (resumen)
+
+- **API:** los dos endpoints de vigentes y `documentoId` en `GET api/notificaciones`. La lista va primero con las políticas y después con los procedimientos, cada grupo por título.
+- **Web:**
+  - **Inicio:** enlace "Políticas y procedimientos" para todas las personas de la empresa.
+  - **`/documentos-vigentes`:** buscador, una card por documento con tipo, versión y fecha. Estado vacío sin buscador, y "sin resultados" con "Quitar la búsqueda".
+  - **`/documentos-vigentes/{id}`:** el documento con versión, fecha y quién lo aprobó, y el botón "Descargar PDF".
+  - **Notificaciones:** el aviso de una política nueva tiene el enlace "Ver la política".
+
+### Trabajo hecho
+
+- **3 pruebas nuevas en el backend:**
+  - el colaborador y el encuestado ven solo las vigentes, en orden, sin la versión reemplazada ni el borrador ni lo de otra empresa, y buscan por nombre;
+  - la búsqueda no acepta más de 100 caracteres;
+  - la notificación de una política lleva el documento y abre su vigente.
+
+  Pasan las 267 pruebas.
+- **La web se probó de punta a punta contra la API real** con una empresa de prueba (admin, Responsable SST, colaborador y encuestado), que después se borró:
+  - el encuestado entra desde el inicio y ve solo la vigente;
+  - la búsqueda filtra, muestra "sin resultados" y se quita;
+  - "Descargar PDF" abre la impresión y el PDF contiene solo el documento;
+  - la notificación abre la política vigente;
+  - en celular no hay desplazamiento horizontal;
+  - el colaborador no puede abrir un borrador;
+  - sin vigentes, se ve el estado vacío.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-074 | Sin construir; contrato provisional con otros nombres | Todas las personas consultan y buscan las versiones vigentes y las descargan en PDF |
+| HU-116 | El aviso se creaba al aprobar, pero no llevaba a la política | El aviso abre la versión vigente de la política; la historia queda completa |
 
 ---
 
