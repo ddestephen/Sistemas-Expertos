@@ -562,7 +562,7 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 | Control | Propuesto | — | Implementado | — | — |
 | Tarea del plan | Pendiente · Cancelada | En progreso | Completada | — | Vencida |
 | Accidente | Cerrado · Descartado | En investigación | — | Abierto | Grave (junto al estado) |
-| Política | Borrador · Reemplazada | — | Vigente | — | — |
+| Política o procedimiento | Borrador · Reemplazada | — | Vigente | — | — |
 
 - **Accidente cerrado es neutro,** no éxito: que termine el caso no es una buena noticia.
 - **"Grave" no es un estado:** es una marca del reporte (HU-047) que va junto al badge de estado, en error, para que
@@ -688,6 +688,23 @@ Cuántos eventos hubo en un periodo. Usa las mismas piezas que los resultados de
 | Desglose | Por tipo (los cuatro, en orden fijo), por gravedad y por mes (todos los meses, también con 0). Cada fila: nombre, barra y "cantidad · %" sobre el total del periodo; si hubo graves, "N graves" debajo del nombre |
 | Sin eventos | Los indicadores en 0 y un estado vacío en lugar de las listas |
 | Privacidad | Solo cifras: ni descripciones, ni lugares, ni quién reportó |
+
+### Documento
+
+Contenido de una política o un procedimiento (HU-070). Se guarda en Markdown y se muestra sin interpretar HTML (16-arquitectura §9).
+
+| Parte | Decisión |
+|---|---|
+| Contenedor | Una card (`--color-bg-surface`, borde `--color-border-default`, `--radius-lg`), al ancho de documentos (`--layout-max-width-narrow`) |
+| Texto | Cuerpo grande (16/24), `--color-text-primary`; entre bloques, `--space-4` |
+| Títulos | Un nivel debajo del título de la página: `#` → Título 2 (20/28), `##` → Título 3 (16/24 Semibold), `###` → 16/24 Medium. Entre secciones, `--space-8` |
+| Listas | Con viñeta o numeradas, sangría `--space-6`, `--space-2` entre ítems. La numeración sigue donde quedó (un procedimiento que sigue en 3. empieza en 3.) |
+| Negrita | Semibold (600); no se usa bold (700) |
+| `[Completar: …]` | Resaltado como advertencia: fondo `--color-warning-bg`, borde `--color-warning-border`, texto `--color-warning-text`, `--radius-sm`, padding `--space-1` a los lados. El texto se ve completo |
+
+- **Encabezado de la página:** título del documento (Título 1), badges de tipo (neutro: no es un estado) y de estado, y una línea en Caption con la versión, quién la generó o aprobó y cuándo, y la plantilla de origen.
+- **Avisos sobre un borrador:** info "Revisa el contenido antes de aprobarlo" (HU-070: la empresa debe revisarlo) y, si quedan `[Completar: …]`, advertencia "Faltan datos por completar" con la lista de lo que falta. La lista va en viñetas: los propios datos llevan comas y "y".
+- **Generar:** plantillas como radios (título y tipo debajo), título opcional y botón principal "Generar borrador". Sin rubro en el perfil, un aviso de advertencia con el enlace al perfil en lugar del formulario.
 
 ### Etiqueta de riesgo
 

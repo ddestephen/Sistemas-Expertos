@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-25 | Equipo (redactado con Claude Code) | **HU-070 completada:** el Responsable SST genera la política de SST o el procedimiento de investigación de accidentes desde una plantilla de su rubro; se llena con los datos del perfil, lo que falta queda resaltado como `[Completar: …]` y el documento queda como borrador para revisarlo. Tablas `Documento` y `VersionDocumento` creadas en el código; el admin consulta | [Ver cambio](#cambio-2026-11-25-hu-070) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **Decisiones de M9 antes de HU-070:** contenido en Markdown, seis marcadores con datos de la empresa (los que faltan quedan como `[Completar: …]`), política de SST y procedimiento de investigación de accidentes en el contenido inicial, y versión aprobada protegida por la aplicación y los valores únicos, **sin disparador** (D13, RN-49) | [Ver cambio](#cambio-2026-11-25-decisiones-m9) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-052 completada:** estadísticas de eventos por tipo, gravedad y mes en un periodo, sin descartados y solo con cifras; con ella queda completo M6 (sin evidencias, que esperan a HU-100) | [Ver cambio](#cambio-2026-11-24-hu-052) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-051 completada:** desde un evento se agrega un riesgo nuevo que queda **revelado** por él o se **reevalúa** uno de la matriz; la evaluación guarda el evento (columna nueva `EvaluacionRiesgo.AccidenteId`, D10) y el evento muestra el nivel de antes y el de después | [Ver cambio](#cambio-2026-11-24-hu-051) |
@@ -64,6 +65,82 @@
 
 ---
 
+## Cambio `2026-11-25-hu-070` {#cambio-2026-11-25-hu-070}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 25 de noviembre de 2026 |
+| **Alcance** | `18-contratos-api-mvp.md` (tabla de M9, índice de rutas y anexo de documentos), `16-arquitectura-backend-frontend.md` (§9, cómo se muestra el Markdown), `design-system.md` y la guía visual (sección "Documento" y badge "Política o procedimiento"), y el código de la plantilla del procedimiento en `12`, `14` y `16`. En el código: entidades, migración, cuatro casos de uso con sus permisos, las dos plantillas iniciales, pruebas, tres pantallas y la ayuda del editor de plantillas (HU-023). El modelo de datos no cambia: las tablas ya estaban en `12` |
+
+### El problema (por qué hubo que cambiar)
+
+1. La empresa no tenía cómo armar su política de SST ni sus procedimientos: la plantilla existía en los catálogos (HU-023), pero no había documentos de empresa ni las tablas `Documento` y `VersionDocumento` en el código.
+2. Las decisiones de M9 (D13 y RN-49, cambio [2026-11-25-decisiones-m9](#cambio-2026-11-25-decisiones-m9)) estaban tomadas, pero faltaba llevarlas al código.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Quién hace qué** | El Responsable SST ve las plantillas y genera; el admin consulta la lista y el detalle; colaboradores y encuestados no ven documentos en borrador | Igual que en eventos: gestiona el Responsable SST (05-actores-roles) y el admin acompaña. Las vigentes para todos llegan con HU-074 |
+| **Plantillas en `api/documentos/plantillas`** | Ruta propia de la empresa: solo las activas de su rubro o de todos los rubros. `api/plantillas` sigue siendo del staff | El staff administra el catálogo completo; la empresa solo ve lo que puede usar. Sin rubro responde 409 `documentos.sin_rubro` |
+| **Título opcional** | Sin título, el documento toma el de la plantilla | Generar es un solo clic; quien quiera, lo nombra ("Política SST 2026") |
+| **Versión de trabajo** | La lista y el detalle muestran el borrador si hay uno; si no, la vigente | Deja preparada la edición (HU-071), la aprobación (HU-072) y la versión nueva (HU-073) sin cambiar los contratos |
+| **`porCompletar` sale del contenido** | Se calcula buscando los `[Completar: …]` que quedan en la versión, no los marcadores vacíos de la generación | Sigue siendo cierto después de editar el borrador, y cuenta también lo que la plantilla trae escrito (p. ej. "nombre y cargo de quien aprueba") |
+| **Código `procedimiento_investigacion`** | El código acordado (`procedimiento_investigacion_accidentes`) tenía 38 caracteres y la columna admite 30. Se corrigió en `12`, `14` y `16` | Respeta el largo de `PlantillaDocumento.Codigo` |
+| **Lo que solo sabe la empresa va como `[Completar: …]`** | Las plantillas no inventan datos legales: centro de salud de referencia, a quién se avisa un accidente y en qué plazo, plazo para investigar y quién aprueba | El documento no afirma obligaciones que el equipo no comprobó; la empresa las completa al revisar |
+| **Lector de Markdown propio** | Entiende títulos, párrafos, listas, negritas, cursivas y `[Completar: …]`; nada de HTML | Sin dependencia nueva, seguro y con los estilos del design system (16 §9) |
+
+### Cómo quedó (resumen)
+
+- **Base:** migración `DocumentosHu070` con `Documento` y `VersionDocumento` como dice `12`:
+  - FK compuestas con `EmpresaId`;
+  - CHECK de número de versión, estado y aprobación;
+  - únicos parciales: una versión vigente y un borrador por documento;
+  - sin disparador.
+
+  También agrega la FK compuesta de `Notificacion.VersionDocumentoId` que esperaba desde HU-118.
+- **Contenido inicial:** `politica_sst` y `procedimiento_investigacion`, para todos los rubros, se cargan al arrancar con el resto del contenido SST (`CatalogoSst.Documentos.cs`), solo si faltan. Se redactaron a partir del reglamento STSS-053-04 (art. 9.j, 44, 46.1 y 47) y de ISO 45001 § 5.2. **Pendiente: revisión por alguien con conocimiento de SST**, como el resto del contenido inicial.
+- **API:** `GET api/documentos/plantillas`, `POST api/documentos/generacion` (201), `GET api/documentos` y `GET api/documentos/{id}`, con los permisos `documento.plantillas`, `documento.generar`, `documento.listar` y `documento.ver`.
+- **Web:**
+  - "Documentos" en el inicio de admin y Responsable SST;
+  - **`/documentos`:** lista con tipo, versión y estado, o estado vacío con la acción de generar;
+  - **`/documentos/generar`:** plantillas como radios y título opcional. Sin rubro, un aviso con el enlace al perfil;
+  - **`/documentos/{id}`:** el documento con sus badges y los avisos "Revisa el contenido antes de aprobarlo" y "Faltan datos por completar", con la lista de lo que falta resaltado en el texto.
+- **HU-023:** la ayuda del contenido de una plantilla muestra el formato y los seis marcadores válidos.
+
+### Trabajo hecho
+
+- **9 pruebas nuevas en el backend**, y la prueba del contenido inicial ahora revisa también las plantillas de documento:
+  - plantillas por rubro, sin las desactivadas;
+  - generación con datos, faltantes, marcador desconocido y fecha;
+  - la plantilla no cambia;
+  - título por defecto y propio;
+  - sin rubro;
+  - plantilla no disponible;
+  - validaciones;
+  - permisos por rol;
+  - aislamiento entre empresas;
+  - reemplazo de marcadores.
+
+  Pasan las 254 pruebas.
+- **Un detalle de EF que se corrigió:** dos `HasIndex` sobre la misma columna se juntaban en uno solo, y se perdía el único de la versión vigente. Ahora cada uno lleva nombre.
+- **La web se probó de punta a punta contra la API real** con una empresa de prueba, que después se borró:
+  - lista vacía;
+  - error sin plantilla;
+  - política y procedimiento generados, con datos, avisos, resaltados, listas y numeración;
+  - lista con los dos borradores;
+  - celular sin desplazamiento horizontal;
+  - sin rubro;
+  - el admin consulta pero no genera.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-070 | Sin construir; solo existían las plantillas del staff | Generar desde una plantilla del rubro, con los datos de la empresa, lo que falta resaltado y el resultado como borrador |
+| HU-023 | La ayuda solo nombraba `{{RazonSocial}}` | La ayuda muestra el formato y los seis marcadores |
+
+---
+
 ## Cambio `2026-11-25-decisiones-m9` {#cambio-2026-11-25-decisiones-m9}
 
 | | |
@@ -85,7 +162,7 @@ Antes de programar M9 (HU-070 a HU-074 y, con ellas, HU-116) quedaban cuatro hue
 
 | Decisión | Qué significa | Por qué ayuda |
 |----------|---------------|---------------|
-| **Plantillas iniciales en el contenido SST** | `politica_sst` y `procedimiento_investigacion_accidentes`, para todos los rubros, se cargan al arrancar junto con el resto del contenido inicial, solo si faltan. Se redactan a partir del reglamento STSS-053-04 (ya en `Reglamentos/normativasMarkdown/`) y el staff las puede editar después | Cada base nueva cumple el criterio de HU-070 sin trabajo manual, igual que categorías y peligros |
+| **Plantillas iniciales en el contenido SST** | `politica_sst` y `procedimiento_investigacion`, para todos los rubros, se cargan al arrancar junto con el resto del contenido inicial, solo si faltan. Se redactan a partir del reglamento STSS-053-04 (ya en `Reglamentos/normativasMarkdown/`) y el staff las puede editar después | Cada base nueva cumple el criterio de HU-070 sin trabajo manual, igual que categorías y peligros |
 | **Seis marcadores** | `{{RazonSocial}}`, `{{RTN}}`, `{{Direccion}}`, `{{ActividadEconomica}}`, `{{Rubro}}` y `{{Fecha}}` (fecha de generación, en hora de Honduras). La lista está en `12` § PlantillaDocumento | Son los datos del perfil que tiene sentido poner en una política. Generar ya exige rubro, porque las plantillas se filtran por rubro |
 | **Dato vacío → `[Completar: …]` y aviso** | Si falta un dato, el borrador lleva un texto visible como `[Completar: dirección]` y la pantalla avisa cuáles faltan. Un marcador fuera de la lista queda tal cual | No bloquea la generación por un dato opcional del perfil; el Responsable SST lo corrige al editar el borrador (HU-071), que de todos modos debe revisar |
 | **Versión aprobada protegida sin disparador** | Solo se edita la versión en `borrador`. La base lo respalda con el estado y los valores únicos parciales (una `vigente` y un `borrador` por documento) | Se mantiene la regla Code-First sin excepciones, y RN-50 queda cubierta por la aplicación y por lo que la base sí expresa |

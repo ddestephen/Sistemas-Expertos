@@ -289,6 +289,19 @@ Implementación de endpoints: 🚧.
 
 ---
 
+## M9 — Documentos (HU-070 ✅; HU-071 a HU-074 🚧)
+
+Políticas y procedimientos de la empresa (D13). El Responsable SST genera; el admin consulta. Detalle en el [anexo](#anexo-documentos).
+
+| HU | Método | Ruta | Request | Response | Permiso | Roles | Estado |
+|---|---|---|---|---|---|---|---|
+| HU-070 | GET | `api/documentos/plantillas` | — | `PlantillaDisponibleResponseDto[]` | `documento.plantillas` | `responsable_sst` | ✅ |
+| HU-070 | POST | `api/documentos/generacion` | `GenerarDocumentoRequestDto` | 201 `DocumentoDetalleResponseDto` | `documento.generar` | `responsable_sst` | ✅ |
+| HU-070 | GET | `api/documentos` | — | `DocumentoResumenResponseDto[]` | `documento.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-070 | GET | `api/documentos/{id}` | — | `DocumentoDetalleResponseDto` | `documento.ver` | `admin_empresa`, `responsable_sst` | ✅ |
+
+---
+
 ## Infra / técnico Must (sin contrato REST de negocio)
 
 | HU | Entregable | Estado |
@@ -403,7 +416,10 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
 | HU-117 | PATCH | `/api/notificaciones/{id}/lectura` | — | 204 | Notificaciones |
 | encuestado | GET | `/api/politicas/vigentes` | — | array | Políticas |
+| HU-070 | GET | `/api/documentos/plantillas` | — | array | Documentos |
 | HU-070 | POST | `/api/documentos/generacion` | JSON | JSON | Documentos |
+| HU-070 | GET | `/api/documentos` | — | array | Documentos |
+| HU-070 | GET | `/api/documentos/{id}` | — | JSON | Documentos |
 | HU-071 | PUT | `/api/documentos/{id}/borrador` | JSON | JSON | Documentos |
 | HU-072 | POST | `/api/documentos/{id}/aprobacion` | — | JSON | Documentos |
 | HU-074 | GET | `/api/documentos/vigentes` | — | array | Documentos |
@@ -2273,27 +2289,70 @@ Cada medida correctiva crea una `Tarea` del plan de trabajo con origen `accident
 
 ---
 
-### M10 — Documentos (HU-070 a HU-074, HU-076) — 🚧
+### M9 — Documentos (HU-070 ✅; HU-071 a HU-074 🚧) {#anexo-documentos}
+
+La **versión de trabajo** de un documento es su borrador si tiene uno; si no, la vigente. Los enums van en snake_case: `tipoDocumento` (`politica`, `procedimiento`) y `estado` (`borrador`, `vigente`, `reemplazada`).
+
+#### `GET /api/documentos/plantillas` (HU-070)
+
+Plantillas activas del rubro de la empresa o de todos los rubros, por tipo y título.
+
+```json
+[{ "id": "01938000-....", "codigo": "politica_sst", "titulo": "Política de seguridad y salud en el trabajo", "tipoDocumento": "politica" }]
+```
+
+**Errores:** 409 `documentos.sin_rubro` (el perfil no tiene rubro) · 401 · 403.
 
 #### `POST /api/documentos/generacion` (HU-070)
 
 ```json
-{
-  "plantillaDocumentoId": "01938000-....",
-  "titulo": "Política SST 2026"
-}
+{ "plantillaDocumentoId": "01938000-....", "titulo": "Política SST 2026" }
 ```
 
-**Response 201:**
+- `plantillaDocumentoId` es obligatorio. `titulo` es opcional (hasta 200): sin él, el documento toma el título de la plantilla.
+- Los marcadores se reemplazan con los datos del perfil (lista en `12-modelo-datos.md` § PlantillaDocumento). Un dato vacío queda como `[Completar: dirección]`.
+- Crea el documento con la versión 1 en `borrador` (RN-49). La plantilla no cambia.
+
+**Response 201 (`DocumentoDetalleResponseDto`):**
 
 ```json
 {
   "id": "01938100-....",
   "titulo": "Política SST 2026",
-  "estado": "borrador",
-  "versionNumero": 1
+  "tipoDocumento": "politica",
+  "plantillaTitulo": "Política de seguridad y salud en el trabajo",
+  "creadoEn": "2026-11-25T19:20:00Z",
+  "version": {
+    "id": "01938101-....",
+    "numeroVersion": 1,
+    "estado": "borrador",
+    "contenido": "# Política de seguridad y salud en el trabajo\n\n**Ferretería El Roble S. de R.L.** (RTN 08011990123456), con domicilio en [Completar: dirección]…",
+    "creadaEn": "2026-11-25T19:20:00Z",
+    "creadaPorNombre": "Sara Seguridad",
+    "aprobadaEn": null,
+    "aprobadaPorNombre": null
+  },
+  "porCompletar": ["dirección", "nombre y cargo de quien aprueba"]
 }
 ```
+
+`porCompletar` lista, sin repetir y en orden, el texto de cada `[Completar: …]` que queda en la versión de trabajo, también los que la plantilla trae escritos.
+
+**Errores:** 400 validación · 404 `documentos.plantilla_no_disponible` (no existe, está desactivada o es de otro rubro) · 409 `documentos.sin_rubro` · 401 · 403.
+
+#### `GET /api/documentos` (HU-070)
+
+Los documentos de la empresa, el último actualizado primero. `actualizadoEn` es la fecha de aprobación de la versión de trabajo o, si es un borrador, la de su creación.
+
+```json
+[{ "id": "01938100-....", "titulo": "Política SST 2026", "tipoDocumento": "politica", "numeroVersion": 1, "estado": "borrador", "actualizadoEn": "2026-11-25T19:20:00Z" }]
+```
+
+#### `GET /api/documentos/{id}` (HU-070)
+
+**Response 200:** `DocumentoDetalleResponseDto`, igual que la generación, con la versión de trabajo.
+
+**Errores:** 404 `documentos.no_encontrado` (también si es de otra empresa) · 401 · 403.
 
 #### `PUT /api/documentos/{id}/borrador` (HU-071)
 

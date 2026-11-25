@@ -269,7 +269,7 @@ Request → ValidacionFiltro → IValidator<Request> (FluentValidation)
 2. **Los servicios reciben `IOptions<T>`,** nunca `IConfiguration`. Así la clave del JWT se lee en un solo lugar.
 3. **La autenticación HTTP (`AddJwtBearer`) se configura en la API** (`Extensiones/AutenticacionExtensiones`), usando `JwtOpciones`. Infrastructure solo **genera** tokens.
 4. **Los secretos van en `.env`** (`Norvia.API/.env`, a partir de `example.env`) y nunca en el código ni en `appsettings.json`.
-5. **Datos iniciales al arrancar (`Persistence/Seed/`):** permisos, plantillas de correo, catálogos cerrados, el primer staff y el contenido SST inicial (`CatalogoSst` → `CatalogoSstSeeder`, HU-097), que desde HU-070 incluye las plantillas de documento `politica_sst` y `procedimiento_investigacion_accidentes`.
+5. **Datos iniciales al arrancar (`Persistence/Seed/`):** permisos, plantillas de correo, catálogos cerrados, el primer staff y el contenido SST inicial (`CatalogoSst` → `CatalogoSstSeeder`, HU-097), que desde HU-070 incluye las plantillas de documento `politica_sst` y `procedimiento_investigacion`.
    - **El contenido SST solo agrega lo que falta:** usa Id estables derivados de una clave, así no duplica ni pisa lo que el staff edite o desactive.
    - **Se apaga con `CatalogoSst__Cargar=false`:** las pruebas de integración lo apagan para trabajar con catálogos vacíos, y la carga se prueba sobre una base propia.
 
@@ -299,7 +299,10 @@ src/
    - no se usan valores arbitrarios (`p-[13px]`); se revisa en code review;
    - el modo oscuro cambia las variables semánticas con `data-theme`, sin `dark:` en los componentes;
    - la personalización por empresa sobrescribe `--color-brand-*` al cargar la app, y las clases la toman solas.
-6. **Contenido de documentos en Markdown** (plantillas y versiones, M9): se muestra con un componente compartido que convierte Markdown a elementos de React **sin interpretar HTML crudo** (nada de `dangerouslySetInnerHTML`), con los estilos del design system. El editor del borrador es un área de texto con vista previa, y el PDF de HU-074 sale de imprimir esa vista.
+6. **Contenido de documentos en Markdown** (plantillas y versiones, M9): se muestra con `ContenidoDocumento` (`shared/documentos/`), que convierte Markdown a elementos de React **sin interpretar HTML crudo** (nada de `dangerouslySetInnerHTML`), con los estilos del design system (§ Documento).
+   - **Lector propio, sin dependencia:** `shared/documentos/markdown.ts` entiende solo lo que usan las políticas y los procedimientos (títulos `#` a `###`, párrafos, listas con viñetas o numeradas, `**negrita**` y `*cursiva*`) y además los `[Completar: …]`, que se resaltan. Lo demás se muestra como texto.
+   - **La lista de marcadores** está en `shared/documentos/marcadores.ts`, igual que en el backend (`Features/Documentos/Marcadores.cs`); la usa la ayuda del editor de plantillas (HU-023).
+   - El editor del borrador (HU-071) es un área de texto con vista previa, y el PDF de HU-074 sale de imprimir esa vista.
 
 ## 10. Checklist para cada PR
 

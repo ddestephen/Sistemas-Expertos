@@ -413,7 +413,7 @@ Políticas y procedimientos modelo.
 
 - **Dato vacío:** si el perfil no tiene el dato, el marcador se reemplaza por `[Completar: <dato>]` (p. ej. `[Completar: dirección]`) y la respuesta de la generación indica cuáles faltan. Se corrige al editar el borrador (HU-071).
 - **Marcador fuera de la lista:** no se reemplaza y queda tal cual en el borrador. La ayuda del editor de plantillas (HU-023) muestra los marcadores válidos.
-- **Plantillas iniciales:** la política de SST (`politica_sst`) y el procedimiento de investigación de accidentes (`procedimiento_investigacion_accidentes`), para todos los rubros, se cargan con el contenido SST inicial (HU-097), redactadas a partir del reglamento STSS-053-04.
+- **Plantillas iniciales:** la política de SST (`politica_sst`) y el procedimiento de investigación de accidentes (`procedimiento_investigacion`), para todos los rubros, se cargan con el contenido SST inicial (HU-097), redactadas a partir del reglamento STSS-053-04.
 
 ### 4.2 Tabla raíz
 
