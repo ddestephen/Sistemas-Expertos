@@ -394,8 +394,26 @@ Políticas y procedimientos modelo.
 | Titulo | varchar(200) | No | | |
 | TipoDocumento | varchar(15) | No | | `politica`, `procedimiento` |
 | RubroId | smallint | Sí | FK → Rubro | Nulo si aplica a todos los rubros |
-| Contenido | text | No | | Texto con marcadores que se reemplazan por datos de la empresa, como `{{RazonSocial}}` |
+| Contenido | text | No | | Markdown con marcadores que se reemplazan por datos de la empresa, como `{{RazonSocial}}` (D13; lista abajo) |
 | Activa | boolean | No | | Por defecto `true` |
+
+**Contenido y marcadores (D13, RN-49; acuerdo del 25-11-2026):**
+
+- **Formato:** Markdown (títulos, listas, negritas). El front lo muestra con un renderizador que no interpreta HTML crudo.
+- **Marcadores:** se reemplazan al generar el documento (HU-070) y la versión guarda el texto ya reemplazado.
+
+  | Marcador | Valor |
+  |---|---|
+  | `{{RazonSocial}}` | `Empresa.RazonSocial` |
+  | `{{RTN}}` | `Empresa.RTN` |
+  | `{{Direccion}}` | `Empresa.Direccion` |
+  | `{{ActividadEconomica}}` | `Empresa.ActividadEconomica` |
+  | `{{Rubro}}` | Nombre del rubro de la empresa |
+  | `{{Fecha}}` | Fecha de generación, en hora de Honduras (p. ej. "25 de noviembre de 2026") |
+
+- **Dato vacío:** si el perfil no tiene el dato, el marcador se reemplaza por `[Completar: <dato>]` (p. ej. `[Completar: dirección]`) y la respuesta de la generación indica cuáles faltan. Se corrige al editar el borrador (HU-071).
+- **Marcador fuera de la lista:** no se reemplaza y queda tal cual en el borrador. La ayuda del editor de plantillas (HU-023) muestra los marcadores válidos.
+- **Plantillas iniciales:** la política de SST (`politica_sst`) y el procedimiento de investigación de accidentes (`procedimiento_investigacion_accidentes`), para todos los rubros, se cargan con el contenido SST inicial (HU-097), redactadas a partir del reglamento STSS-053-04.
 
 ### 4.2 Tabla raíz
 
@@ -833,7 +851,8 @@ Las medidas correctivas son tareas con `AccidenteId`.
 - UQ parcial `(DocumentoId) WHERE Estado = 'vigente'`: una sola versión vigente (RN-51).
 - UQ parcial `(DocumentoId) WHERE Estado = 'borrador'`: un solo borrador a la vez.
 - CHECK: si `Estado` no es `borrador`, `AprobadaPorId` y `AprobadaEn` tienen valor.
-- Un disparador impide modificar el contenido de una versión aprobada (RN-50).
+- La aplicación solo modifica el contenido de la versión en `borrador`; la vigente y las reemplazadas no se editan (RN-50). No hay disparador: el esquema es 100 % Code-First (acuerdo del 25-11-2026).
+- `Contenido` en Markdown, ya con los marcadores reemplazados (ver PlantillaDocumento).
 
 
 #### Notificacion
@@ -885,7 +904,7 @@ Aviso a un operador con vínculo (D28). Se ve dentro de Norvia y se envía por c
 
 - **Ninguna tabla se borra en cascada.** Todas las FK usan `ON DELETE RESTRICT`: la base de datos rechaza borrar un registro que otros usan.
 - **Los registros operativos no se borran:** se desactivan (`Activo`, `Activa`) o cambian de estado (`cancelada`, `descartado`, `cerrada`). Así se conserva la evidencia.
-- **Los registros inmutables** (versiones aprobadas de documentos) están protegidos además por un disparador.
+- **Los registros inmutables** (versiones aprobadas de documentos) solo cambian de estado (`vigente` → `reemplazada`); la aplicación no edita su contenido, y los valores únicos parciales impiden tener dos vigentes o dos borradores (sin disparadores).
 - **Las respuestas de encuesta no se editan ni se borran:** son anónimas, así que nadie puede demostrar que una es suya.
 - **Las llaves primarias no cambian:** son UUID generados al crear el registro, por lo que no se necesita `ON UPDATE CASCADE`.
 
@@ -987,7 +1006,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-27 | BD y App | Permiso de reporte anónimo para vínculos activos; `Accidente` sin `ReportadoPorId` y `Archivo` con `SubidoPorId` nulo si pertenece a un evento |
 | RN-28 | App y BD | Validación al cerrar (investigación y medida); estado `descartado` con `DescartadoPorId` y excluido de estadísticas |
 | RN-31 | BD | `RegistradoEn DEFAULT now()` |
-| RN-49, RN-50, RN-51 | BD | Estados, UQ parciales y disparador |
+| RN-49, RN-50, RN-51 | BD y App | Estados y UQ parciales en VersionDocumento; la aplicación reemplaza los marcadores (los datos que faltan quedan como `[Completar: …]`) y solo edita la versión en `borrador` |
 | RN-52 | App | La matriz en PDF se genera desde las tablas |
 | RN-68 | BD y App | CHECK de `TipoRespuesta`; validación de la respuesta según el tipo (FluentValidation y Zod) |
 | RN-69 | App | Validación al enviar |

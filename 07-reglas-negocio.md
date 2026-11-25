@@ -118,7 +118,7 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 
 | Código | Regla |
 |---|---|
-| RN-49 | Un documento generado queda como borrador hasta que el Responsable SST lo apruebe |
+| RN-49 | Un documento generado se llena con los datos de la empresa y queda como borrador hasta que el Responsable SST lo apruebe. Si falta un dato del perfil, el documento lo marca para completarlo y Norvia avisa cuáles faltan |
 | RN-50 | Una versión aprobada no se puede editar; los cambios crean una versión nueva |
 | RN-51 | Cada documento tiene una sola versión vigente |
 | RN-52 | Los informes usan los datos capturados en el sistema |

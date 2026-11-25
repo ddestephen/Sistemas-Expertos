@@ -209,7 +209,7 @@ public sealed class AuthController : ControllerBase
 3. **Los `Include` son responsabilidad del repositorio** y se documentan en la interfaz (`/// Incluye Empresa y Rol`), porque el servicio depende de ellos.
 4. **Las consultas de solo lectura** (listados, matriz y reportes) proyectan directo al Response con `Select` dentro del repositorio y usan `AsNoTracking`.
 5. **Application no conoce EF Core:** no hay `IQueryable`, `DbSet` ni `Include` en sus firmas.
-6. **Esquema 100 % Code-First:** las restricciones van en `Persistence/Configurations/` (una clase por entidad) y no se usa `migrationBuilder.Sql`.
+6. **Esquema 100 % Code-First:** las restricciones van en `Persistence/Configurations/` (una clase por entidad) y no se usa `migrationBuilder.Sql`. Por eso no hay disparadores: lo que la base no expresa con CHECK, FK o UQ (como no editar una versión aprobada de un documento, RN-50) lo garantiza la aplicación (acuerdo del 25-11-2026).
 
 ## 6. Multiempresa (aislamiento por `EmpresaId`)
 
@@ -269,7 +269,7 @@ Request → ValidacionFiltro → IValidator<Request> (FluentValidation)
 2. **Los servicios reciben `IOptions<T>`,** nunca `IConfiguration`. Así la clave del JWT se lee en un solo lugar.
 3. **La autenticación HTTP (`AddJwtBearer`) se configura en la API** (`Extensiones/AutenticacionExtensiones`), usando `JwtOpciones`. Infrastructure solo **genera** tokens.
 4. **Los secretos van en `.env`** (`Norvia.API/.env`, a partir de `example.env`) y nunca en el código ni en `appsettings.json`.
-5. **Datos iniciales al arrancar (`Persistence/Seed/`):** permisos, plantillas de correo, catálogos cerrados, el primer staff y el contenido SST inicial (`CatalogoSst` → `CatalogoSstSeeder`, HU-097).
+5. **Datos iniciales al arrancar (`Persistence/Seed/`):** permisos, plantillas de correo, catálogos cerrados, el primer staff y el contenido SST inicial (`CatalogoSst` → `CatalogoSstSeeder`, HU-097), que desde HU-070 incluye las plantillas de documento `politica_sst` y `procedimiento_investigacion_accidentes`.
    - **El contenido SST solo agrega lo que falta:** usa Id estables derivados de una clave, así no duplica ni pisa lo que el staff edite o desactive.
    - **Se apaga con `CatalogoSst__Cargar=false`:** las pruebas de integración lo apagan para trabajar con catálogos vacíos, y la carga se prueba sobre una base propia.
 
@@ -299,6 +299,7 @@ src/
    - no se usan valores arbitrarios (`p-[13px]`); se revisa en code review;
    - el modo oscuro cambia las variables semánticas con `data-theme`, sin `dark:` en los componentes;
    - la personalización por empresa sobrescribe `--color-brand-*` al cargar la app, y las clases la toman solas.
+6. **Contenido de documentos en Markdown** (plantillas y versiones, M9): se muestra con un componente compartido que convierte Markdown a elementos de React **sin interpretar HTML crudo** (nada de `dangerouslySetInnerHTML`), con los estilos del design system. El editor del borrador es un área de texto con vista previa, y el PDF de HU-074 sale de imprimir esa vista.
 
 ## 10. Checklist para cada PR
 

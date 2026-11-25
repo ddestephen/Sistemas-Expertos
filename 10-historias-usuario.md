@@ -1010,8 +1010,8 @@ Cada historia termina con estos datos:
 **Criterios de aceptación:**
 
 - Veo las plantillas disponibles para mi rubro.
-- El documento se llena con los datos de la empresa.
-- Incluye al menos la política de SST y el procedimiento de investigación de accidentes.
+- El documento se llena con los datos de la empresa; si falta alguno en el perfil, queda marcado para completarlo y se me avisa cuáles faltan.
+- Desde el inicio están disponibles al menos la política de SST y el procedimiento de investigación de accidentes.
 - Queda como borrador.
 - Se avisa que la empresa debe revisar el contenido.
 
@@ -1023,10 +1023,10 @@ Cada historia termina con estos datos:
 
 **Criterios de aceptación:**
 
-- Puedo modificar el contenido.
+- Puedo modificar el contenido con formato sencillo (títulos, listas y negritas) y ver cómo quedará.
 - Los cambios se guardan sin alterar la plantilla.
 
-**Módulo:** M9 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-070 · **Reglas:** D13
+**Módulo:** M9 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-070 · **Reglas:** RN-50, D13
 
 ### HU-072 | Aprobar un documento
 
@@ -2029,23 +2029,25 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
 - **Título:** `HU-070 Front — Solicitar y consultar el borrador del documento`
   - **Criterios de aceptación:**
     - muestra plantillas disponibles para el rubro de la empresa
-    - presenta el borrador e indica que la empresa debe revisar su contenido.
+    - presenta el borrador e indica que la empresa debe revisar su contenido
+    - avisa qué datos del perfil faltaron y quedaron marcados para completar.
 - **Título:** `HU-070 Back — Generar el borrador con datos de la empresa`
   - **Criterios de aceptación:**
-    - genera el documento con la plantilla y datos de la empresa
-    - incluye al menos la política de SST y el procedimiento de investigación de accidentes
+    - genera el documento con la plantilla y datos de la empresa, y marca para completar los datos que falten
+    - la política de SST y el procedimiento de investigación de accidentes vienen cargados desde el inicio
     - conserva el resultado como borrador e indica que requiere revisión de la empresa.
 
 ### HU-071 | Editar el borrador
 
 - **Título:** `HU-071 Front — Editar y guardar el borrador`
   - **Criterios de aceptación:**
-    - permite modificar el contenido del borrador
+    - permite modificar el contenido del borrador con formato sencillo y ver cómo quedará
     - informa si los cambios se guardaron o si ocurrió un error.
 - **Título:** `HU-071 Back — Conservar cambios del borrador`
   - **Criterios de aceptación:**
     - guarda los cambios realizados en el borrador
-    - los cambios no modifican la plantilla original.
+    - los cambios no modifican la plantilla original
+    - rechaza cambios a una versión que ya no es borrador.
 
 ### HU-072 | Aprobar un documento
 

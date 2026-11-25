@@ -95,7 +95,7 @@
 | Claim | Dato incluido dentro de un token |
 | Cascada | Borrar o cambiar automáticamente los registros hijos al borrar o cambiar el padre. Norvia no la usa |
 | Clean Architecture | Forma de separar el código en capas con dependencias controladas |
-| Disparador | Código que la base de datos ejecuta automáticamente ante un cambio; en inglés, trigger |
+| Disparador | Código que la base de datos ejecuta automáticamente ante un cambio; en inglés, trigger. Norvia no los usa (acuerdo del 25-11-2026) |
 | DTO | Objeto que define los datos que entran y salen de la API |
 | EF Core | Entity Framework Core: herramienta de .NET para trabajar con bases de datos |
 | `EmpresaId` | Columna y dato que identifica a qué empresa pertenece un registro |
@@ -110,6 +110,8 @@
 | Índice parcial | Índice que solo incluye las filas que cumplen una condición |
 | JWE | Token JWT con el contenido cifrado |
 | JWT | Token firmado que identifica el vínculo (`VinculoEmpresaId`) y la empresa de la sesión |
+| Markdown | Formato de texto sencillo con títulos, listas y negritas; es el formato de las plantillas y los documentos (D13) |
+| Marcador | Texto entre llaves dobles, como `{{RazonSocial}}`, que se reemplaza por un dato de la empresa al generar un documento (D13) |
 | Middleware | Componente que procesa todas las peticiones del backend |
 | Outbox | Bandeja de salida: tabla donde quedan los correos pendientes para enviarlos y reintentarlos |
 | Llave compuesta | Llave formada por dos o más columnas |

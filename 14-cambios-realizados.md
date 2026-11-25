@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-25 | Equipo (redactado con Claude Code) | **Decisiones de M9 antes de HU-070:** contenido en Markdown, seis marcadores con datos de la empresa (los que faltan quedan como `[Completar: …]`), política de SST y procedimiento de investigación de accidentes en el contenido inicial, y versión aprobada protegida por la aplicación y los valores únicos, **sin disparador** (D13, RN-49) | [Ver cambio](#cambio-2026-11-25-decisiones-m9) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-052 completada:** estadísticas de eventos por tipo, gravedad y mes en un periodo, sin descartados y solo con cifras; con ella queda completo M6 (sin evidencias, que esperan a HU-100) | [Ver cambio](#cambio-2026-11-24-hu-052) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-051 completada:** desde un evento se agrega un riesgo nuevo que queda **revelado** por él o se **reevalúa** uno de la matriz; la evaluación guarda el evento (columna nueva `EvaluacionRiesgo.AccidenteId`, D10) y el evento muestra el nivel de antes y el de después | [Ver cambio](#cambio-2026-11-24-hu-051) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-050 completada:** el Responsable SST agrega medidas correctivas a un evento; cada una es una **tarea del plan** con origen "accidente", y desde el evento se ve su avance (completadas, vencidas). Con esto un evento ya se puede cerrar desde la web | [Ver cambio](#cambio-2026-11-24-hu-050) |
@@ -60,6 +61,62 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-25-decisiones-m9` {#cambio-2026-11-25-decisiones-m9}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 25 de noviembre de 2026 |
+| **Alcance** | `08-decisiones-bd.md` (D13), `07-reglas-negocio.md` (RN-49), `12-modelo-datos.md` (PlantillaDocumento, VersionDocumento, §6 y §9), `10-historias-usuario.md` (HU-070 y HU-071, también sus tareas de front y back), `16-arquitectura-backend-frontend.md` (§5, §8 y §9) y `11-glosario.md`. Solo documentación: todavía no hay código de M9. Las tablas y columnas no cambian |
+
+### El problema (por qué hubo que cambiar)
+
+Antes de programar M9 (HU-070 a HU-074 y, con ellas, HU-116) quedaban cuatro huecos:
+
+1. **No había plantillas de documento cargadas.** HU-070 exige al menos la política de SST y el procedimiento de investigación de accidentes, pero el contenido inicial (HU-097) no traía ninguna. El staff podía crearlas a mano, pero cada base nueva (local, pruebas, producción) empezaba vacía.
+2. **Solo existía el marcador `{{RazonSocial}}`.** Con eso, "el documento se llena con los datos de la empresa" casi no se cumplía. Tampoco estaba definido qué pasa si un dato del perfil está vacío.
+3. **El modelo pedía un disparador** para impedir editar una versión aprobada (RN-50). Pero la regla del código es un esquema 100 % Code-First sin `migrationBuilder.Sql`, y un disparador solo se puede crear con SQL escrito a mano. Las dos reglas se contradecían.
+4. **No estaba definido el formato del contenido.** El contrato de plantillas ya traía un ejemplo en Markdown (`# Uso de EPP en {{RazonSocial}}`), pero ningún documento lo fijaba. El formato decide cómo es el editor del borrador (HU-071) y cómo se muestra y descarga (HU-074).
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| **Plantillas iniciales en el contenido SST** | `politica_sst` y `procedimiento_investigacion_accidentes`, para todos los rubros, se cargan al arrancar junto con el resto del contenido inicial, solo si faltan. Se redactan a partir del reglamento STSS-053-04 (ya en `Reglamentos/normativasMarkdown/`) y el staff las puede editar después | Cada base nueva cumple el criterio de HU-070 sin trabajo manual, igual que categorías y peligros |
+| **Seis marcadores** | `{{RazonSocial}}`, `{{RTN}}`, `{{Direccion}}`, `{{ActividadEconomica}}`, `{{Rubro}}` y `{{Fecha}}` (fecha de generación, en hora de Honduras). La lista está en `12` § PlantillaDocumento | Son los datos del perfil que tiene sentido poner en una política. Generar ya exige rubro, porque las plantillas se filtran por rubro |
+| **Dato vacío → `[Completar: …]` y aviso** | Si falta un dato, el borrador lleva un texto visible como `[Completar: dirección]` y la pantalla avisa cuáles faltan. Un marcador fuera de la lista queda tal cual | No bloquea la generación por un dato opcional del perfil; el Responsable SST lo corrige al editar el borrador (HU-071), que de todos modos debe revisar |
+| **Versión aprobada protegida sin disparador** | Solo se edita la versión en `borrador`. La base lo respalda con el estado y los valores únicos parciales (una `vigente` y un `borrador` por documento) | Se mantiene la regla Code-First sin excepciones, y RN-50 queda cubierta por la aplicación y por lo que la base sí expresa |
+| **Markdown** | Plantillas y versiones guardan Markdown (títulos, listas, negritas). El front lo muestra sin interpretar HTML crudo; el editor es un área de texto con vista previa, y el PDF sale de imprimir esa vista | Coincide con el contrato que ya existía, es seguro y no agrega un editor enriquecido pesado |
+
+### Cómo quedó (resumen)
+
+- **D13** describe el contenido, los marcadores, las plantillas iniciales y cómo se protege la versión aprobada.
+- **RN-49** suma que el documento se llena con los datos de la empresa y que los faltantes quedan marcados y avisados.
+- **`12-modelo-datos.md`:**
+  - PlantillaDocumento: formato, tabla de marcadores, dato vacío y plantillas iniciales;
+  - VersionDocumento: el disparador cambia por "solo se edita la versión en borrador";
+  - §6: la protección de los registros inmutables, sin disparador;
+  - §9: RN-49 a RN-51 pasan a "BD y App".
+- **HU-070:** criterios de los datos faltantes y de las plantillas disponibles desde el inicio. **HU-071:** formato sencillo con vista previa, y suma la regla RN-50.
+- **`16-arquitectura-backend-frontend.md`:** sin disparadores (§5), plantillas de documento en el contenido inicial (§8) y la regla de mostrar Markdown sin HTML crudo (§9).
+- **Glosario:** "Markdown" y "Marcador"; "Disparador" aclara que Norvia no los usa.
+
+### Trabajo hecho
+
+- Se revisó el código antes de decidir. `PlantillaDocumento` ya existe y se administra desde HU-023, pero el contenido inicial no trae plantillas de documento. Todavía no existen `Documento` ni `VersionDocumento`. `Notificacion.VersionDocumentoId` espera la FK compuesta que llega con HU-070.
+- **Pendiente para HU-070 (código):**
+  - redactar las dos plantillas;
+  - cargarlas con el contenido SST inicial;
+  - ampliar la ayuda del editor de plantillas (HU-023) con la lista de marcadores.
+
+| HU | Antes | Ahora |
+|---|---|---|
+| HU-070 | "Se llena con los datos de la empresa", con un solo marcador definido; las plantillas mínimas no venían cargadas | Seis marcadores; los datos que faltan quedan marcados y se avisan; la política de SST y el procedimiento de investigación de accidentes vienen desde el inicio |
+| HU-071 | "Puedo modificar el contenido", sin formato definido | Formato sencillo (Markdown) con vista previa; solo se edita la versión en borrador (RN-50) |
+| HU-072 | La versión aprobada la protegía un disparador | La protegen la aplicación y los valores únicos parciales, sin disparador |
 
 ---
 
