@@ -290,9 +290,9 @@ La bandeja propia, para los cuatro roles de empresa: las políticas avisan a cad
 
 ---
 
-## M9 — Documentos (HU-070 a HU-072 y HU-074 ✅; HU-073 🚧)
+## M9 — Documentos (HU-070 a HU-074 ✅)
 
-Políticas y procedimientos de la empresa (D13). El Responsable SST genera, edita y aprueba el borrador; el admin consulta. Las versiones vigentes las consultan todas las personas de la empresa (HU-074). Detalle en el [anexo](#anexo-documentos).
+Políticas y procedimientos de la empresa (D13). El Responsable SST genera, edita, aprueba y crea versiones nuevas; el admin consulta (incluyendo el historial de versiones). Las versiones vigentes las consultan todas las personas de la empresa (HU-074). Detalle en el [anexo](#anexo-documentos).
 
 | HU | Método | Ruta | Request | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|---|---|
@@ -302,6 +302,9 @@ Políticas y procedimientos de la empresa (D13). El Responsable SST genera, edit
 | HU-070 | GET | `api/documentos/{id}` | — | `DocumentoDetalleResponseDto` | `documento.ver` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-071 | PUT | `api/documentos/{id}/borrador` | `EditarBorradorRequestDto` | `DocumentoDetalleResponseDto` | `documento.editar` | `responsable_sst` | ✅ |
 | HU-072 | POST | `api/documentos/{id}/aprobacion` | — | `DocumentoDetalleResponseDto` | `documento.aprobar` | `responsable_sst` | ✅ |
+| HU-073 | POST | `api/documentos/{id}/versiones` | — | 201 `DocumentoDetalleResponseDto` | `documento.version.crear` | `responsable_sst` | ✅ |
+| HU-073 | GET | `api/documentos/{id}/versiones` | — | `VersionResumenResponseDto[]` | `documento.version.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-073 | GET | `api/documentos/{id}/versiones/{versionId}` | — | `DocumentoDetalleResponseDto` | `documento.version.ver` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-074 | GET | `api/documentos/vigentes` | `?buscar=` | `DocumentoVigenteResumenResponseDto[]` | `documento.vigentes` | `admin_empresa`, `responsable_sst`, `colaborador`, `encuestado` | ✅ |
 | HU-074 | GET | `api/documentos/vigentes/{id}` | — | `DocumentoVigenteResponseDto` | `documento.vigente.ver` | los mismos | ✅ |
 
@@ -2292,7 +2295,7 @@ Cada medida correctiva crea una `Tarea` del plan de trabajo con origen `accident
 
 ---
 
-### M9 — Documentos (HU-070 a HU-072 y HU-074 ✅; HU-073 🚧) {#anexo-documentos}
+### M9 — Documentos (HU-070 a HU-074 ✅) {#anexo-documentos}
 
 La **versión de trabajo** de un documento es su borrador si tiene uno; si no, la vigente. Los enums van en snake_case: `tipoDocumento` (`politica`, `procedimiento`) y `estado` (`borrador`, `vigente`, `reemplazada`).
 
@@ -2384,6 +2387,38 @@ Sin body.
 **Response 200 (`DocumentoDetalleResponseDto`):** igual que la generación, con la versión ya vigente (`aprobadaEn` y `aprobadaPorNombre` con valor) y `porCompletar` vacío.
 
 **Errores:** 404 `documentos.no_encontrado` (también si es de otra empresa) · 409 `documentos.sin_borrador` (no tiene borrador: ya está aprobado) · 409 `documentos.por_completar` (quedan datos por completar) · 401 · 403.
+
+#### `POST /api/documentos/{id}/versiones` (HU-073)
+
+Sin body. Solo `responsable_sst` (`documento.version.crear`).
+
+- Crea una versión nueva en `borrador` con `numeroVersion = max + 1`, copiando el contenido Markdown íntegro de la versión `vigente` (RN-50).
+- La versión `vigente` no cambia y sigue visible en `/api/documentos/vigentes` (HU-074) hasta que se apruebe el nuevo borrador (HU-072).
+
+**Response 201 (`DocumentoDetalleResponseDto`):** igual que la generación, con la nueva versión en `borrador`.
+
+**Errores:** 404 `documentos.no_encontrado` (también si es de otra empresa) · 409 `documentos.ya_tiene_borrador` (ya hay un borrador abierto) · 409 `documentos.sin_vigente` (todavía no tiene versión vigente) · 401 · 403.
+
+#### `GET /api/documentos/{id}/versiones` (HU-073)
+
+Para `admin_empresa` y `responsable_sst` (`documento.version.listar`). Historial de versiones del documento, ordenadas de la más reciente a la primera, sin el cuerpo Markdown.
+
+```json
+[
+  { "id": "01938102-....", "numeroVersion": 2, "estado": "borrador", "creadaEn": "2026-11-25T20:10:00Z", "creadaPorNombre": "Sara Seguridad", "aprobadaEn": null, "aprobadaPorNombre": null },
+  { "id": "01938101-....", "numeroVersion": 1, "estado": "vigente", "creadaEn": "2026-11-25T19:20:00Z", "creadaPorNombre": "Sara Seguridad", "aprobadaEn": "2026-11-25T19:40:00Z", "aprobadaPorNombre": "Sara Seguridad" }
+]
+```
+
+**Errores:** 404 `documentos.no_encontrado` (también si es de otra empresa) · 401 · 403.
+
+#### `GET /api/documentos/{id}/versiones/{versionId}` (HU-073)
+
+Para `admin_empresa` y `responsable_sst` (`documento.version.ver`). Consulta completa de una versión concreta del documento (`reemplazada`, `vigente` o `borrador`).
+
+**Response 200 (`DocumentoDetalleResponseDto`):** igual que `GET /api/documentos/{id}`, pero con la versión solicitada y su `porCompletar`.
+
+**Errores:** 404 `documentos.no_encontrado` (documento inexistente o ajeno) · 404 `documentos.version_no_encontrada` (versión inexistente o de otro documento) · 401 · 403.
 
 #### `GET /api/documentos/vigentes?buscar=` (HU-074)
 
