@@ -299,6 +299,16 @@ La bandeja propia, para los cuatro roles de empresa: las políticas avisan a cad
 
 ---
 
+## Auditoría (HU-099 ✅)
+
+Registro cronológico e inalterable de acciones clave de gestión dentro de cada empresa (`RegistroAuditoria`, `auditoria.listar`). Omite las acciones anónimas (`RN-72` en respuestas de encuestas y `D11` en reportes de eventos). Detalle en el [anexo](#anexo-auditoria).
+
+| HU | Método | Ruta | Request | Response | Permiso | Roles | Estado |
+|---|---|---|---|---|---|---|---|
+| HU-099 | GET | `api/auditoria` | `FiltrosAuditoriaDto` (query) | `AuditoriaPaginadaResponseDto` | `auditoria.listar` | `admin_empresa`, `responsable_sst` | ✅ |
+
+---
+
 ## M9 — Documentos (HU-070 a HU-074 ✅)
 
 Políticas y procedimientos de la empresa (D13). El Responsable SST genera, edita, aprueba y crea versiones nuevas; el admin consulta (incluyendo el historial de versiones). Las versiones vigentes las consultan todas las personas de la empresa (HU-074). Detalle en el [anexo](#anexo-documentos).
@@ -442,6 +452,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-074 | GET | `/api/documentos/vigentes?buscar=` | query | array | Documentos |
 | HU-074 | GET | `/api/documentos/vigentes/{id}` | — | JSON | Documentos |
 | HU-076 | GET | `/api/documentos/{id}/pdf` | — | PDF | Documentos |
+| HU-099 | GET | `/api/auditoria?buscar=&entidad=&accion=&desde=&hasta=&pagina=&tamano=` | query opcional | JSON | Auditoría |
 
 ---
 
@@ -2502,6 +2513,58 @@ La versión vigente del documento, solo con lo que se publica: sin plantilla, si
 #### `GET /api/documentos/{id}/pdf` (HU-076)
 
 **Response 200:** `application/pdf`.
+
+---
+
+### Auditoría (HU-099 ✅) {#anexo-auditoria}
+
+#### `GET /api/auditoria` (HU-099)
+
+Consulta cronológica de solo lectura sobre `RegistroAuditoria` (`fecha` descendente), aislada por `EmpresaId` del JWT (`RN-05`). El interceptor impide editar o borrar filas existentes en código (`ProtegerRegistroAuditoriaInterceptor`); no se exponen endpoints de escritura (`POST`/`PUT`/`PATCH`/`DELETE`).
+
+**Query opcional** — `FiltrosAuditoriaDto`
+
+| Parámetro | Tipo | Reglas |
+|---|---|---|
+| `buscar` | string | Máx. 100 caracteres; busca en acción, entidad, nombre/correo del autor y `detalle` |
+| `entidad` | string | `Documento`, `VinculoEmpresa`, `Encuesta`, `Accidente`, `RiesgoEmpresa`, `EvaluacionRiesgo`, `Control`, `Tarea`, `Empresa` |
+| `accion` | string | Máx. 50 caracteres |
+| `desde` | date (`yyyy-MM-dd`) | Día inicial en hora de Honduras (`America/Tegucigalpa`) |
+| `hasta` | date (`yyyy-MM-dd`) | Día final en hora de Honduras; no puede ser anterior a `desde` |
+| `pagina` | int | Mínimo 1 (defecto `1`) |
+| `tamano` | int | Entre 1 y 100 (defecto `25`) |
+
+**Response 200** — `AuditoriaPaginadaResponseDto`
+
+```json
+{
+  "items": [
+    {
+      "id": "01939200-...",
+      "fecha": "2026-11-26T15:10:00Z",
+      "accion": "documento_aprobado",
+      "entidad": "Documento",
+      "entidadId": "01938100-...",
+      "actorTipo": "empresa",
+      "vinculoEmpresaId": "01937000-...",
+      "staffPlataformaId": null,
+      "actorNombre": "Sara Seguridad",
+      "actorCorreo": "sara@empresa.hn",
+      "detalle": {
+        "titulo": "Política SST 2026",
+        "tipoDocumento": "politica",
+        "numeroVersion": 1
+      }
+    }
+  ],
+  "pagina": 1,
+  "tamano": 25,
+  "total": 1,
+  "totalPaginas": 1
+}
+```
+
+**Errores:** 400 validación (`FiltrosAuditoriaDto`) · 401 · 403 (`colaborador` / `encuestado`) · 405 en `POST`.
 
 ---
 

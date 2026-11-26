@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-26 | Jesús Zepeda | **HU-099 completada:** tabla `RegistroAuditoria` inalterable (Code-First + `ProtegerRegistroAuditoriaInterceptor` sin triggers SQL), instrumentación transaccional en M1–M9 (omitiendo acciones anónimas `RN-72`/`D11`), consulta `GET /api/auditoria` (`auditoria.listar`) y vista web `/auditoria` | [Ver cambio](#cambio-2026-11-26-hu-099) |
 | 2026-11-26 | Jesús Zepeda | **HU-034 completada:** historial de encuestas cerradas o con versiones anteriores (`GET /api/encuestas/historial`), resultados históricos por versión (`?versionId=`) y comparación integral entre encuestas o versiones con exposición a peligros (`GET /api/encuestas/comparacion`) respetando `RN-12`, `D8` y `RN-73` | [Ver cambio](#cambio-2026-11-26-hu-034) |
 | 2026-11-26 | Jesús Zepeda | **HU-024 completada:** el staff de plataforma (`admin_plataforma` y `soporte_plataforma`) consulta las empresas registradas con su rubro, estado, fecha de registro y personas con acceso vigente, con filtro `?buscar=` y sin datos SST (`RN-05`) | [Ver cambio](#cambio-2026-11-26-hu-024) |
 | 2026-11-25 | Jesús Zepeda | **HU-073 completada (cierre de M9):** el Responsable SST crea una versión nueva en borrador a partir de la vigente sin alterar la publicada (**RN-50**), y tanto el Responsable SST como el admin consultan el historial y el contenido íntegro de las versiones anteriores | [Ver cambio](#cambio-2026-11-25-hu-073) |
@@ -68,6 +69,28 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-26-hu-099` {#cambio-2026-11-26-hu-099}
+
+| | |
+|---|---|
+| **Quién documentó** | Jesús Zepeda |
+| **Fecha** | 26 de noviembre de 2026 |
+| **Alcance** | Rama `feature/hu-099`: entidad `RegistroAuditoria` (`ITieneEmpresa`), configuración `RegistroAuditoriaConfiguration` con FK compuesta `(EmpresaId, VinculoEmpresaId)`, interceptor `ProtegerRegistroAuditoriaInterceptor`, migración `AgregarRegistroAuditoriaHu099`, servicio transversal `Auditor` e instrumentación de 23 servicios de M1–M9, permiso `auditoria.listar` (`GET /api/auditoria`), 7 pruebas nuevas (5 en `AuditoriaAccionesTests` y 2 en `AislamientoBaseDatosTests`), vista `/auditoria` (`AuditoriaPage`), botón en `InicioPage`, ruta en `router.tsx`, `historialVolver.ts` y actualización de `10-historias-usuario.md`, `18-contratos-api-mvp.md` y `design-system.md` |
+
+### Qué se decidió y por qué
+
+1. **Inalterabilidad sin triggers SQL:** siguiendo `16-arquitectura-backend-frontend.md`, `RegistroAuditoria` evita triggers en migración; la protección contra `Modified` y `Deleted` recae en `ProtegerRegistroAuditoriaInterceptor` registrado en el `DbContext` (y no se exponen endpoints de escritura).
+2. **Aislamiento multiempresa y atomicidad:** `RegistroAuditoria` implementa `ITieneEmpresa` (filtro global + `AsignarEmpresaInterceptor`) y FK compuesta `(EmpresaId, VinculoEmpresaId)` hacia `VinculoEmpresa`. `Auditor.Registrar` encola la evidencia en la misma unidad de trabajo que la acción de origen: si falla la operación, no queda rastro huérfano.
+3. **Respeto estricto al anonimato (`RN-72`, `D11`) y búsqueda sobre `jsonb`:** nunca se auditan `ResponderEncuesta` ni `ReportarEvento`. En `ListarAuditoriaRepositorio`, la búsqueda de texto libre combina `EF.Functions.ILike` en campos de texto con una subconsulta `FromSqlInterpolated` con cast `"Detalle"::text ILIKE ... ESCAPE '!'` filtrada automáticamente por `HasQueryFilter`, evitando el error de PostgreSQL `jsonb ~~* text`.
+4. **Pendiente al integrar con M9 completo:** en esta rama (basada en `development`) no existe aún `CrearVersionNuevaServicio` de `feature/hu-073`; al integrar ambas ramas conviene agregar su llamada a `Auditor.Registrar`.
+
+### Verificación
+
+- Backend: `dotnet test backend\Norvia.slnx --no-build --disable-build-servers -m:1` → **274/274 pruebas aprobadas** (`Duración: 2 m 1 s`, incluyendo 5 en `AuditoriaAccionesTests` y 2 nuevas en `AislamientoBaseDatosTests`).
+- Frontend: `eslint .`, `tsc -b` y `vite build` → **0 errores** (`built in 1.94s`), más prueba E2E en Google Chrome (`http://localhost:5173/` contra `Norvia.API` y PostgreSQL local con migración aplicada): flujo completo con Responsable SST, Administrador y Colaborador (`9` registros cronológicos reales entre encuestas, riesgos/evaluaciones, documentos, perfil y vínculos; exclusión verificada de reportes anónimos `D11`; filtros por entidad, texto en `Detalle` y rango de fechas en Honduras; enlace cruzado con retorno "Volver a auditoría"; y bloqueo de acceso a rol Colaborador sin errores de consola ni de API).
 
 ---
 

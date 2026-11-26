@@ -1435,8 +1435,9 @@ Las notificaciones son internas de Norvia y por correo (D28). Las historias HU-0
 - Las acciones importantes indican quién las realizó, qué ocurrió, qué información afectaron y cuándo; la empresa se identifica cuando corresponde.
 - La evidencia de las acciones pasadas no puede alterarse durante el uso normal del sistema.
 - Cubre al menos aprobaciones de documentos, cambios de grupo, publicación y cierre de encuestas, y cierre de accidentes.
+- **Nota de implementación:** además del registro automático en `RegistroAuditoria` (M1–M9, omitiendo respuestas de encuestas `RN-72` y reportes anónimos de eventos `D11`), se habilita el endpoint de solo lectura `GET /api/auditoria` y la pantalla `/auditoria` para `admin_empresa` y `responsable_sst`.
 
-**Módulo:** Técnico · **Entrega:** E2 · **Dónde:** No aplica · **Prioridad:** Should · **Depende de:** HU-093 · **Reglas:** ninguna
+**Módulo:** Técnico · **Entrega:** E2 · **Dónde:** No aplica (registro transversal + consulta web `/auditoria`) · **Prioridad:** Should · **Depende de:** HU-093 · **Reglas:** ninguna
 
 ### HU-100 | Configurar el almacenamiento de archivos
 

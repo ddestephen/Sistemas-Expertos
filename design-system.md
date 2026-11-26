@@ -887,6 +887,14 @@ Pantalla `/empresas` para `admin_plataforma` y `soporte_plataforma` al ancho gen
 - **Tabla:** empresa (en celular incluye rubro, fecha de registro y conteo debajo), rubro (`Sin rubro` en secundario si falta), badge de estado (`Activa` éxito, `Suspendida` advertencia, `Inactiva` neutro), fecha de registro y `vinculosActivos` en `tabular-nums`. Nunca muestra datos SST.
 - **Estados:** cargando, vacío inicial, sin resultados para la búsqueda y error con "Reintentar".
 
+### Auditoría de acciones (empresa, HU-099)
+
+Pantalla `/auditoria` de solo lectura para `admin_empresa` y `responsable_sst` al ancho general (`--layout-max-width`), accesible desde Inicio y con `<Volver a="/inicio">`:
+
+- **Filtros:** barra con `Buscar` (con espera de 300 ms tras dejar de escribir), `Módulo / entidad` (`CampoSelect` con opción `Todas`), y rango `Desde` / `Hasta` (`CampoFecha` en hora de Honduras con validación `hasta >= desde`).
+- **Tabla cronológica:** del registro más reciente al más antiguo, mostrando fecha/hora en `tabular-nums`, badge de acción, quién (`actorNombre` y correo) y entidad con enlace directo al elemento afectado cuando aplica y fragmentos legibles del `detalle`.
+- **Paginación y estados:** paginación inferior cuando supera una página, estados de carga, vacío inicial, vacío filtrado con "Quitar filtros" y error con "Reintentar".
+
 ---
 
 ## Pendientes
