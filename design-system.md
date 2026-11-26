@@ -872,6 +872,15 @@ oscuras, como azul marino o grafito), se avisa con la vista previa en modo oscur
 Selector de color o campo hex, carga de logo, **vista previa en vivo**, avisos de ajuste o de
 parecido con los colores de riesgo, y un botón para volver al tema por defecto.
 
+### Empresas registradas (plataforma, HU-024)
+
+Pantalla `/empresas` para `admin_plataforma` y `soporte_plataforma` al ancho general (`--layout-max-width`), con `<Volver a="/inicio">`:
+
+- **Indicadores arriba:** dos `<Indicador>` (`Empresas registradas` y `Personas con acceso vigente`, adaptados cuando hay búsqueda).
+- **Búsqueda:** campo `Buscar` por nombre o rubro con espera tras dejar de escribir.
+- **Tabla:** empresa (en celular incluye rubro, fecha de registro y conteo debajo), rubro (`Sin rubro` en secundario si falta), badge de estado (`Activa` éxito, `Suspendida` advertencia, `Inactiva` neutro), fecha de registro y `vinculosActivos` en `tabular-nums`. Nunca muestra datos SST.
+- **Estados:** cargando, vacío inicial, sin resultados para la búsqueda y error con "Reintentar".
+
 ---
 
 ## Pendientes

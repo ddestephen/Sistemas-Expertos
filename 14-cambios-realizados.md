@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-26 | Jesús Zepeda | **HU-024 completada:** el staff de plataforma (`admin_plataforma` y `soporte_plataforma`) consulta las empresas registradas con su rubro, estado, fecha de registro y personas con acceso vigente, con filtro `?buscar=` y sin datos SST (`RN-05`) | [Ver cambio](#cambio-2026-11-26-hu-024) |
 | 2026-11-25 | Jesús Zepeda | **HU-073 completada (cierre de M9):** el Responsable SST crea una versión nueva en borrador a partir de la vigente sin alterar la publicada (**RN-50**), y tanto el Responsable SST como el admin consultan el historial y el contenido íntegro de las versiones anteriores | [Ver cambio](#cambio-2026-11-25-hu-073) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-074 completada y HU-116 cerrada:** todas las personas de la empresa (también encuestados) consultan las políticas y los procedimientos **vigentes**, los buscan por nombre y los descargan en PDF desde la impresión del navegador; la notificación de una política nueva ya abre su versión vigente | [Ver cambio](#cambio-2026-11-25-hu-074) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-072 completada:** el Responsable SST aprueba el borrador de un documento cuando ya no le faltan datos; queda **vigente** con quién y cuándo, la vigente anterior pasa a reemplazada (**RN-51**) y, si es una política, Norvia avisa a cada vínculo activo en Norvia y por correo (**RN-75**). **RN-49 crece:** no se aprueba con datos por completar | [Ver cambio](#cambio-2026-11-25-hu-072) |
@@ -66,6 +67,27 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-26-hu-024` {#cambio-2026-11-26-hu-024}
+
+| | |
+|---|---|
+| **Quién documentó** | Jesús Zepeda |
+| **Fecha** | 26 de noviembre de 2026 |
+| **Alcance** | Rama `feature/hu-024`: endpoint `GET /api/plataforma/empresas` con permiso `empresa.listar`, slice `ListarEmpresasPlataforma`, pruebas en `ListarEmpresasPlataformaTests`, pantalla `/empresas` y enlace en `/inicio` (`EmpresasRegistradasPage`), y actualización de `10-historias-usuario.md`, `18-contratos-api-mvp.md` y `design-system.md`. No hay migración de BD |
+
+### Qué se decidió y por qué
+
+1. **Filtro global al consultar conteos de plataforma:** `VinculoEmpresa` implementa `ITieneEmpresa`, así que en una sesión de plataforma (`EmpresaIdActual = null`) el filtro global devolvería `0` vínculos. Se aplicó `IgnoreQueryFilters()` justificado exclusivamente en `ListarEmpresasPlataformaRepositorio` para contar vínculos `Activo` agregados por empresa sin leer ninguna tabla SST (`RN-05`).
+2. **Consulta para todo el staff (`admin_plataforma` y `soporte_plataforma`):** alineado con `05-actores-roles.md` y los `GET` de catálogos (`HU-023`), ambos roles ven uso básico de plataforma (`razonSocial`, `rubroNombre`, `estado`, `registradaEn`, `vinculosActivos`); las sesiones de empresa reciben `403`.
+3. **Filtro y métricas en `/empresas`:** `?buscar=` (hasta 100 caracteres) filtra por razón social o rubro, e indicadores arriba muestran total de empresas y total de accesos vigentes.
+
+### Verificación
+
+- Backend: `dotnet test backend\Norvia.slnx` → **270/270 pruebas aprobadas** (incluyendo 3 pruebas nuevas en `ListarEmpresasPlataformaTests`).
+- Frontend: `eslint .`, `tsc -b` y `vite build` → **0 errores**.
 
 ---
 

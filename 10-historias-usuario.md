@@ -1853,8 +1853,8 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
     - Cuando no hay empresas para mostrar, presenta un estado vacío claro en vez de una lista aparentemente incompleta.
 - **Título:** `HU-024 Back — Entregar datos generales permitidos de las empresas`
   - **Criterios de aceptación:**
-    - Devuelve nombre, rubro, fecha de registro y cantidad de personas con acceso vigente para las empresas registradas.
-    - La consulta no incluye información de SST de las empresas y solo está disponible para el rol de Administrador de plataforma autorizado.
+    - Devuelve nombre, rubro, fecha de registro, estado y cantidad de personas con acceso vigente para las empresas registradas.
+    - La consulta no incluye información de SST de las empresas y solo está disponible para el staff de plataforma autorizado (`admin_plataforma` y `soporte_plataforma`).
 
 ### HU-026 | Completar el perfil
 

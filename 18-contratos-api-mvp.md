@@ -160,11 +160,11 @@ Rutas **sin prefijo** (`api/rubros`, `api/peligros`…). Son de alcance **plataf
 
 Los filtros (`?rubroId=`, `?categoriaRiesgoId=`, `?peligroId=`) son opcionales. Las listas incluyen los elementos desactivados, porque son pantallas de mantenimiento. Los catálogos iniciales vienen de HU-097 (`CatalogoBase` y `CatalogoSst`). Cuerpos JSON en el [anexo](#anexo-catalogos).
 
-### HU-024 | Listar empresas (Should)
+### HU-024 | Listar empresas (Should) — ✅
 
-| Método | Ruta | Response | Permiso | Roles | Estado |
-|---|---|---|---|---|---|
-| GET | `api/plataforma/empresas` | `EmpresaResumenResponseDto[]` | `empresa.listar` | `admin_plataforma` | 🚧 |
+| Método | Ruta | Request | Response | Permiso | Roles | Estado |
+|---|---|---|---|---|---|---|
+| GET | `api/plataforma/empresas` | `?buscar=` | `EmpresaResumenResponseDto[]` | `empresa.listar` | `admin_plataforma`, `soporte_plataforma` | ✅ |
 
 ---
 
@@ -375,7 +375,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-023 | GET/POST/PATCH | `/api/peligros`… | JSON | ver catálogos | Catálogos |
 | HU-023 | GET/POST/PATCH | `/api/preguntas`… | JSON | ver catálogos | Catálogos |
 | HU-023 | GET/POST/PATCH | `/api/plantillas`… | JSON | ver catálogos | Catálogos |
-| HU-024 | GET | `/api/plataforma/empresas` | — | array | Catálogos |
+| HU-024 | GET | `/api/plataforma/empresas` | `?buscar=` | `EmpresaResumenResponseDto[]` | Empresas |
 | HU-029 | GET | `/api/encuestas/categorias-disponibles` | — | `CategoriaDisponibleResponseDto[]` | Encuestas |
 | HU-030 | GET | `/api/encuestas` | — | array | Encuestas |
 | HU-030 | POST | `/api/encuestas` | JSON | `EncuestaResponseDto` | Encuestas |
@@ -946,7 +946,7 @@ El lote completo responde **400** solo si `filas` está vacío o tiene más de 5
 
 ### M1 — Catálogos plataforma (HU-023 / HU-024) {#anexo-catalogos}
 
-**Auth:** Bearer de sesión **plataforma**. HU-023 ✅ · HU-024 🚧.
+**Auth:** Bearer de sesión **plataforma**. HU-023 ✅ · HU-024 ✅.
 
 **Convenciones de los catálogos:**
 
@@ -1138,7 +1138,9 @@ Tareas modelo de cada peligro. Con `tipoControl`, Norvia la sugiere como **contr
 
 `PATCH /api/plantillas-tarea/{id}/estado`: `{ "activo": false }`. Desactivada, deja de sugerirse y de proponerse en el plan.
 
-#### `GET /api/plataforma/empresas` (HU-024)
+#### `GET /api/plataforma/empresas?buscar=` (HU-024) — ✅
+
+Para el staff de plataforma (`admin_plataforma` y `soporte_plataforma`). Devuelve las empresas registradas (la más reciente primero), sin datos de SST ni listas de personas (`RN-05`). `buscar` (opcional, hasta 100) filtra sin distinguir mayúsculas por razón social o nombre del rubro. `rubroNombre` es `null` si aún no completó su perfil (`HU-026`) y `vinculosActivos` cuenta solo vínculos en estado `activo`.
 
 ```json
 [
@@ -1146,11 +1148,14 @@ Tareas modelo de cada peligro. Con `tipoControl`, Norvia la sugiere como **contr
     "empresaId": "01933f2a-....",
     "razonSocial": "Distribuidora Norvia S. de R.L.",
     "rubroNombre": "Comercio",
-    "registradaEn": "2026-11-01",
+    "estado": "activa",
+    "registradaEn": "2026-11-01T14:30:00Z",
     "vinculosActivos": 12
   }
 ]
 ```
+
+**Errores:** 400 validación (`Buscar`) · 401 · 403 (`permiso.prohibido` para sesiones de empresa).
 
 ---
 
