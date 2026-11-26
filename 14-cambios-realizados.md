@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-26 | Jesús Zepeda | **HU-034 completada:** historial de encuestas cerradas o con versiones anteriores (`GET /api/encuestas/historial`), resultados históricos por versión (`?versionId=`) y comparación integral entre encuestas o versiones con exposición a peligros (`GET /api/encuestas/comparacion`) respetando `RN-12`, `D8` y `RN-73` | [Ver cambio](#cambio-2026-11-26-hu-034) |
 | 2026-11-26 | Jesús Zepeda | **HU-024 completada:** el staff de plataforma (`admin_plataforma` y `soporte_plataforma`) consulta las empresas registradas con su rubro, estado, fecha de registro y personas con acceso vigente, con filtro `?buscar=` y sin datos SST (`RN-05`) | [Ver cambio](#cambio-2026-11-26-hu-024) |
 | 2026-11-25 | Jesús Zepeda | **HU-073 completada (cierre de M9):** el Responsable SST crea una versión nueva en borrador a partir de la vigente sin alterar la publicada (**RN-50**), y tanto el Responsable SST como el admin consultan el historial y el contenido íntegro de las versiones anteriores | [Ver cambio](#cambio-2026-11-25-hu-073) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-074 completada y HU-116 cerrada:** todas las personas de la empresa (también encuestados) consultan las políticas y los procedimientos **vigentes**, los buscan por nombre y los descargan en PDF desde la impresión del navegador; la notificación de una política nueva ya abre su versión vigente | [Ver cambio](#cambio-2026-11-25-hu-074) |
@@ -67,6 +68,27 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-26-hu-034` {#cambio-2026-11-26-hu-034}
+
+| | |
+|---|---|
+| **Quién documentó** | Jesús Zepeda |
+| **Fecha** | 26 de noviembre de 2026 |
+| **Alcance** | Rama `feature/hu-034`: permisos `encuesta.historial` y `encuesta.comparar`, helper compartido `AgregadorReporteVersion`, slices `ListarHistorialEncuestas` y `CompararEncuestas`, soporte de `?versionId=` en `ObtenerReporteEncuesta`, `versionesPublicadas` en `ObtenerEncuesta`, 5 pruebas de integración en `HistorialYComparacionEncuestasTests`, vistas web `/encuestas/historial`, `/encuestas/comparar` y selector histórico en `/encuestas/:id/resultados`, más actualización de `18-contratos-api-mvp.md` y `design-system.md`. Sin migración de BD |
+
+### Qué se decidió y por qué
+
+1. **Alcance de historial vs comparación (`D8`, `RN-12`):** `GET /api/encuestas/historial` lista por defecto encuestas cerradas o con versiones reemplazadas, mostrando fechas, categorías, versiones y respuestas anónimas (con filtro `?buscar=` por título o categoría). El parámetro `?incluirVigentes=true` permite que `/encuestas/comparar` contraste una encuesta cerrada previa contra una encuesta vigente actual (`v1` publicada) además de versiones anteriores dentro de una misma encuesta.
+2. **Reporte por versión y emparejamiento sin alterar respuestas pasadas:** `GET /api/encuestas/{id}/reporte?versionId=` acepta versiones `publicada` o `reemplazada` (rechaza borradores con `409`). En `/api/encuestas/comparacion`, al tener cada copia sus propios UUID (`RN-12`), las preguntas de selección se emparejan en dos pasadas (por `PreguntaExploratoriaId` + tipo, y luego por texto normalizado + tipo) y sus opciones por texto normalizado; además calcula la exposición por peligro en cada versión y conserva los estados de `RiesgoEmpresa` (`sugerido` / `confirmado` / `descartado`).
+3. **Privacidad (`RN-73`) y anonimato (`RN-72`):** si cualquiera de las versiones comparadas o consultadas tiene menos de 3 respuestas anónimas, se ocultan las distribuciones y porcentajes de exposición.
+
+### Verificación
+
+- Backend: `dotnet test backend\Norvia.slnx --no-build --disable-build-servers -m:1` → **272/272 pruebas aprobadas** (incluidas 5 pruebas nuevas en `HistorialYComparacionEncuestasTests`).
+- Frontend: `eslint .`, `tsc -b` y `vite build` → **0 errores** (`built in 1.94s`), más verificación E2E en Google Chrome (`Responsable SST` y bloqueo a `Colaborador`, conservando `replace: true` al cambiar de versión o comparar).
 
 ---
 

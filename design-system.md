@@ -674,8 +674,14 @@ Los resultados anónimos de una encuesta: indicadores arriba y, debajo, una sola
 | Teclado | Cada fila es enfocable y se anuncia con su cifra ("Siempre: 6 respuestas, 50 %"); el hover y el foco la resaltan con `--color-bg-subtle` |
 | Celular | La barra baja debajo del nombre y la cifra, a todo el ancho |
 | Peligros sugeridos | Card propia entre los indicadores y el detalle. Por peligro: nombre, badge de estado, "Lo indican N de T respuestas · %" con la misma barra, y las preguntas que lo originaron con su cifra. Orden por respaldo. Con menos de 3 respuestas, una línea en `--color-text-secondary` (no un segundo aviso). Si falla su carga, el resto de los resultados se sigue viendo |
+| Versión histórica (HU-034) | Si la encuesta tiene versiones anteriores reemplazadas, barra superior sobre los indicadores con selector de versión (`?version=`) y enlace "Comparar versiones" |
 
 No se usan tortas ni donas: las barras sobre una misma base se comparan mejor.
+
+### Encuestas anteriores y comparación (HU-034)
+
+- **Historial (`/encuestas/historial`):** al ancho general (`--layout-max-width`), `<Volver a="/encuestas">`, buscador con espera de 300 ms por título o categoría, botón principal "Comparar resultados", estados vacío inicial / sin resultados / error con "Reintentar", y tabla con título (enlazado a resultados), badges de estado y versiones, categorías, fecha (`Cerrada` o `Última versión publicada`), respuestas/participantes en `tabular-nums` y accesos directos ("Resultados y peligros", "Comparar"). En celular resume fecha, categorías y acciones debajo del título.
+- **Comparación (`/encuestas/comparar`):** selectores de periodo Base (A) y Comparar con (B) sincronizados con `?base=` y `?comparar=` (con botón "Intercambiar"), tarjetas resumen A vs B, aviso `RN-73` cuando cualquiera tenga menos de 3 respuestas, comparativa de peligros sugeridos por versión y barras comparativas emparejadas por opción (`--color-text-tertiary` para Base A y `--color-dato-serie` para Comparada B, sobre pista `--color-dato-pista`), con variación en puntos porcentuales (`Δ pp`), aviso para respuestas breves y bloque aparte para preguntas sin par.
 
 ### Estadísticas de eventos
 

@@ -212,13 +212,13 @@ Ya hay **ejemplo** en catálogo para encuestado:
 
 **ResponderEncuestaRequestDto:** `versionId`, lista `{ preguntaId, valor }` según tipo (texto / opción / múltiple).
 
-### HU-032 | Reporte anónimo (Must)
+### HU-032 | Reporte anónimo (Must) — ✅
 
 | Método | Ruta | Response | Permiso | Roles | Estado |
 |---|---|---|---|---|---|
-| GET | `api/encuestas/{id}/reporte` | `ReporteEncuestaResponseDto` | `encuesta.reporte` | `responsable_sst` | 🚧 |
+| GET | `api/encuestas/{id}/reporte` | `ReporteEncuestaResponseDto` | `encuesta.reporte` | `admin_empresa`, `responsable_sst` | ✅ |
 
-Regla RN-73: mínimo 3 respuestas para mostrar agregados sensibles.
+Acepta `?versionId=` opcional para consultar el reporte de una versión reemplazada (`RN-12`, `D8`). Regla RN-73: mínimo 3 respuestas para mostrar agregados sensibles.
 
 ### HU-033 | Peligros sugeridos — ✅
 
@@ -227,6 +227,15 @@ Regla RN-73: mínimo 3 respuestas para mostrar agregados sensibles.
 | GET | `api/encuestas/{id}/peligros-sugeridos` | `PeligrosSugeridosResponseDto` | `encuesta.peligros_sugeridos` | `admin_empresa`, `responsable_sst` | ✅ |
 
 Calcula las sugerencias a partir de las respuestas de todas las versiones y registra cada peligro nuevo una sola vez como `RiesgoEmpresa` `sugerido`, que luego se revisa en HU-035. Detalle en el [anexo](#anexo-hu-033).
+
+### HU-034 | Consultar encuestas anteriores (Should) — ✅
+
+| Método | Ruta | Request | Response | Permiso | Roles | Estado |
+|---|---|---|---|---|---|---|
+| GET | `api/encuestas/historial` | `FiltrosHistorialEncuestasDto` (`?buscar=`, `?incluirVigentes=`) | `EncuestaHistorialResponseDto[]` | `encuesta.historial` | `admin_empresa`, `responsable_sst` | ✅ |
+| GET | `api/encuestas/comparacion` | `CompararEncuestasRequestDto` (`baseVersionId`, `compararVersionId`) | `ComparacionEncuestasResponseDto` | `encuesta.comparar` | `admin_empresa`, `responsable_sst` | ✅ |
+
+Además, `GET api/encuestas/{id}` incluye `versionesPublicadas` (`VersionEncuestaResumenResponseDto[]`) para alternar entre versiones desde los resultados.
 
 ---
 
@@ -383,10 +392,11 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-030 | PUT | `/api/encuestas/{id}/borrador` | JSON | `EncuestaVersionResponseDto` | Encuestas |
 | HU-030 | POST | `/api/encuestas/{id}/versiones/{versionId}/publicacion` | — | JSON | Encuestas |
 | HU-030 | POST | `/api/encuestas/{id}/cierre` | — | 204 | Encuestas |
-| HU-034 | GET | `/api/encuestas/historial` | — | array | Encuestas |
+| HU-034 | GET | `/api/encuestas/historial` | `?buscar=&incluirVigentes=` | `EncuestaHistorialResponseDto[]` | Encuestas |
+| HU-034 | GET | `/api/encuestas/comparacion` | `baseVersionId`, `compararVersionId` | `ComparacionEncuestasResponseDto` | Encuestas |
 | HU-031 | GET | `/api/encuestas/pendientes` | — | array | Encuestado |
 | HU-031 | POST | `/api/encuestas/{id}/respuestas` | JSON | 204/JSON | Encuestado |
-| HU-032 | GET | `/api/encuestas/{id}/reporte` | — | JSON | Reporte |
+| HU-032 | GET | `/api/encuestas/{id}/reporte` | `?versionId=` (opcional) | `ReporteEncuestaResponseDto` | Reporte |
 | HU-033 | GET | `/api/encuestas/{id}/peligros-sugeridos` | — | `PeligrosSugeridosResponseDto` | Reporte |
 | HU-035 | PATCH | `/api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | JSON | `PeligroSugeridoRevisadoResponseDto` | Riesgos |
 | HU-036 | GET | `/api/riesgos` | — | `RiesgoResponseDto[]` | Riesgos |
@@ -1159,7 +1169,7 @@ Para el staff de plataforma (`admin_plataforma` y `soporte_plataforma`). Devuelv
 
 ---
 
-### M3 — Encuestas (HU-029 a HU-034) — 🚧
+### M3 — Encuestas (HU-029 a HU-034) — ✅
 
 #### `GET /api/encuestas` (listado Responsable SST)
 
@@ -1178,11 +1188,15 @@ Para el staff de plataforma (`admin_plataforma` y `soporte_plataforma`). Devuelv
 ]
 ```
 
-#### `GET /api/encuestas/historial` (HU-034)
+#### `GET /api/encuestas/historial?buscar=&incluirVigentes=` (HU-034) — ✅
 
-Mismas encuestas **cerradas** o con versiones anteriores, para comparar periodos.
+**Auth:** Bearer de sesión de empresa, rol `admin_empresa` o `responsable_sst`.
 
-**Response 200:**
+- Por defecto devuelve las encuestas **cerradas** o **publicadas con al menos una versión reemplazada**, ordenadas de la más reciente a la más antigua (`cerradaEn ?? ultimaPublicacionEn ?? creadaEn`).
+- `?buscar=` (máx. 100 caracteres) filtra sin distinguir mayúsculas ni tildes parciales por título de encuesta o nombre de categoría.
+- `?incluirVigentes=true` incluye también encuestas publicadas en su primera versión para poblar el selector de comparación.
+
+**Response 200** — `EncuestaHistorialResponseDto[]`:
 
 ```json
 [
@@ -1190,11 +1204,35 @@ Mismas encuestas **cerradas** o con versiones anteriores, para comparar periodos
     "id": "01934100-....",
     "titulo": "Diagnóstico 2025",
     "estado": "cerrada",
+    "creadaEn": "2025-11-01T08:00:00Z",
     "cerradaEn": "2025-12-01T18:00:00Z",
-    "resumen": { "participaciones": 40, "respuestasAnonimas": 40 }
+    "ultimaPublicacionEn": "2025-11-02T09:00:00Z",
+    "categorias": ["Riesgos ergonómicos"],
+    "resumen": { "participaciones": 40, "respuestasAnonimas": 40 },
+    "versiones": [
+      {
+        "id": "01934101-....",
+        "numeroVersion": 1,
+        "estado": "publicada",
+        "publicadaEn": "2025-11-02T09:00:00Z",
+        "totalRespuestasAnonimas": 40,
+        "categorias": ["Riesgos ergonómicos"]
+      }
+    ]
   }
 ]
 ```
+
+#### `GET /api/encuestas/comparacion?baseVersionId=...&compararVersionId=...` (HU-034) — ✅
+
+**Auth:** Bearer de sesión de empresa, rol `admin_empresa` o `responsable_sst`.
+
+Compara dos versiones publicadas o cerradas (`publicada` o `reemplazada`, nunca `borrador`) de una misma encuesta o de encuestas distintas de la empresa:
+
+- **Emparejamiento:** preguntas de selección emparejadas primero por `PreguntaExploratoriaId` + tipo de respuesta y luego por texto normalizado + tipo; opciones emparejadas por texto normalizado en unión ordenada; las preguntas sin par pasan a `preguntasSoloBase` / `preguntasSoloComparar`.
+- **Peligros comparados:** calcula la exposición por versión sobre las respuestas propias de cada versión (`RN-12`) e informa `estadoEnEncuestaBase` y `estadoEnEncuestaComparar`.
+- **RN-73:** si cualquiera de las dos versiones tiene menos de 3 respuestas anónimas, devuelve `comparacionOculta: true` y listas vacías de preguntas y peligros.
+- **Errores:** `400` si falta un parámetro o son iguales (`comparacion`), `404` si una versión no existe o es de otra empresa, `409 encuestas.version_sin_publicar` si alguna versión es un borrador.
 
 #### `GET /api/encuestas/categorias-disponibles` (HU-029) — ✅ {#anexo-hu-029}
 
@@ -1409,9 +1447,9 @@ Solo encuestas `publicada`, no respondidas por este vínculo.
 
 ---
 
-### M3 — Reporte y sugerencias (HU-032, HU-033) — 🚧
+### M3 — Reporte y sugerencias (HU-032, HU-033) — ✅
 
-#### `GET /api/encuestas/{id}/reporte`
+#### `GET /api/encuestas/{id}/reporte?versionId=` (HU-032, HU-034) — ✅
 
 **Response 200** — `ReporteEncuestaResponseDto`
 
@@ -1422,6 +1460,7 @@ Solo encuestas `publicada`, no respondidas por este vínculo.
   "totalRespuestasAnonimas": 28,
   "periodoDesde": "2026-11-01",
   "periodoHasta": "2026-11-15",
+  "detalleOculto": false,
   "preguntas": [
     {
       "preguntaId": "01934110-....",
@@ -1429,13 +1468,18 @@ Solo encuestas `publicada`, no respondidas por este vínculo.
       "tipoRespuesta": "seleccion_unica",
       "distribucion": [
         { "opcionId": "01934111-....", "etiqueta": "Siempre", "cantidad": 20, "porcentaje": 71.4 }
-      ]
+      ],
+      "textosBreves": null
     }
-  ]
+  ],
+  "versionId": "01934101-....",
+  "numeroVersion": 1,
+  "estadoVersion": "publicada"
 }
 ```
 
-Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distribuciones sensibles (RN-73).
+- Sin `?versionId`, consulta la versión `publicada` vigente. Con `?versionId`, consulta esa versión (`publicada` o `reemplazada`); rechaza borradores con `409 encuestas.version_sin_publicar` y versiones inexistentes con `404 encuestas.version_no_encontrada`.
+- Si `totalRespuestasAnonimas < 3`: **200** con `detalleOculto: true` y sin distribuciones sensibles (RN-73).
 
 #### `GET /api/encuestas/{id}/peligros-sugeridos` (HU-033) — ✅ {#anexo-hu-033}
 
