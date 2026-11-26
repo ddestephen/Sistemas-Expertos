@@ -256,6 +256,7 @@ Además, `GET api/encuestas/{id}` incluye `versionesPublicadas` (`VersionEncuest
 | HU-039 | GET | `api/riesgos/{id}/controles/sugeridos` | — | `ControlSugeridoResponseDto[]` | `riesgo.control.sugeridos` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-039 | POST | `api/riesgos/{id}/controles` | `CrearControlRequestDto` | 201 `ControlResponseDto` | `riesgo.control.crear` | `admin_empresa`, `responsable_sst` | ✅ |
 | HU-035 | PATCH | `api/encuestas/{id}/peligros-sugeridos/{riesgoId}` | `RevisarPeligroSugeridoRequestDto` | `PeligroSugeridoRevisadoResponseDto` | `encuesta.peligro_sugerido.revisar` | `admin_empresa`, `responsable_sst` | ✅ |
+| HU-075 | GET | `api/riesgos/matriz/reporte` | — | `ReporteMatrizResponseDto` | `riesgo.matriz.reporte` | `admin_empresa`, `responsable_sst` | ✅ |
 
 ---
 
@@ -283,7 +284,7 @@ Además, `GET api/encuestas/{id}` incluye `versionesPublicadas` (`VersionEncuest
 | HU-044 | GET | `api/plan-trabajo/tareas/mias` | Mis tareas (permiso `tarea.mias`; también `colaborador`) | ✅ |
 | HU-044 | PATCH | `api/plan-trabajo/tareas/{id}/estado` | Cambiar el estado (permiso `tarea.estado`; también `colaborador`, con RN-24 en la aplicación) | ✅ |
 | HU-045 | POST | `api/plan-trabajo/tareas/{id}/evidencias` | Adjuntar evidencia | 🚧 |
-| HU-075 | GET | `api/riesgos/matriz/pdf` | Impresión matriz (M10) | 🚧 |
+| HU-075 | GET | `api/riesgos/matriz/reporte` | Reporte consolidado de la matriz para imprimir o guardar en PDF al vuelo (`riesgo.matriz.reporte`: `admin_empresa`, `responsable_sst`) | ✅ |
 
 ---
 
@@ -417,7 +418,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-040 | POST | `/api/riesgos/{id}/evaluaciones-residual` | JSON | `EvaluacionResponseDto` | Riesgos |
 | HU-041 | GET | `/api/riesgos/{id}/evaluaciones` | — | `EvaluacionResponseDto[]` | Riesgos |
 | HU-038 | GET | `/api/riesgos/matriz` | — | JSON | Riesgos |
-| HU-075 | GET | `/api/riesgos/matriz/pdf` | — | PDF | Riesgos |
+| HU-075 | GET | `/api/riesgos/matriz/reporte` | — | `ReporteMatrizResponseDto` | Riesgos |
 | HU-039 | POST | `/api/riesgos/{id}/controles` | JSON | `ControlResponseDto` | Riesgos |
 | HU-039 | GET | `/api/riesgos/{id}/controles` | — | array | Riesgos |
 | HU-039 | GET | `/api/riesgos/{id}/controles/sugeridos` | — | array | Riesgos |
@@ -1841,11 +1842,49 @@ Agrega un control propio o acepta una sugerencia, tal cual o editada (tipo y des
 
 **Response 200:** `ControlResponseDto[]`, del más efectivo al menos efectivo y, dentro de cada tipo, del más antiguo al más reciente. **404** `riesgos.no_encontrado`.
 
-#### `GET /api/riesgos/matriz/pdf` (HU-075)
+#### `GET /api/riesgos/matriz/reporte` (HU-075) — ✅
 
-**Response 200:** `Content-Type: application/pdf` (bytes, sin JSON).
+Devuelve al momento (sin guardar nada) los datos empresariales del perfil, `generadoEn` del servidor, el resumen y mapa de calor 5 × 5 (`matriz`) y **todos los riesgos confirmados** ordenados del nivel inicial más alto al más bajo con su última evaluación inicial, última residual y la lista completa de controles ordenada según `RN-21`. El navegador genera la vista imprimible o descarga en PDF mediante `window.print()` (`16-arquitectura §9`).
 
-**Request:** sin cuerpo; header `Accept: application/pdf` recomendado.
+```json
+{
+  "generadoEn": "2026-11-26T18:10:00Z",
+  "empresa": {
+    "razonSocial": "Industrias Norvia Demo S. de R.L.",
+    "rtn": "08012026748392",
+    "rubroNombre": "Comercio",
+    "actividadEconomica": "Venta al detalle",
+    "direccion": "Blvd. Suyapa",
+    "trabajadoresPermanentes": 30,
+    "fechaInicioOperaciones": "2020-01-15"
+  },
+  "matriz": {
+    "total": 1,
+    "sinEvaluar": 0,
+    "altosSinControl": 0,
+    "celdas": [{ "probabilidad": 4, "severidad": 5, "nivel": 20, "clasificacion": "critico", "cantidad": 1 }]
+  },
+  "riesgos": [
+    {
+      "id": "0193a100-...",
+      "peligroId": "0193a000-...",
+      "peligroNombre": "Cableado expuesto",
+      "peligroClasificacion": "electrico",
+      "descripcionPeligro": null,
+      "actividad": "Tablero eléctrico",
+      "encuestaId": null,
+      "encuestaTitulo": null,
+      "accidenteId": null,
+      "creadoEn": "2026-11-26T18:00:00Z",
+      "evaluacion": { "...": "EvaluacionResponseDto" },
+      "evaluacionResidual": { "...": "EvaluacionResponseDto" },
+      "controles": [{ "...": "ControlResponseDto" }]
+    }
+  ]
+}
+```
+
+**Errores:** 401 · 403 (`colaborador` / `encuestado`).
 
 ---
 

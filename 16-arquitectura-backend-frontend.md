@@ -302,7 +302,7 @@ src/
 6. **Contenido de documentos en Markdown** (plantillas y versiones, M9): se muestra con `ContenidoDocumento` (`shared/documentos/`), que convierte Markdown a elementos de React **sin interpretar HTML crudo** (nada de `dangerouslySetInnerHTML`), con los estilos del design system (§ Documento).
    - **Lector propio, sin dependencia:** `shared/documentos/markdown.ts` entiende solo lo que usan las políticas y los procedimientos (títulos `#` a `###`, párrafos, listas con viñetas o numeradas, `**negrita**` y `*cursiva*`) y además los `[Completar: …]`, que se resaltan. Lo demás se muestra como texto.
    - **La lista de marcadores** está en `shared/documentos/marcadores.ts`, igual que en el backend (`Features/Documentos/Marcadores.cs`); la usa la ayuda del editor de plantillas (HU-023).
-   - El editor del borrador (HU-071) es un área de texto con vista previa, y el PDF de HU-074 sale de imprimir esa vista.
+   - El editor del borrador (HU-071) es un área de texto con vista previa, y el PDF de HU-074 (y el reporte apaisado de la matriz de riesgos en HU-075) salen de imprimir la vista preparada con `@media print` sin almacenar archivos en servidor.
 
 ## 10. Checklist para cada PR
 

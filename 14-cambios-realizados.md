@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-26 | Jesús Zepeda | **HU-075 completada:** reporte consolidado `GET /api/riesgos/matriz/reporte` (`riesgo.matriz.reporte`, `ArmadorMatriz`) y vista imprimible apaisada `/riesgos/imprimir` para imprimir o guardar en PDF al vuelo sin guardar archivos (`art. 47.b`, `RN-52`) | [Ver cambio](#cambio-2026-11-26-hu-075) |
 | 2026-11-26 | Jesús Zepeda | **HU-099 completada:** tabla `RegistroAuditoria` inalterable (Code-First + `ProtegerRegistroAuditoriaInterceptor` sin triggers SQL), instrumentación transaccional en M1–M9 (omitiendo acciones anónimas `RN-72`/`D11`), consulta `GET /api/auditoria` (`auditoria.listar`) y vista web `/auditoria` | [Ver cambio](#cambio-2026-11-26-hu-099) |
 | 2026-11-26 | Jesús Zepeda | **HU-034 completada:** historial de encuestas cerradas o con versiones anteriores (`GET /api/encuestas/historial`), resultados históricos por versión (`?versionId=`) y comparación integral entre encuestas o versiones con exposición a peligros (`GET /api/encuestas/comparacion`) respetando `RN-12`, `D8` y `RN-73` | [Ver cambio](#cambio-2026-11-26-hu-034) |
 | 2026-11-26 | Jesús Zepeda | **HU-024 completada:** el staff de plataforma (`admin_plataforma` y `soporte_plataforma`) consulta las empresas registradas con su rubro, estado, fecha de registro y personas con acceso vigente, con filtro `?buscar=` y sin datos SST (`RN-05`) | [Ver cambio](#cambio-2026-11-26-hu-024) |
@@ -69,6 +70,27 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-26-hu-075` {#cambio-2026-11-26-hu-075}
+
+| | |
+|---|---|
+| **Quién documentó** | Jesús Zepeda |
+| **Fecha** | 26 de noviembre de 2026 |
+| **Alcance** | Rama `feature/hu-075`: helper compartido `ArmadorMatriz` reutilizado por `ObtenerMatrizServicio` y `ObtenerReporteMatrizServicio`, slice `ObtenerReporteMatriz` (`GET /api/riesgos/matriz/reporte` con permiso `riesgo.matriz.reporte`), `RiesgosController`, 3 pruebas en `ReporteMatrizTests`, tipos/API de `riesgos`, `<LeyendaNiveles />` y modo `soloLectura` en `MapaMatriz`, botón **"Imprimir o descargar PDF"** en `RiesgosPage`, pantalla `/riesgos/imprimir` (`ImprimirMatrizPage`), hoja apaisada `@page matriz` y `@media print` en `index.css`, `router.tsx`, `historialVolver.ts` y actualización de `18-contratos-api-mvp.md`, `16-arquitectura-backend-frontend.md` y `design-system.md`. No requiere migración de BD |
+
+### Qué se decidió y por qué
+
+1. **Endpoint consolidado + impresión web (`16-arquitectura §9`, `HU-074`):** en lugar de añadir dependencias nativas pesadas de PDF en .NET ni hacer N+1 peticiones desde React para leer controles, `GET /api/riesgos/matriz/reporte` entrega en una sola consulta al vuelo la fecha del servidor (`IReloj`), el perfil de la empresa, el mapa de calor 5 × 5 (`ArmadorMatriz`) y todos los riesgos `confirmado` con su última evaluación inicial, última residual y controles ordenados según `RN-21`.
+2. **Matriz oficial completa y permisos M4 (`RN-05`, `RN-18`):** accesible para `admin_empresa` y `responsable_sst` (`403` para `colaborador` y `encuestado`). Incluye siempre todos los riesgos `confirmado` (excluyendo `sugerido`, `descartado` y filtros temporales de pantalla).
+3. **Impresión apaisada aislada (`@page matriz`):** `/riesgos/imprimir` aplica `page: matriz` (`size: landscape; margin: 12mm`) con `print-color-adjust: exact` para `.cuadro-riesgo`, `.insignia` y celdas del mapa sin alterar la orientación vertical de `HU-074` (`DocumentoVigentePage`).
+
+### Verificación
+
+- Backend: `dotnet test backend\Norvia.slnx --no-build --disable-build-servers -m:1` → **270/270 pruebas aprobadas** (`Duración: 2 m 3 s`, incluidas 3 pruebas nuevas en `ReporteMatrizTests`).
+- Frontend: `eslint .`, `tsc -b` y `vite build` → **0 errores** (`built in 1.94s`), más prueba E2E en Google Chrome (`http://localhost:5173/` contra `Norvia.API` y PostgreSQL local): verificación con Responsable SST, Administrador de empresa y Colaborador sobre `/riesgos` → `/riesgos/imprimir` (`GET /api/riesgos/matriz/reporte` `200 OK`, exclusión de 10 riesgos no confirmados, controles ordenados por jerarquía `RN-21` tras alta inversa, evaluación inicial/residual, retorno a `/riesgos` y bloqueo al Colaborador sin errores de consola/API; emulación CSS `@media print` verificada por inspección del código al no estar expuesta en Chrome DevTools MCP).
 
 ---
 

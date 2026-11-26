@@ -769,6 +769,8 @@ La matriz de probabilidad × severidad, de 5 × 5. Se usa en tres lugares:
 | Celular | El título "Probabilidad" pasa arriba del mapa, en horizontal; así cabe en 390px sin reducir las celdas de 44px |
 | Impresión | Se imprimen los colores (`print-color-adjust: exact`); el número y la leyenda permiten leerla en blanco y negro |
 
+- **Impresión / PDF de la matriz (HU-075):** desde `/riesgos` el botón secundario "Imprimir o descargar PDF" abre `/riesgos/imprimir`, con encabezado oficial (datos de empresa y fecha de generación de Honduras), mapa de calor 5 × 5 en solo lectura con su leyenda, tabla completa de riesgos confirmados (peligro, actividad, evaluación inicial, residual y controles) y botón principal "Imprimir / Guardar PDF" (`window.print()`). En impresión usa página apaisada aislada (`@page matriz { size: landscape; margin: 12mm; }`), conserva colores de celdas, `.cuadro-riesgo` e insignias (`print-color-adjust: exact`) y oculta controles de navegación (`.no-imprimir`) sin afectar la orientación vertical de `HU-074`.
+
 **Guía visual:** `documentacion-proyecto-final/design-system/index.html` muestra cada decisión con su ejemplo,
 anotaciones superpuestas (activables) y todos los estados. Usa exactamente estas variables.
 Sus estilos están en `design-system.css` y su comportamiento en `design-system.js`, en la misma carpeta.
