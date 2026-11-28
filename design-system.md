@@ -186,6 +186,7 @@ Los cuatro niveles de RN-16, con nivel = probabilidad × severidad (RN-15). Es e
 | `--font-size-lg` | `20px` |
 | `--font-size-xl` | `24px` |
 | `--font-size-2xl` | `30px` |
+| `--font-size-3xl` | `40px` (solo Portada) |
 
 No se usan bold (700) ni light (300).
 
@@ -195,6 +196,7 @@ Se nombran por función, no por tamaño.
 
 | Estilo | Tamaño / interlineado | Peso | Uso |
 |---|---|---|---|
+| Portada | 40 / 48 | Semibold | Solo el título de la portada de la landing (Título 1 en celular). Agregado el 28-11-2026 |
 | Display | 30 / 36 | Semibold | KPIs grandes |
 | Título 1 | 24 / 32 | Semibold | Título de página (20/28 en celular) |
 | Título 2 | 20 / 28 | Semibold | Secciones |
@@ -735,25 +737,27 @@ el menú, no en el inicio.
 
 ### Landing
 
-La página pública de `/` (aprobada el 28-11-2026, versión 3): explica qué problema resuelve Norvia, cómo funciona y qué
-cubre del reglamento, para que una empresa decida registrarse. Es la única pantalla pública que no usa la barra del
-layout público.
+La página pública de `/`: explica qué problema resuelve Norvia, cómo funciona y qué cubre del reglamento, para que una
+empresa decida registrarse. Textos aprobados en la versión 3; composición rehecha en la versión 4 (28-11-2026), porque la
+anterior no transmitía profesionalismo ni confianza. Es la única pantalla pública que no usa la barra del layout público.
 
 | Parte | Decisión |
 |---|---|
-| Barra | La misma altura y fondo que la barra pública: "Norvia" (lleva a `/`), enlaces a las secciones ("Cómo funciona", "Qué cubre", "Privacidad", "Preguntas") en Label `--color-text-secondary`, y a la derecha el botón secundario "Iniciar sesión". En celular quedan "Norvia" y el botón |
-| Portada | Título en Display (30/36; Título 1 en celular), una línea en Cuerpo grande secundario, botón principal "Registrar mi empresa" y el link "Ver cómo funciona" (`arrow-down`). A la derecha, una vista del producto armada con componentes reales: mapa de calor de muestra y una tarea del plan (`--shadow-2`), no una foto de archivo |
-| Franjas | Las secciones alternan `--color-bg-canvas` y `--color-bg-surface` (con borde arriba y abajo), de borde a borde; el contenido queda en `--layout-max-width` con el margen lateral de siempre. `--space-16` arriba y abajo (`--space-12` en celular) |
-| Secciones | El problema (tres puntos con ícono de 32 px), cómo funciona (cinco pasos numerados en una fila, apilados en celular), qué cubre (una frase sobre el acuerdo STSS-053-04 y la aclaración de ISO 45001), para cada persona (tres cards), privacidad (tres garantías con `circle-check` en `--color-success-icon`), preguntas frecuentes (desplegables) y cierre |
-| Títulos de sección | Título 2, sin etiquetas encima |
-| Preguntas frecuentes | Columna de `--layout-max-width-narrow` centrada en su franja (el título va dentro de la columna) |
-| Pie | "Norvia" y "Seguridad y salud en el trabajo para empresas hondureñas · 2026", en Caption |
-| Con sesión iniciada | La portada cambia el botón por el aviso info "Ya entraste a {empresa} como {rol}", el botón principal "Ir a mi inicio" y la nota para entrar a otra empresa. La barra y el cierre también dicen "Ir a mi inicio" |
+| Barra | La misma altura y fondo que la barra pública: "Norvia" (Título 2, lleva a `/`), enlaces a las secciones en Label `--color-text-secondary` (desde 1024 px), y a la derecha "Iniciar sesión" (secundario) y "Registrar mi empresa" (principal, desde 640 px). Con sesión, solo "Ir a mi inicio" (secundario) |
+| Portada | Fondo `--color-bg-surface`. Título en **Portada** (40/48; Título 1 en celular), una línea en Cuerpo grande secundario y dos botones: "Registrar mi empresa" (principal) y "Ver cómo funciona" (secundario). A la derecha, la vista de la app real: el menú y el inicio con lo pendiente (§ Inicio), con `--radius-xl` y `--shadow-3`. El color de riesgo queda solo en su etiqueta; no hay mapa de calor en la portada |
+| Franja de respaldo | Bajo la portada, cuatro elementos con ícono en cuadro neutro: "Acuerdo STSS-053-04 · Reglamento hondureño", "ISO 45001 · Prepara a tu empresa", "Respuestas anónimas · Sin nombre de quién responde", "Cada empresa ve lo suyo · Datos separados" |
+| Ícono de tarjeta | Ícono de 20 px en un cuadro de 40 px (`--space-8` + `--space-2`) con `--color-bg-subtle`, borde `--color-border-default` y `--radius-lg` |
+| Títulos de sección | Título 1 (24/32), centrados, sin etiquetas encima; el texto de apoyo centrado debajo |
+| Secciones | El problema (tres tarjetas), cómo funciona (cinco pasos con número en círculo de 40 px unidos por una línea `--color-border-strong`: horizontal en escritorio, vertical en celular), qué cubre (texto a la izquierda y un "sello" con las dos normas a la derecha), para cada persona (tres tarjetas con `circle-check`), privacidad (texto y tres garantías en tarjetas) y preguntas frecuentes |
+| Preguntas frecuentes | Columna de `--layout-max-width-narrow` centrada, separadas por líneas `--color-border-default`, sin cards |
+| Franjas | Las secciones alternan `--color-bg-canvas` y `--color-bg-surface` (con borde arriba y abajo), de borde a borde; el contenido en `--layout-max-width`. `--space-16` arriba y abajo (`--space-12` en celular) |
+| Cierre | Card enmarcada (`--radius-xl`, `--shadow-1`) con Display (Título 1 en celular), "Registrar mi empresa" (principal) e "Iniciar sesión" (secundario) |
+| Pie | Fondo `--color-bg-surface` con columnas: la marca y una línea, "Producto" (enlaces a las secciones) y "Cuenta" (iniciar sesión y registrar); debajo, "© 2026 Norvia" |
+| Con sesión iniciada | La portada cambia los botones por el aviso info "Ya entraste a {empresa} como {rol}", el botón principal "Ir a mi inicio" y la nota para entrar a otra empresa. La barra, el cierre y el pie también dicen "Ir a mi inicio" |
 
 - **Solo promete lo que está en alcance:** sin precios (no hay planes de pago), sin testimonios ni cifras de clientes,
   y solo con lo que el reglamento pide y Norvia cubre.
-- **Un solo botón principal por sección:** la portada y el cierre repiten la acción principal porque son secciones
-  distintas; la barra usa un botón secundario.
+- **Un solo botón principal por sección:** la barra, la portada y el cierre son secciones distintas.
 
 ### Mis tareas
 

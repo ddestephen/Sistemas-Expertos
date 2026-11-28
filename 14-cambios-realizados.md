@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Landing, versión 4:** misma copia con otra composición para transmitir profesionalismo y confianza (vista de la app en lugar del mapa de calor, franja de respaldo con el reglamento e ISO 45001, títulos centrados, tarjetas con íconos, pasos conectados, cierre enmarcado y pie con columnas) y un estilo tipográfico nuevo, Portada (40/48), solo para el título de la landing | [Ver cambio](#cambio-2026-11-28-landing-v4) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Contenido centrado junto al menú:** en el layout de sesión, cada pantalla se centra en el área a la derecha del menú en lugar de alinearse a la izquierda, y las preguntas frecuentes de la landing van en una columna centrada; en pantallas anchas quedaba un espacio vacío grande de un solo lado | [Ver cambio](#cambio-2026-11-28-contenido-centrado) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Acceso (navegación, lote 6):** la landing nueva aprobada (qué resuelve Norvia, cómo funciona, qué cubre, privacidad y preguntas frecuentes), con su propia barra y una variante con sesión iniciada; el login explica cuándo un enlace directo a una empresa no sirve en el navegador y "Cambiar empresa" pasa a "Buscar otra empresa" | [Ver cambio](#cambio-2026-11-28-navegacion-acceso) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Empresa y plataforma (navegación, lote 5):** los detalles de los catálogos (peligro, pregunta, plantilla de documento) salen del encabezado del área y pasan a nivel 2 con su título, "Volver" y ancho de detalle; la acción de crear de cada lista de catálogos pasa a botón principal; los títulos "Auditoría de acciones" y "Empresas registradas" pasan a "Auditoría" y "Empresas" | [Ver cambio](#cambio-2026-11-28-navegacion-empresa-plataforma) |
@@ -79,6 +80,53 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-28-landing-v4` {#cambio-2026-11-28-landing-v4}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: la landing. `design-system.md` (§ Tipografía y § Landing) y su guía visual. No cambian los textos aprobados (versión 3), el layout público ni el resto de la app. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **La landing implementada no transmitía profesionalismo ni confianza** (opinión del equipo al verla).
+2. **El mapa de calor dominaba la portada:** 25 celdas de colores fuertes se leían como un semáforo, y el título quedaba chico.
+3. **Todas las secciones tenían la misma forma,** con un título chico a la izquierda y espacio vacío a la derecha, y el argumento del reglamento era la franja más vacía.
+4. **El cierre y el pie eran mínimos,** así que la página no terminaba.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Estilo Portada (40/48) | Variable `--font-size-3xl: 40px`, solo para el título de la landing; Título 1 en celular | El título manda en la portada |
+| Vista de la app real | El menú y el inicio con lo pendiente, en lugar del mapa de calor | Muestra el producto como es, sin un semáforo gigante |
+| Franja de respaldo | Reglamento, ISO 45001, anonimato y datos separados bajo la portada | Lo que un cliente busca antes de confiar |
+| Títulos centrados y tarjetas con íconos en cuadro | Cada sección tiene forma propia | La página se lee como un producto, no como documentación |
+| Pasos conectados | Una línea une los cinco pasos | Se lee como un proceso |
+| Barra con dos botones | "Iniciar sesión" y "Registrar mi empresa" | La acción principal queda a la vista |
+| Cierre enmarcado y pie con columnas | — | La página termina |
+
+El equipo descartó las tres marcas cortas bajo los botones ("Sin instalar nada · Respuestas anónimas · Desde el teléfono") y conservó la franja de respaldo.
+
+### Cómo quedó (resumen)
+
+`design-system.md` suma el estilo Portada en § Tipografía y reescribe § Landing con la composición nueva. La guía visual muestra la barra con dos botones y la portada en 40 px.
+
+### Qué hizo el equipo en la práctica
+
+- Propuesta de la versión 4 con antes y después, comparable en escritorio, celular y con título de 30 o 40 px; aprobada con las tres decisiones de arriba.
+- Implementación en la rama `feature/landing-v4` del repositorio de código.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Estilo Portada | [design-system.md](design-system.md) § Tipografía |
+| Landing | [design-system.md](design-system.md) § Landing |
 
 ---
 
