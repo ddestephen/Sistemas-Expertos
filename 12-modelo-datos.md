@@ -239,7 +239,7 @@ Código de 6 dígitos para confirmar un correo de Microsoft antes de crear la cu
 | AccesoId | uuid | Sí | FK → Acceso | Solo `Proposito = activacion_cuenta`: el **Acceso** que se activa. `ON DELETE RESTRICT` |
 | CodigoHash | varchar(64) | No | | SHA-256 en hexadecimal; el código en claro no se guarda |
 | Intentos | smallint | No | | Por defecto 0; se reinicia al reenviar un código nuevo |
-| ExpiraEn | timestamptz | No | | Unos 10 minutos tras el envío |
+| ExpiraEn | timestamptz | No | | Unos 10 minutos tras el envío; 48 horas para el código del alta que hace otra persona (vínculo o encuestado, RN-87) |
 | EnviosEnVentana | smallint | No | | Por defecto 0; máximo 3 por ventana de 10 minutos (RN-86, RN-87) |
 | VentanaEnviosExpiraEn | timestamptz | No | | |
 | CreadoEn | timestamptz | No | | Lo fija el servidor |
@@ -1063,7 +1063,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-75 | BD y App | Notificacion por vínculo activo al aprobar la versión; UQ parcial por versión y destinatario |
 | RN-76 | App y BD | Sugerencias leídas de PlantillaTarea del peligro; solo se guarda el Control aceptado, con `PlantillaTareaId` y UQ parcial por riesgo |
 | RN-77 | App | Notificacion al asignar responsable |
-| RN-78 | BD y App | `CorreoEstado` (incl. `en_proceso`), `CorreoIntentos` e intento inmediato al crear, con proceso de reintento y botón de reintento manual |
+| RN-78 | BD y App | `CorreoEstado` (incl. `en_proceso`), `CorreoIntentos` y `CorreoProximoIntentoEn` (espera del reintento, o plazo de una fila `en_proceso` para retomarla si el envío se interrumpe); un solo proceso de fondo envía, despertado al crear la notificación y por el botón de reintento manual |
 | RN-79 | App | Filtro por `DestinatarioId` del token |
 
 ## 10. Informe anual

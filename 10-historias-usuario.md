@@ -316,6 +316,7 @@ Cada historia termina con estos datos:
 - La contraseña solo puede cambiarse después de confirmar la solicitud desde ese correo.
 - La contraseña nueva cumple la política definida en HU-114.
 - Si la misma cuenta permite acceder a varias empresas, el cambio de contraseña aplica a todas.
+- Quien entra solo con Microsoft y no tiene contraseña puede agregar una de la misma forma; después puede entrar también con su correo.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-018, HU-114 · **Reglas:** ninguna
 
@@ -1661,7 +1662,9 @@ Las notificaciones son internas de Norvia y por correo (D28). Las historias HU-0
 - Si el correo de Microsoft todavía no tiene cuenta en Norvia, se ofrece continuar al registro de empresa (HU-119) con el correo ya completado y bloqueado, y los nombres prellenados y editables. No se muestra nada de otras personas: quien llega ya demostró ser dueño de ese correo.
 - Una persona que ya tiene cuenta con contraseña puede vincular Microsoft desde el inicio de sesión confirmando su contraseña actual; después puede entrar con cualquiera de las dos.
 - Una cuenta de Microsoft no se puede vincular a dos cuentas de Norvia distintas.
-- Las cuentas creadas solo con Microsoft no ofrecen cambiar contraseña (HU-022) ni se les aplica la política de HU-114 mientras no tengan una.
+- Las cuentas creadas solo con Microsoft ofrecen agregar una contraseña (HU-022) en vez de cambiarla; la política de HU-114 se les aplica cuando la agregan.
+- Si la validación con Microsoft vence antes de terminar (por ejemplo, al tardar en escribir la contraseña), se explica qué pasó y se ofrece volver a entrar con Microsoft para continuar donde se iba.
+- Si el correo pertenece a una cuenta de Norvia que todavía no se activó, se explica que primero hay que activarla con el código recibido por correo.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-018, HU-119 · **Reglas:** RN-57, RN-60, RN-81, RN-82, RN-83, D1, D29
 
@@ -1839,6 +1842,7 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
   - **Criterios de aceptación:**
     - El inicio de sesión ofrece Microsoft para la empresa elegida y los mensajes de error no revelan si el correo existe.
     - Quien ya tiene contraseña puede confirmarla para vincular Microsoft.
+    - Si la validación con Microsoft vence a mitad del flujo, explica qué pasó y ofrece volver a Microsoft sin perder lo que se estaba haciendo.
 - **Título:** `HU-120 Back — Validar la cuenta de Microsoft e iniciar sesión por empresa`
   - **Criterios de aceptación:**
     - Valida la identidad con Microsoft, busca la cuenta vinculada y aplica las mismas restricciones de HU-018.

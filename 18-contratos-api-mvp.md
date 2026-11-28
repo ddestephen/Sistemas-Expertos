@@ -297,6 +297,7 @@ La bandeja propia, para los cuatro roles de empresa: las políticas avisan a cad
 | `notificacion.listar` | GET | `api/notificaciones` | `admin_empresa`, `responsable_sst`, `colaborador`, `encuestado` |
 | `notificacion.no_leidas` | GET | `api/notificaciones/no-leidas` | los mismos |
 | `notificacion.leer` | PATCH | `api/notificaciones/{id}/lectura` | los mismos |
+| `notificacion.reintentar_correo` | POST | `api/notificaciones/{id}/reintentar-correo` | los mismos |
 
 ---
 
@@ -443,6 +444,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | HU-051 | GET | `/api/eventos/{id}/riesgos` | — | array | Eventos |
 | HU-052 | GET | `/api/eventos/estadisticas?desde&hasta` | query | JSON | Eventos |
 | HU-117 | GET | `/api/notificaciones` | — | array | Notificaciones |
+| HU-117 | POST | `/api/notificaciones/{id}/reintentar-correo` | — | 204 | Notificaciones |
 | HU-117 | PATCH | `/api/notificaciones/{id}/lectura` | — | 204 | Notificaciones |
 | HU-070 | GET | `/api/documentos/plantillas` | — | array | Documentos |
 | HU-070 | POST | `/api/documentos/generacion` | JSON | JSON | Documentos |
@@ -479,7 +481,7 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| `accessToken` | string | JWT (Bearer). Claims: `sub` (Acceso), `tipo_sesion`, `email` (correo de la cuenta, HU-022), rol y, en sesión de empresa, `vinculo_id` y `empresa_id` cifrado |
+| `accessToken` | string | JWT (Bearer). Claims: `sub` (Acceso), `tipo_sesion`, `email` (correo de la cuenta, HU-022), `tiene_password` (`"true"` o `"false"`: una cuenta creada con Microsoft puede no tener contraseña; solo para la interfaz), rol y, en sesión de empresa, `vinculo_id` y `empresa_id` cifrado |
 | `refreshToken` | string | Opaco; solo en body, no en header |
 | `expiresIn` | int | Segundos de vida del access token |
 
@@ -721,7 +723,7 @@ Flujo OAuth 2.0 de código con PKCE: la web lleva a la persona a Microsoft y rec
 | `codeVerifier` | string | PKCE |
 | `redirectUri` | string | Debe estar en la lista permitida por configuración |
 
-Response 200: `tokenIdentidad`, `email` (verificado por Microsoft), `primerNombre`, `primerApellido` (prellenado; la persona puede dividir y corregir los 4 campos), `estado`: `sin_cuenta` (ir al registro con los datos prellenados), `cuenta_vinculada` (puede iniciar sesión) o `cuenta_con_contrasena` (debe confirmar la contraseña para vincular). Errores: 400 código inválido o vencido · 401 Microsoft rechaza el canje.
+Response 200: `tokenIdentidad`, `email` (verificado por Microsoft), `primerNombre`, `primerApellido` (prellenado; la persona puede dividir y corregir los 4 campos), `estado`: `sin_cuenta` (ir al registro con los datos prellenados), `cuenta_vinculada` (puede iniciar sesión) o `cuenta_con_contrasena` (debe confirmar la contraseña para vincular). El `tokenIdentidad` vale 30 minutos; si vence, los pasos siguientes responden 401 `auth.identidad_invalida` y la web ofrece volver a entrar con Microsoft. Errores: 400 código inválido o vencido · 401 Microsoft rechaza el canje · 409 `auth.cuenta_sin_activar` (el correo es de una cuenta local que todavía no se activó con su código, D30) · 409 `auth.proveedor_ya_vinculado`.
 
 **1b. Confirmar el correo con un código de 6 dígitos** (RN-86). Solo cuando `estado = sin_cuenta`; el código llega al correo de Microsoft y en base solo queda su hash (tabla `VerificacionCorreo`, `Proposito = microsoft`).
 
@@ -2188,6 +2190,14 @@ Las políticas vigentes están en M9: `GET /api/documentos/vigentes` (HU-074).
 #### `PATCH /api/notificaciones/{id}/lectura` (HU-117)
 
 **Request:** sin cuerpo.
+
+**Response 204.**
+
+#### `POST /api/notificaciones/{id}/reintentar-correo` (HU-117, RN-78)
+
+**Request:** sin cuerpo. Solo sobre una notificación propia (otra responde 404).
+
+Si el correo está `pendiente` o `fallido`, lo deja `pendiente` para ya y avisa al proceso de fondo, que es el único que envía. Si ya se envió o se está enviando, no hace nada.
 
 **Response 204.**
 

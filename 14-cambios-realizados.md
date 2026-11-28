@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-27 | Equipo (redactado con Claude Code) | **Correos más confiables y acceso con Microsoft más claro:** un solo proceso envía los correos de notificaciones (la API solo lo despierta), una fila interrumpida se retoma sin duplicar el correo, el botón "Reintentar" ya tiene su permiso, los códigos de activación se envían después de guardar y vencen en 48 horas cuando el alta la hace otra persona, quien entra con Microsoft puede agregar una contraseña, y un token de Microsoft vencido o una cuenta sin activar tienen un mensaje y una salida claros | [Ver cambio](#cambio-2026-11-27-correos-confiables) |
 | 2026-11-27 | Equipo (redactado con Claude Code) | **Activación de cuentas por código, envío por Resend y correo inmediato de notificaciones:** toda cuenta local nueva (empresa, vínculo o encuestado) deja de recibir contraseña temporal y se activa con el mismo código de 6 dígitos de Microsoft (D30, RN-87; tabla **VerificacionCorreoMicrosoft** generalizada a **VerificacionCorreo**); el envío de correo deja SMTP y pasa a la API de Resend; las notificaciones de M11 intentan su correo de inmediato al crearse, con un botón de reintento manual y el estado nuevo `en_proceso` (RN-78) | [Ver cambio](#cambio-2026-11-27-activacion-por-codigo) |
 | 2026-11-26 | Jesús Zepeda | **HU-075 completada:** reporte consolidado `GET /api/riesgos/matriz/reporte` (`riesgo.matriz.reporte`, `ArmadorMatriz`) y vista imprimible apaisada `/riesgos/imprimir` para imprimir o guardar en PDF al vuelo sin guardar archivos (`art. 47.b`, `RN-52`) | [Ver cambio](#cambio-2026-11-26-hu-075) |
 | 2026-11-26 | Jesús Zepeda | **HU-099 completada:** tabla `RegistroAuditoria` inalterable (Code-First + `ProtegerRegistroAuditoriaInterceptor` sin triggers SQL), instrumentación transaccional en M1–M9 (omitiendo acciones anónimas `RN-72`/`D11`), consulta `GET /api/auditoria` (`auditoria.listar`) y vista web `/auditoria` | [Ver cambio](#cambio-2026-11-26-hu-099) |
@@ -72,6 +73,104 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-27-correos-confiables` {#cambio-2026-11-27-correos-confiables}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 27 de noviembre de 2026 |
+| **Alcance** | `08` (D28, D29, D30), `07` (RN-78, RN-81, RN-87), `10` (HU-022, HU-120 y su tarea de front), `12` (vigencia de `VerificacionCorreo.ExpiraEn` y trazabilidad de RN-78), `18` (claim `tiene_password`, errores de `microsoft/identidad`, contrato y permiso de `reintentar-correo`). También el código en `ProyectoFinal/` (backend, frontend y pruebas). Sin migración: se reusa `Notificacion.CorreoProximoIntentoEn` |
+
+### El problema (por qué hubo que cambiar)
+
+1. **El botón "Reintentar" siempre fallaba:** su ruta no estaba en el catálogo de permisos, y el middleware rechaza toda ruta que no esté ahí.
+2. **Una notificación podía quedar sin enviar para siempre:** al tomarla pasaba a `en_proceso`; si el envío se interrumpía (reinicio del servidor en cada deploy, la persona cerraba la página, se caía la base), nadie la retomaba.
+3. **Tres caminos enviaban el mismo correo** (al crear la notificación dentro de la petición, el proceso de fondo y el botón). Aprobar una política para muchas personas hacía la petición lenta.
+4. **Se podían enviar códigos de cuentas que no se crearon:** el alta de vínculos y encuestados enviaba el correo antes de guardar; si el guardado fallaba, el código ya había salido.
+5. **El código de activación vencía en 10 minutos** también cuando la cuenta la creaba otra persona, aunque quien lo recibe puede abrir el correo horas después.
+6. **Quien entraba con Microsoft no podía tener contraseña:** "Cambiar contraseña" decía "Te enviamos un enlace", pero el backend no enviaba nada.
+7. **Una cuenta local sin activar que entraba con Microsoft** recibía "Esa cuenta de Microsoft ya está vinculada a otra cuenta", un mensaje falso desde que las cuentas nuevas también nacen sin contraseña (D30).
+8. **El token de Microsoft vencía en 10 minutos** y, si vencía a mitad del flujo, la persona solo veía un error genérico.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Un solo responsable de enviar | La API guarda la notificación con el correo `pendiente` y avisa al proceso de fondo con una señal en memoria; él envía en milisegundos. El botón la deja `pendiente` para ya y avisa | Nadie compite por la misma fila, las peticiones responden rápido y cerrar la página no corta un envío |
+| Plazo para la fila tomada | Al pasar a `en_proceso` se guarda un plazo de 2 minutos en `CorreoProximoIntentoEn`; al vencer, el proceso de fondo la retoma. La llamada al proveedor tiene un timeout de 20 segundos | Un envío interrumpido ya no deja la fila trabada |
+| Clave anti-duplicados | Cada intento envía al proveedor la clave `notificacion-{Id}-{número de intento}`; si se repite en 24 horas, no manda el correo dos veces | Retomar una fila cuyo correo sí salió no duplica el correo |
+| Permiso `notificacion.reintentar_correo` | Para los cuatro roles, como el resto de la bandeja | El botón funciona |
+| Guardar primero, enviar después | El alta guarda la cuenta con el hash del código y recién después envía el correo; el código en claro solo vive en memoria | Si falla el envío, la persona pide "Reenviar código"; nunca sale un código de una cuenta inexistente |
+| 48 horas para el código del alta | Solo cuando la cuenta la crea otra persona (vínculo o encuestado). El registro de empresa y los reenvíos, que pide la propia persona, siguen en unos 10 minutos. La ventana de 3 envíos cada 10 minutos no cambia | Quien recibe un correo inesperado tiene tiempo de abrirlo sin que el código ya esté vencido |
+| Agregar contraseña con Microsoft | El enlace de HU-022 se envía también a cuentas verificadas sin contraseña, con el texto "agregar una contraseña". El sello del enlace sale del `Id` de la cuenta mientras no hay contraseña; al ponerla cambia y el enlace queda usado | La persona puede entrar con Microsoft o con su correo; demuestra ser dueña del correo al abrir el enlace |
+| Dato `tiene_password` en la sesión | Claim del JWT que la web usa para decir "Agregar contraseña" o "Cambiar contraseña" | Solo cambia un texto; el backend decide con la contraseña real |
+| Cuenta sin activar con Microsoft | `microsoft/identidad` responde 409 `auth.cuenta_sin_activar` y la web lleva a activar la cuenta | Mensaje correcto en vez de "ya vinculada a otra cuenta" |
+| Token de Microsoft de 30 minutos y salida clara al vencer | Si vence, la web lo explica y ofrece volver a entrar con Microsoft conservando la empresa y lo que se hacía | El tiempo alcanza para escribir la contraseña o el código, y si no alcanza la persona sabe qué hacer |
+
+### Cómo quedó (resumen)
+
+- **Correos de notificaciones:** se guardan `pendiente`; solo el proceso de fondo envía, despertado por la API o cada intervalo. Una fila `en_proceso` con su plazo vencido se retoma. Cada intento lleva su clave de idempotencia.
+- **Códigos de activación:** se envían después de guardar; 48 horas si la cuenta la creó otra persona, unos 10 minutos en el registro de empresa y al reenviar. El correo dice la vigencia que corresponde.
+- **Microsoft:** se puede agregar una contraseña; la cuenta sin activar tiene su propio aviso; el token vale 30 minutos y, si vence, se ofrece volver a Microsoft.
+- **Base de datos:** sin cambios de tablas ni migración.
+
+### Qué hizo Claude Code en la práctica
+
+- **Backend:**
+  - `IEnvioInmediatoNotificacion` se reemplazó por `IAvisoCorreosPendientes` (señal en memoria `SenalCorreosPendientes`); `ProcesadorCorreosPendientes` despierta con la señal o cada intervalo; `EnvioNotificacionesPendientes` toma la fila con plazo y retoma las vencidas; `ResendEnvioCorreo` envía `Idempotency-Key` y tiene timeout de 20 segundos.
+  - Los servicios que creaban notificaciones (aprobar documento, medida correctiva, asignar tarea, tarea manual) ahora solo avisan; `ReintentarCorreoServicio` deja la fila pendiente para ya; permiso nuevo en `CatalogoPermisos`.
+  - `AltaDeVinculo` prepara el código sin enviar y lo envía después de guardar (`CrearVinculo`, `CrearEncuestado`, `CrearEncuestadosLote`); `VentanaEnvioCodigo` separa la vigencia de 48 horas de la ventana de envíos; la plantilla `activacion_cuenta` usa `{{Vigencia}}`.
+  - `SolicitarCambioContrasena`, `ConfirmarCambioContrasena` y `TokenCambioContrasena` aceptan cuentas sin contraseña; la plantilla `cambio_contrasena` usa `{{Accion}}`; claim `tiene_password`; error `auth.cuenta_sin_activar`; token de Microsoft de 30 minutos.
+- **Frontend:** `tienePassword` en la sesión; "Agregar contraseña" o "Cambiar contraseña" en el encabezado y la pantalla; `AvisoMicrosoftVencido` compartido en el retorno de Microsoft, la vinculación, la confirmación del código y el registro con Microsoft; aviso para la cuenta sin activar.
+- **Pruebas:** 7 nuevas (correo pendiente sin envío en la petición, fila interrumpida retomada, botón de reintento, clave de idempotencia, agregar contraseña con Microsoft, cuenta sin activar con Microsoft, vigencia de 48 horas) y las de notificaciones ajustadas al nuevo flujo. `dotnet test`: 296 de 296. Frontend: `tsc -b`, `eslint` y `vite build` sin errores.
+- **Pendiente:** confirmar en la documentación de Resend el comportamiento exacto de `Idempotency-Key` y probar en staging.
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero |
+|----|-------------|---------|
+| HU-022 | `10` | [ ] |
+| HU-117 | `18` | [ ] |
+| HU-118 | `08`, `07` | [ ] |
+| HU-120 | `10` | [ ] |
+| HU-020, HU-115 | `07`, `08` | [ ] |
+
+#### HU-022 | Cambiar mi contraseña
+
+| **Antes** | Solo servía a cuentas con contraseña; a una cuenta de Microsoft no le llegaba nada, aunque la pantalla decía que sí. |
+| **Ahora** | Quien entra solo con Microsoft puede agregar una contraseña con el mismo enlace por correo. |
+
+#### HU-117 | Consultar notificaciones
+
+| **Antes** | El botón "Reintentar" existía en la API pero siempre se rechazaba por falta de permiso. |
+| **Ahora** | Funciona: deja el correo pendiente para ya y despierta al proceso de fondo. |
+
+#### HU-118 | Configurar el envío de correos
+
+| **Antes** | Tres caminos enviaban; un envío interrumpido dejaba la fila en `en_proceso` para siempre. |
+| **Ahora** | Un solo proceso envía; las filas interrumpidas se retoman sin duplicar el correo. |
+
+#### HU-120 | Iniciar sesión con Microsoft y vincularla a mi cuenta
+
+| **Antes** | Las cuentas de Microsoft no podían tener contraseña; un token vencido o una cuenta sin activar daban un error genérico o falso. |
+| **Ahora** | Pueden agregar contraseña; el token vale 30 minutos y, si vence, se ofrece volver a Microsoft; la cuenta sin activar tiene su aviso. |
+
+#### HU-020 y HU-115 | Altas de personas
+
+| **Antes** | El correo con el código salía antes de guardar y el código vencía en 10 minutos. |
+| **Ahora** | El correo sale después de guardar y el código vence en 48 horas. |
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Decisiones D28, D29, D30 | `08-decisiones-bd.md` |
+| Reglas RN-78, RN-81, RN-87 | `07-reglas-negocio.md` |
+| Historias HU-022, HU-120 | `10-historias-usuario.md` |
+| Contratos (claim, errores de Microsoft, reintento) | `18-contratos-api-mvp.md` |
 
 ---
 
