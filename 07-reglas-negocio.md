@@ -161,3 +161,17 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-77 | Asignar una tarea notifica a su responsable en Norvia y por correo |
 | RN-78 | Al crear la notificación su correo sale en cuanto el proceso de fondo la toma (Norvia le avisa en ese momento); si falla, la notificación sigue visible en Norvia y el envío queda pendiente para que un proceso de fondo lo reintente, con una espera que crece en cada intento, hasta un máximo. Quien recibió la notificación también puede pedir un reintento con un botón: el correo vuelve a quedar pendiente para enviarse ya y se despierta al proceso de fondo, que es el único que envía; un intento no deja que otro envíe el mismo correo a la vez, y un envío que se interrumpió se retoma sin duplicar el correo |
 | RN-79 | Cada operador con vínculo solo ve y marca como leídas sus propias notificaciones |
+
+## Archivos adjuntos
+
+| Código | Regla |
+|---|---|
+| RN-88 | Solo se pueden subir archivos cuyo MIME esté en la lista blanca del `TipoArchivo` y cuyo tamaño no supere el máximo del tipo. La firma real del archivo (magic bytes) debe coincidir con el MIME declarado |
+| RN-89 | La clave del objeto en el bucket la genera el servidor con el patrón `empresas/{empresaId}/{recurso}/{recursoId}/{archivoId}`; el cliente nunca la elige |
+| RN-90 | Si un tipo tiene `MaximoPorRecurso = 1`, al subir un archivo nuevo del mismo tipo se desactiva el anterior (queda en historial); no se puede tener dos activos del mismo tipo para el mismo recurso |
+| RN-91 | La descarga de un archivo solo se otorga con URL prefirmada de corta duración (~5 minutos); los archivos no son accesibles directamente desde el bucket |
+| RN-92 | Un archivo de tipo `evidencia_tarea` solo lo puede subir o ver el `admin_empresa`, el `responsable_sst`, o el `colaborador` responsable de esa tarea. Solo puede desactivarlo quien lo subió (y solo si la tarea no está completada), o el `admin_empresa` y el `responsable_sst` |
+| RN-93 | Un archivo de tipo `evidencia_evento` puede subirlo cualquier vínculo al reportar el evento (incluido el encuestado). Después del reporte, solo puede subirlo el `admin_empresa` o el `responsable_sst`. Solo el `responsable_sst` puede desactivarlo. Ningún `colaborador` ni `encuestado` puede ver ni descargar evidencias de eventos para proteger el anonimato (D11) |
+| RN-94 | Un archivo de tipo `anexo_documento` solo lo puede subir o desactivar el `admin_empresa` o el `responsable_sst`. El `colaborador` y el `encuestado` solo pueden ver y descargar anexos de documentos en estado `vigente` |
+| RN-95 | Un archivo de tipo `documento_identidad` solo puede subirlo o desactivarlo el `admin_empresa`, el `responsable_sst`, o el vínculo dueño del archivo. Solo el `admin_empresa`, el `responsable_sst` y el vínculo dueño pueden descargarlo |
+| RN-96 | Un archivo de tipo `fotografia` puede subirlo o desactivarlo cualquier vínculo para sí mismo, o el `admin_empresa` y el `responsable_sst` para cualquier vínculo. Cualquier vínculo activo de la empresa puede ver las fotografías de cualquier otro vínculo |

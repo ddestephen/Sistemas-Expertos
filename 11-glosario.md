@@ -110,6 +110,7 @@
 | Global Query Filter | Filtro automático de EF Core que se aplica a todas las consultas |
 | HTTP y HTTPS | Protocolos con los que se comunican clientes y servidores. HTTPS es la versión cifrada |
 | Hash | Huella digital de un contenido; cambia si el contenido cambia |
+| Hash SHA-256 | Huella de 64 caracteres hexadecimales que identifica de forma única el contenido de un archivo; se calcula al subirlo para detectar duplicados o alteraciones |
 | Índice | Estructura que acelera las búsquedas en una tabla |
 | Índice parcial | Índice que solo incluye las filas que cumplen una condición |
 | JWE | Token JWT con el contenido cifrado |
@@ -125,5 +126,6 @@
 | Restricción CHECK | Condición que la base de datos verifica en cada fila antes de guardarla |
 | Token | Credencial de sesión: vínculo de empresa o `StaffPlataforma` |
 | Transacción | Grupo de cambios que se guardan todos juntos o ninguno |
+| URL prefirmada | Enlace temporal que da acceso de descarga a un objeto del bucket privado sin credenciales; vence en minutos (D14, RN-91) |
 | UUID | Identificador único de 128 bits generado al azar |
 | Vertical Slicing | Organizar el código por funcionalidad y no por tipo de archivo |

@@ -1449,11 +1449,13 @@ Las notificaciones son internas de Norvia y por correo (D28). Las historias HU-0
 **Criterios de aceptación:**
 
 - El almacenamiento de archivos no genera costos para el proyecto.
-- Solo se admiten archivos permitidos y dentro del tamaño aceptado.
+- Solo se admiten archivos cuyo tipo MIME y tamaño correspondan al tipo de archivo configurado.
 - Las fotos y evidencias siguen disponibles aunque el sistema se reinicie.
 - Los archivos de una empresa solo pueden consultarlos personas autorizadas para esa misma empresa.
+- La descarga se realiza únicamente con URL prefirmada de corta duración; sin URL no hay acceso al binario.
+- El tipo de archivo, los formatos permitidos y el límite por recurso están en el catálogo global `TipoArchivo`.
 
-**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-093 · **Reglas:** RN-05, D14
+**Módulo:** Técnico · **Entrega:** E1 · **Dónde:** No aplica · **Prioridad:** Must · **Depende de:** HU-091, HU-093 · **Reglas:** RN-05, RN-88, RN-89, RN-90, RN-91, D14
 
 ### HU-101 | Crear el frontend web por funcionalidades
 

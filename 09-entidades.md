@@ -36,6 +36,7 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Global | Peligro | Catálogo de peligros | M3, M4 |
 | Global | PlantillaTarea | Tareas modelo | M4, M5 |
 | Global | PlantillaDocumento | Políticas y procedimientos modelo | M9 |
+| Global | TipoArchivo | Tipos de archivo permitidos: formatos MIME, tamaño máximo, máximo por recurso y recurso al que aplican (`tarea`, `accidente`, `documento`, `vinculo`) | M5, M6, M9, M2 |
 | Con `EmpresaId` | VinculoEmpresa | Persona en la empresa: rol, `AccesoId` y estado del vínculo (credenciales en **Acceso**) | M1 |
 | Con `EmpresaId` | HistorialEstadoVinculo | Cambios de estado del vínculo con motivo | M1 |
 | Con `EmpresaId` | HistorialEstadoEmpresa | Cambios de estado del tenant (p. ej. mora) | M1 |
@@ -53,7 +54,11 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Con `EmpresaId` | EvaluacionRiesgo | Evaluaciones inicial y residual; una inicial puede indicar el evento que la motivó | M4 |
 | Con `EmpresaId` | Control | Medidas de cada riesgo | M4 |
 | Con `EmpresaId` | Tarea | Tareas de todos los orígenes | M5 |
-| Con `EmpresaId` | Archivo | Datos y enlace de evidencias de tareas | M5 |
+| Con `EmpresaId` | Archivo | Metadatos de un archivo en el almacenamiento externo: tipo, clave de objeto, nombre, MIME, tamaño, hash SHA-256, quién lo subió y si está activo | M5, M6, M9, M2 |
+| Con `EmpresaId` | ArchivoTarea | Enlace entre un archivo y una tarea | M5 |
+| Con `EmpresaId` | ArchivoAccidente | Enlace entre un archivo y un accidente/evento | M6 |
+| Con `EmpresaId` | ArchivoDocumento | Enlace entre un archivo y un documento | M9 |
+| Con `EmpresaId` | ArchivoVinculo | Enlace entre un archivo y un vínculo de empresa (fotografía o documento de identidad) | M2 |
 | Con `EmpresaId` | Accidente | Reportes anónimos de accidentes, incidentes, enfermedades profesionales y condiciones inseguras | M6 |
 | Con `EmpresaId` | InvestigacionAccidente | Causas y conclusiones | M6 |
 | Con `EmpresaId` | Documento | Políticas y procedimientos de la empresa | M9 |

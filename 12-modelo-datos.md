@@ -1065,6 +1065,15 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-77 | App | Notificacion al asignar responsable |
 | RN-78 | BD y App | `CorreoEstado` (incl. `en_proceso`), `CorreoIntentos` y `CorreoProximoIntentoEn` (espera del reintento, o plazo de una fila `en_proceso` para retomarla si el envío se interrumpe); un solo proceso de fondo envía, despertado al crear la notificación y por el botón de reintento manual |
 | RN-79 | App | Filtro por `DestinatarioId` del token |
+| RN-88 | App | `ArchivoValidator`: MIME en `TipoArchivo.TiposContenido`, tamaño ≤ `TamanoMaximoMb`, firma real (magic bytes) |
+| RN-89 | App | La clave del objeto se genera en el servidor al crear el `Archivo` |
+| RN-90 | App | Al subir un archivo de tipo con `MaximoPorRecurso = 1`, el servicio desactiva el anterior del mismo tipo para ese recurso antes de guardar el nuevo |
+| RN-91 | App | `GenerarUrlDescargaAsync` produce una URL con expiración; sin URL no hay acceso al binario |
+| RN-92 | App | Validación en `SubirArchivoTarea` y `ListarArchivosTarea`: rol del token y `ResponsableId` de la tarea |
+| RN-93 | App | Validación en `SubirArchivoEvento` y `ListarArchivosEvento`: rol del token; `colaborador` y `encuestado` no pueden listar/descargar |
+| RN-94 | App | Validación en `SubirArchivoDocumento` y `ListarArchivosDocumento`: rol del token y `VersionDocumento.Estado` |
+| RN-95 | App | Validación en `SubirArchivoVinculo`: `documento_identidad` → solo el dueño o admin/SST ven y descargan |
+| RN-96 | App | Validación en `SubirArchivoVinculo`: `fotografia` → cualquier vínculo de la empresa puede descargar |
 
 ## 10. Informe anual
 

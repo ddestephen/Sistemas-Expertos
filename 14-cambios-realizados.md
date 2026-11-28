@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Modelo de archivos adjuntos (HU-100, Chat 2):** catálogo global `TipoArchivo`, tabla de empresa `Archivo`, cuatro tablas de enlace con FK compuestas (`ArchivoTarea`, `ArchivoAccidente`, `ArchivoDocumento`, `ArchivoVinculo`), seeder idempotente con 5 tipos, migración `ArchivosYEnlaces`, pruebas de aislamiento y reglas RN-88–RN-96 | [Ver cambio](#cambio-2026-11-28-modelo-archivos) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Landing, versión 4:** misma copia con otra composición para transmitir profesionalismo y confianza (vista de la app en lugar del mapa de calor, franja de respaldo con el reglamento e ISO 45001, títulos centrados, tarjetas con íconos, pasos conectados, cierre enmarcado y pie con columnas) y un estilo tipográfico nuevo, Portada (40/48), solo para el título de la landing | [Ver cambio](#cambio-2026-11-28-landing-v4) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Contenido centrado junto al menú:** en el layout de sesión, cada pantalla se centra en el área a la derecha del menú en lugar de alinearse a la izquierda, y las preguntas frecuentes de la landing van en una columna centrada; en pantallas anchas quedaba un espacio vacío grande de un solo lado | [Ver cambio](#cambio-2026-11-28-contenido-centrado) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Acceso (navegación, lote 6):** la landing nueva aprobada (qué resuelve Norvia, cómo funciona, qué cubre, privacidad y preguntas frecuentes), con su propia barra y una variante con sesión iniciada; el login explica cuándo un enlace directo a una empresa no sirve en el navegador y "Cambiar empresa" pasa a "Buscar otra empresa" | [Ver cambio](#cambio-2026-11-28-navegacion-acceso) |
@@ -18,6 +19,7 @@
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Lo propio de cada persona (navegación, lote 3):** Mis tareas explica por qué una tarea con evidencia todavía no se puede completar, ordena por urgencia, pliega las terminadas y resalta la tarea que abre la notificación ("Ver la tarea"); Reportar un evento vuelve a donde se vino; salir de una encuesta o de un reporte a medio llenar pide confirmación; los diálogos de confirmación van centrados | [Ver cambio](#cambio-2026-11-28-navegacion-lo-propio) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **El inicio muestra lo pendiente (navegación, lote 2):** el inicio deja de repetir el menú como botones y muestra a cada rol lo que tiene por atender (encuesta por responder, tareas vencidas, riesgos sin control, eventos abiertos, borradores), cada cosa con un link a donde se atiende; se documenta en `design-system.md` § Inicio | [Ver cambio](#cambio-2026-11-28-navegacion-inicio) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Marco de navegación del frontend (lote 1):** tres layouts (público, empresa y plataforma), menú lateral por rol en lugar de los botones del inicio, menú de cuenta, panel de menú en celular, 404 dentro del marco y niveles de pantalla (las del menú no llevan "Volver"); se documenta en `design-system.md` § Layouts y navegación, § Menú lateral y § Menú de cuenta | [Ver cambio](#cambio-2026-11-28-navegacion-marco) |
+| 2026-11-27 | Equipo (redactado con Claude Code) | **Correos más confiables y acceso con Microsoft más claro:** un solo proceso envía los correos de notificaciones (la API solo lo despierta), una fila interrumpida se retoma sin duplicar el correo, el botón "Reintentar" ya tiene su permiso, los códigos de activación se envían después de guardar y vencen en 48 horas cuando el alta la hace otra persona, quien entra con Microsoft puede agregar una contraseña, y un token de Microsoft vencido o una cuenta sin activar tienen un mensaje y una salida claros | [Ver cambio](#cambio-2026-11-27-correos-confiables) |
 | 2026-11-27 | Equipo (redactado con Claude Code) | **Activación de cuentas por código, envío por Resend y correo inmediato de notificaciones:** toda cuenta local nueva (empresa, vínculo o encuestado) deja de recibir contraseña temporal y se activa con el mismo código de 6 dígitos de Microsoft (D30, RN-87; tabla **VerificacionCorreoMicrosoft** generalizada a **VerificacionCorreo**); el envío de correo deja SMTP y pasa a la API de Resend; las notificaciones de M11 intentan su correo de inmediato al crearse, con un botón de reintento manual y el estado nuevo `en_proceso` (RN-78) | [Ver cambio](#cambio-2026-11-27-activacion-por-codigo) |
 | 2026-11-26 | Jesús Zepeda | **HU-075 completada:** reporte consolidado `GET /api/riesgos/matriz/reporte` (`riesgo.matriz.reporte`, `ArmadorMatriz`) y vista imprimible apaisada `/riesgos/imprimir` para imprimir o guardar en PDF al vuelo sin guardar archivos (`art. 47.b`, `RN-52`) | [Ver cambio](#cambio-2026-11-26-hu-075) |
 | 2026-11-26 | Jesús Zepeda | **HU-099 completada:** tabla `RegistroAuditoria` inalterable (Code-First + `ProtegerRegistroAuditoriaInterceptor` sin triggers SQL), instrumentación transaccional en M1–M9 (omitiendo acciones anónimas `RN-72`/`D11`), consulta `GET /api/auditoria` (`auditoria.listar`) y vista web `/auditoria` | [Ver cambio](#cambio-2026-11-26-hu-099) |
@@ -3523,6 +3525,73 @@ Cada bloque es el “commit” documental de esa HU dentro de este cambio.
 | Reglas RN multiempresa y acceso | `07-reglas-negocio.md` |
 | Criterios de todas las HUs | `10-historias-usuario.md` |
 | Tablas y relaciones | `12-modelo-datos.md` |
+
+---
+
+## Cambio `2026-11-28` {#cambio-2026-11-28-modelo-archivos}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Modelo de archivos adjuntos (D14): catálogo global, tabla de empresa, cuatro tablas de enlace, seeder, migración, pruebas de aislamiento y documentación |
+
+### El problema (por qué hubo que cambiar)
+
+1. M5 (tareas), M6 (accidentes), M9 (documentos) y M2 (perfil de vínculo: fotografía y DNI) necesitan adjuntar archivos binarios, pero no había modelo de datos ni almacenamiento definido más allá de la decisión D14 y el servicio S3 del Chat 1.
+2. El catálogo de tipos de archivo y los permisos por rol no estaban documentados ni implementados.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Catálogo global `TipoArchivo` | Centraliza formatos, tamaños y límites por tipo | Un cambio de política (p. ej. ampliar el tamaño máximo) solo toca el seeder, no el código de cada recurso |
+| Tablas de enlace con FK compuestas | Cada tabla define su recurso y usa `(EmpresaId, RecursoId, ArchivoId)` como PK | La base rechaza referencias cruzadas entre empresas sin código adicional (D15) |
+| `ArchivoVinculo → VinculoEmpresa` (no `Persona`) | La fotografía y el DNI pertenecen a un vínculo, no a una persona global | `Persona` es global; una FK hacia ella rompería el filtro por empresa |
+| `Activo` en `Archivo`, sin borrado | Historial de archivos desactivados; los de tipo `MaximoPorRecurso = 1` quedan como registro | Cumple RN-90 y mantiene trazabilidad sin complicar el esquema |
+
+### Cómo quedó (resumen)
+
+- **Dominio:** enum `RecursoArchivo`, entidad `TipoArchivoCatalogo` (global), entidad `Archivo` (empresa), tablas de enlace `ArchivoTarea`, `ArchivoAccidente`, `ArchivoDocumento`, `ArchivoVinculo`.
+- **Infraestructura:** configuraciones EF Core con FK compuestas y `ON DELETE RESTRICT`; seeder idempotente `TiposArchivoSeeder` con 5 tipos; migración `ArchivosYEnlaces` sin `migrationBuilder.Sql`.
+- **Reglas:** RN-88 a RN-96 en `07-reglas-negocio.md`.
+- **Pruebas:** `AislamientoArchivosTests` (filtro global, sin sesión, FK cruzada en `ArchivoTarea`, FK cruzada en `ArchivoVinculo`).
+- **Corrección del Chat 1:** `AlmacenamientoOpciones` ahora tiene `.Validate(...)` y `.ValidateOnStart()`.
+
+### Qué hizo el equipo en la práctica
+
+- Creó 7 entidades en `Norvia.Domain/Enums/` y `Norvia.Domain/Entities/Archivos/` y `Catalogos/`.
+- Creó 6 configuraciones en `Norvia.Infrastructure/Persistence/Configurations/Archivos/`.
+- Creó `CatalogoTiposArchivo.cs` y `TiposArchivoSeeder.cs` en `Persistence/Seed/`.
+- Actualizó `NorviaDbContext`, `DependencyInjection` e `InicializacionBaseDatos`.
+- Generó la migración `ArchivosYEnlaces` (Code-First).
+- Creó `AislamientoArchivosTests` en `Norvia.Tests/Archivos/`.
+- Actualizó la documentación siguiendo la cadena de verdad (D14, RN-88–RN-96, entidades, §9, HU-100, bitácora, glosario).
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero |
+|----|-------------|---------|
+| HU-100 | [10-historias-usuario.md](10-historias-usuario.md#hu-100--configurar-el-almacenamiento-de-archivos) | [ ] |
+
+#### HU-100 | Configurar el almacenamiento de archivos
+
+| | |
+|---|---|
+| **Antes** | Solo el servicio S3 (`IAlmacenamientoArchivos`) sin modelo de datos ni catálogo de tipos. |
+| **Ahora** | Catálogo `TipoArchivo`, tabla `Archivo` con FK compuestas, cuatro tablas de enlace, seeder, migración y reglas RN-88–RN-96. Los endpoints se implementan en el Chat 3. |
+| **Tablero** | [ ] |
+| **Referencia oficial** | [08-decisiones-bd.md D14](08-decisiones-bd.md), [07-reglas-negocio.md RN-88–RN-96](07-reglas-negocio.md) |
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Decisión D14 | `08-decisiones-bd.md` |
+| Reglas RN-88–RN-96 | `07-reglas-negocio.md` |
+| Entidades nuevas | `09-entidades.md` |
+| Tablas y trazabilidad §9 | `12-modelo-datos.md` |
+| HU-100 | `10-historias-usuario.md` |
 
 ---
 
