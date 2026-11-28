@@ -476,6 +476,26 @@
         </ul>
       </div>
 
+      <!-- Inicio -->
+      <div class="sub"><h3 class="t-h2">Inicio</h3><p class="muted">Lo que cada persona tiene pendiente. Toda la fila es el link a donde se atiende; solo aparece si hay algo por atender. Si nada falta, "Estás al día".</p></div>
+      <div class="panel anatomy">
+        <div class="anatomy-stage left">
+          <ul class="pend-demo" aria-label="Ejemplo de lista de pendientes">
+            <li><div class="pend-fila pend-error"><svg class="icon icon-20 pend-icono-error"><use href="#i-error"/></svg><span class="pend-txt"><span class="t-label">No se pudo cargar la matriz de riesgos</span><span class="muted">Revisa tu conexión e inténtalo de nuevo.</span></span><button class="btn btn-secondary">Reintentar</button></div></li>
+            <li><a class="pend-fila" href="#componentes"><svg class="icon icon-20 muted"><use href="#i-check-circle"/></svg><span class="pend-txt"><span class="t-label">Plan de trabajo</span><span class="muted">1 tarea vencida · 1 sin responsable</span></span><span class="badge badge-error">1 vencida</span><svg class="icon tertiary"><use href="#i-chevron-right"/></svg></a></li>
+            <li><a class="pend-fila" href="#componentes"><svg class="icon icon-20 muted"><use href="#i-shield"/></svg><span class="pend-txt"><span class="t-label">Matriz de riesgos</span><span class="muted">1 riesgo alto o crítico sin control · 1 sin evaluar</span></span><span class="badge badge-warning">Sin control</span><svg class="icon tertiary"><use href="#i-chevron-right"/></svg></a></li>
+            <li><a class="pend-fila" href="#componentes"><svg class="icon icon-20 muted"><use href="#i-file"/></svg><span class="pend-txt"><span class="t-label">Documentos</span><span class="muted">2 documentos en borrador</span></span><span></span><svg class="icon tertiary"><use href="#i-chevron-right"/></svg></a></li>
+          </ul>
+        </div>
+        <ul class="legend">
+          <li><span class="pin-static">1</span><span><b>Fila</b>: ícono del módulo, nombre, cifras, badge y flecha; alto mínimo 64px</span></li>
+          <li><span class="pin-static">2</span><span><b>Orden</b>: lo que no cargó, lo vencido (error), lo que necesita atención (advertencia), lo demás</span></li>
+          <li><span class="pin-static">3</span><span><b>Error de una fuente</b>: en su lugar, con "Reintentar"; las demás se ven igual</span></li>
+          <li><span class="pin-static">↕</span><span><b>Hover</b> como fila de tabla<br><span class="tok">--color-bg-subtle</span></span></li>
+          <li><span class="pin-static">▭</span><span><b>Celular</b>: el badge baja debajo del detalle</span></li>
+        </ul>
+      </div>
+
       <!-- Navegación de sección -->
       <div class="sub"><h3 class="t-h2">Navegación de sección</h3><p class="muted">Para moverse entre pantallas hermanas de un área, como los catálogos del staff. Cada enlace es una página con su URL; no son pestañas de contenido.</p></div>
       <div class="panel anatomy">

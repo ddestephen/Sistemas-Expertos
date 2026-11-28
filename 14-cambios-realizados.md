@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **El inicio muestra lo pendiente (navegación, lote 2):** el inicio deja de repetir el menú como botones y muestra a cada rol lo que tiene por atender (encuesta por responder, tareas vencidas, riesgos sin control, eventos abiertos, borradores), cada cosa con un link a donde se atiende; se documenta en `design-system.md` § Inicio | [Ver cambio](#cambio-2026-11-28-navegacion-inicio) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Marco de navegación del frontend (lote 1):** tres layouts (público, empresa y plataforma), menú lateral por rol en lugar de los botones del inicio, menú de cuenta, panel de menú en celular, 404 dentro del marco y niveles de pantalla (las del menú no llevan "Volver"); se documenta en `design-system.md` § Layouts y navegación, § Menú lateral y § Menú de cuenta | [Ver cambio](#cambio-2026-11-28-navegacion-marco) |
 | 2026-11-27 | Equipo (redactado con Claude Code) | **Activación de cuentas por código, envío por Resend y correo inmediato de notificaciones:** toda cuenta local nueva (empresa, vínculo o encuestado) deja de recibir contraseña temporal y se activa con el mismo código de 6 dígitos de Microsoft (D30, RN-87; tabla **VerificacionCorreoMicrosoft** generalizada a **VerificacionCorreo**); el envío de correo deja SMTP y pasa a la API de Resend; las notificaciones de M11 intentan su correo de inmediato al crearse, con un botón de reintento manual y el estado nuevo `en_proceso` (RN-78) | [Ver cambio](#cambio-2026-11-27-activacion-por-codigo) |
 | 2026-11-26 | Jesús Zepeda | **HU-075 completada:** reporte consolidado `GET /api/riesgos/matriz/reporte` (`riesgo.matriz.reporte`, `ArmadorMatriz`) y vista imprimible apaisada `/riesgos/imprimir` para imprimir o guardar en PDF al vuelo sin guardar archivos (`art. 47.b`, `RN-52`) | [Ver cambio](#cambio-2026-11-26-hu-075) |
@@ -73,6 +74,50 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-28-navegacion-inicio` {#cambio-2026-11-28-navegacion-inicio}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: la pantalla de inicio (segundo lote del rediseño de navegación). Solo `design-system.md` y su guía visual. No cambia el modelo, las reglas, los permisos ni las historias, y no hace falta ningún endpoint nuevo. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **Con el menú del lote 1, el inicio quedó repitiendo el menú** con botones: hasta 14 para el administrador.
+2. **El inicio no decía qué había por hacer.** En la empresa de demostración había una tarea vencida, un riesgo crítico sin control y dos eventos sin investigar, y no aparecían.
+3. **El encuestado y el colaborador,** que son la mayoría, tenían que abrir otra pantalla para saber si les tocaba algo.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| El inicio muestra lo pendiente | Una fila por cosa por atender, cada una con un link a donde se atiende | Se ve de un vistazo qué hacer, y se llega en un toque |
+| La encuesta por responder va destacada | Con el único botón principal del inicio, "Responder ahora", que abre esa encuesta | El encuestado responde sin pasar por "Mis encuestas" |
+| Orden por urgencia | Lo que no cargó, lo vencido, lo que necesita atención y lo demás | Lo urgente queda arriba |
+| Para ti / En la empresa | La gestión ve sus propias tareas separadas de lo que debe atender en la empresa | No se mezcla lo personal con lo de la empresa |
+| Cada fuente se carga por separado | Si una falla, su fila dice "No se pudo cargar…" con "Reintentar" y las demás se ven igual. "Estás al día" solo aparece si todo cargó | Un error no se confunde con no tener pendientes |
+| Staff | Dos indicadores (empresas y personas con acceso vigente) y las empresas suspendidas, si hay | El staff no tiene pendientes de empresa |
+
+### Cómo quedó (resumen)
+
+`design-system.md` tiene la sección nueva § Inicio: encabezado, encuesta destacada, fila de pendiente, orden, tabla de filas por rol, estados (cargando, error de una fuente, al día) y el inicio del staff. La guía visual muestra la lista de pendientes. Las cifras salen de los endpoints que ya existían.
+
+### Qué hizo el equipo en la práctica
+
+- Propuesta del lote 2 con antes y después, con las cifras reales de las empresas de demostración; aprobada.
+- Implementación en la rama `feature/navegacion-lote-2-inicio` del repositorio de código.
+- Documentación en `design-system.md` y en la guía visual.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Inicio | [design-system.md](design-system.md) § Inicio |
+| Guía visual | [design-system/index.html](design-system/index.html) § Componentes y estados |
 
 ---
 

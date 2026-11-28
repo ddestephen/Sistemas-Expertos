@@ -684,6 +684,42 @@ Al pie del menú lateral (y del panel), con borde superior: un ítem con el íco
 - **Por qué aquí:** la cuenta se usa poco; en el encabezado ocupaba el mismo espacio que el trabajo y, en celular, dos
   filas.
 
+### Inicio
+
+Lo que cada persona tiene pendiente, con un toque para atenderlo (decidido el 28-11-2026, lote 2). Los módulos están en
+el menú, no en el inicio.
+
+| Parte | Decisión |
+|---|---|
+| Encabezado | Título 1 "Inicio" y "Lo que tienes pendiente en {empresa}." en Cuerpo `--color-text-secondary` |
+| Encuesta por responder | Card destacada con el único botón principal del inicio: "Responder ahora" abre esa encuesta; con varias, "Ver mis encuestas". Lleva la línea "Tus respuestas son anónimas: nadie sabe qué respondiste." |
+| Fila de pendiente | Ícono del módulo (20 px, `--color-text-secondary`), nombre (Label), detalle con las cifras (Cuerpo secundario), badge si corresponde y `chevron-right` 16 px en `--color-text-tertiary`. Alto mínimo 64 px (`--space-16`). Toda la fila es el link; hover `--color-bg-subtle`, como una fila de tabla |
+| Lista | Filas en una sola card (`--color-bg-surface`, borde `--color-border-default`, `--radius-lg`) con divisores. Para la gestión, dos grupos con Título 3: "Para ti" (tareas, notificaciones) y "En la empresa" (plan, matriz, eventos, documentos) |
+| Orden | Lo que no cargó, lo vencido (badge de error), lo que necesita atención (advertencia), lo demás y las notificaciones |
+| Celular | El badge baja debajo del detalle; la flecha sigue a la derecha |
+
+**Qué filas hay:**
+
+| Fila | Quién | Aparece cuando | Badge |
+|---|---|---|---|
+| Mis tareas | Admin, Responsable SST, colaborador | Hay tareas por hacer | "N vencidas" (error) |
+| Notificaciones | Roles de empresa | Hay notificaciones sin leer | — |
+| Plan de trabajo | Admin y Responsable SST | Tareas vencidas, sin responsable o propuestas por confirmar | "N vencidas" (error) |
+| Matriz de riesgos | Admin y Responsable SST | Riesgos altos o críticos sin control (RN-19) o sin evaluar | "Sin control" (advertencia) |
+| Eventos | Admin y Responsable SST | Eventos abiertos o en investigación | "N graves" (error), si hay |
+| Documentos | Admin y Responsable SST | Documentos en borrador | — |
+
+- **Solo lo que pide una acción:** una fila aparece solo si hay algo por atender. "Vencida" es la misma regla que en Mis
+  tareas y el plan.
+- **El aviso de perfil incompleto** (admin) sigue arriba de todo, como aviso de advertencia.
+- **Estados:** cada fuente se carga por separado. Mientras falta alguna, skeleton con la forma de las filas (después de
+  ~300 ms). Si una falla, en su lugar va una fila de error ("No se pudo cargar la matriz de riesgos", ícono
+  `circle-alert` en `--color-error-icon` y botón secundario "Reintentar"), y las demás se muestran igual.
+- **"Estás al día":** solo cuando todo cargó y no hay nada: ícono `circle-check` 32 px en `--color-text-tertiary`,
+  Título 3 y "Cuando haya algo por atender, aparecerá aquí." Un error nunca se muestra como "al día".
+- **Staff:** "Cómo se está usando Norvia." con dos indicadores (empresas registradas, con las suspendidas en la
+  aclaración, y personas con acceso vigente) y, si hay empresas suspendidas, una fila que lleva a Empresas.
+
 ### Navegación de sección
 
 Para moverse entre las partes de un área con varias pantallas hermanas, como los catálogos del staff (HU-023).
