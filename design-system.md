@@ -517,6 +517,17 @@ encuesta, suspender una empresa).
 - **Botones:** "Cancelar" + verbo concreto ("Dar de baja"), nunca "Aceptar". Si la acción es de
   peligro, el botón usa `--color-action-danger` y el foco empieza en "Cancelar".
 - **No se cierra con clic fuera.** En celular sale como hoja inferior.
+- **Centrado** (28-11-2026): título, texto y botones van centrados, a diferencia del pie de los modales de formulario
+  (§ Modal), que alinea las acciones a la derecha. Vale para todos los diálogos de confirmación.
+
+**Salir sin enviar:** si un formulario tiene datos escritos y se navega a otra pantalla dentro de Norvia (menú,
+"Volver", campana, "Cancelar"), se confirma antes con este diálogo. Al recargar o cerrar la pestaña avisa el navegador.
+
+| Formulario | Título | Texto | Botón |
+|---|---|---|---|
+| Responder una encuesta | ¿Salir sin enviar tus respuestas? | Lo que respondiste en esta encuesta se pierde. | Salir sin enviar (peligro) |
+| Reportar un evento | ¿Salir sin enviar el reporte? | Lo que escribiste se pierde. | Salir sin enviar (peligro) |
+| Editar un borrador (§ Editor de documento) | ¿Salir sin guardar los cambios? | Lo que cambiaste en el borrador se pierde. | Salir sin guardar (peligro) |
 
 ### Volver (navegación de regreso)
 
@@ -719,6 +730,22 @@ el menú, no en el inicio.
   Título 3 y "Cuando haya algo por atender, aparecerá aquí." Un error nunca se muestra como "al día".
 - **Staff:** "Cómo se está usando Norvia." con dos indicadores (empresas registradas, con las suspendidas en la
   aclaración, y personas con acceso vigente) y, si hay empresas suspendidas, una fila que lleva a Empresas.
+
+### Mis tareas
+
+Las tareas a cargo de la persona (HU-044). Ajustes del 28-11-2026 (rediseño de navegación, lote 3).
+
+- **Por hacer:** primero las vencidas y después por fecha límite, la más próxima arriba; las tareas sin fecha van al final.
+- **Terminadas:** plegadas al entrar, con un botón "Terminadas (N)" (`chevron-right`/`chevron-down` 16 px, `aria-expanded`).
+- **Acciones por estado:** "Empezar" (pendiente); "Marcar como completada" y "Marcar como pendiente" (en progreso); "Reabrir"
+  (completada). Las acciones de estado son botones secundarios; "Volver" queda solo para navegar (§ Volver).
+- **Tarea con evidencia** mientras no se puedan adjuntar archivos (HU-100): aviso info "Esta tarea pide una foto o un PDF
+  como evidencia. Todavía no se pueden adjuntar archivos en Norvia, así que no se puede marcar como completada." No se
+  muestra el botón de completar.
+- **Tarea resaltada** (`/mis-tareas?tarea={id}`, desde la notificación "Ver la tarea"): fondo `--color-bg-selected`, borde
+  `--color-focus-ring` y `aria-current`. La pantalla se desplaza hasta ella y le pasa el foco; si está entre las
+  terminadas, ese grupo se abre.
+- **Notificaciones:** entre el link ("Ver la tarea", "Ver la política") y "Marcar como leída" hay `--space-4`.
 
 ### Navegación de sección
 

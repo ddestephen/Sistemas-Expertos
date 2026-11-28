@@ -948,3 +948,7 @@ a.pend-fila:hover { background: var(--color-bg-subtle); }
 .pend-fila.pend-error { grid-template-columns: 20px minmax(0, 1fr) auto; }
 .pend-txt { display: grid; min-width: 0; }
 .pend-icono-error { color: var(--color-error-icon); }
+
+/* Diálogo de confirmación: título, texto y botones centrados (28-11-2026). */
+.modal-centrado .modal-head, .modal-centrado .modal-body { justify-content: center; text-align: center; }
+.modal-centrado .modal-foot { justify-content: center; }

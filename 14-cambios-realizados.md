@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Lo propio de cada persona (navegación, lote 3):** Mis tareas explica por qué una tarea con evidencia todavía no se puede completar, ordena por urgencia, pliega las terminadas y resalta la tarea que abre la notificación ("Ver la tarea"); Reportar un evento vuelve a donde se vino; salir de una encuesta o de un reporte a medio llenar pide confirmación; los diálogos de confirmación van centrados | [Ver cambio](#cambio-2026-11-28-navegacion-lo-propio) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **El inicio muestra lo pendiente (navegación, lote 2):** el inicio deja de repetir el menú como botones y muestra a cada rol lo que tiene por atender (encuesta por responder, tareas vencidas, riesgos sin control, eventos abiertos, borradores), cada cosa con un link a donde se atiende; se documenta en `design-system.md` § Inicio | [Ver cambio](#cambio-2026-11-28-navegacion-inicio) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Marco de navegación del frontend (lote 1):** tres layouts (público, empresa y plataforma), menú lateral por rol en lugar de los botones del inicio, menú de cuenta, panel de menú en celular, 404 dentro del marco y niveles de pantalla (las del menú no llevan "Volver"); se documenta en `design-system.md` § Layouts y navegación, § Menú lateral y § Menú de cuenta | [Ver cambio](#cambio-2026-11-28-navegacion-marco) |
 | 2026-11-27 | Equipo (redactado con Claude Code) | **Activación de cuentas por código, envío por Resend y correo inmediato de notificaciones:** toda cuenta local nueva (empresa, vínculo o encuestado) deja de recibir contraseña temporal y se activa con el mismo código de 6 dígitos de Microsoft (D30, RN-87; tabla **VerificacionCorreoMicrosoft** generalizada a **VerificacionCorreo**); el envío de correo deja SMTP y pasa a la API de Resend; las notificaciones de M11 intentan su correo de inmediato al crearse, con un botón de reintento manual y el estado nuevo `en_proceso` (RN-78) | [Ver cambio](#cambio-2026-11-27-activacion-por-codigo) |
@@ -74,6 +75,55 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-28-navegacion-lo-propio` {#cambio-2026-11-28-navegacion-lo-propio}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: Mis tareas, Notificaciones, Reportar un evento, responder una encuesta y el diálogo de confirmación (tercer lote del rediseño de navegación). Solo `design-system.md` y su guía visual. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **Mis tareas mostraba deshabilitado "Marcar como completada"** en las tareas que piden evidencia, sin decir que todavía no se pueden adjuntar archivos (HU-100).
+2. **"Volver a pendiente"** usaba la palabra reservada para navegar en una acción de estado, y las tareas no tenían orden ni se separaban las terminadas.
+3. **La notificación de una tarea abría la lista completa,** sin indicar cuál era.
+4. **Reportar un evento siempre salía al inicio,** aunque se hubiera llegado desde la lista de eventos.
+5. **Con el menú siempre a la vista** (lote 1), un toque bastaba para perder una encuesta o un reporte a medio llenar: solo avisaba el navegador al cerrar la pestaña.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Explicar la evidencia (decisión del 27-11-2026) | Aviso info en la tarea y sin botón de completar mientras no haya carga de archivos | La persona sabe por qué no puede completarla |
+| "Marcar como pendiente" | Botón secundario, como "Empezar" | "Volver" queda solo para navegar |
+| Orden y terminadas plegadas | Vencidas primero, luego por fecha límite; terminadas plegadas | Lo urgente arriba y la lista no crece |
+| "Ver la tarea" | La notificación abre Mis tareas con esa tarea resaltada | Se llega directo a lo que se avisó |
+| Salida según el origen | El reporte vuelve a Eventos si se vino de ahí; si no, al inicio | Se vuelve a donde se estaba |
+| Confirmar al salir sin enviar | El diálogo de confirmación del editor de documentos, también en la encuesta y en el reporte | No se pierde lo escrito sin querer |
+| Diálogo centrado | Título, texto y botones de todos los diálogos de confirmación, centrados | Pedido del equipo; todos los diálogos se ven igual |
+| Más aire en Notificaciones | `--space-4` entre el link y "Marcar como leída" | El borde del botón no queda pegado al link |
+
+### Cómo quedó (resumen)
+
+`design-system.md` tiene la sección nueva § Mis tareas (orden, terminadas, acciones, evidencia, tarea resaltada y separación en Notificaciones), y § Diálogo de confirmación suma el centrado y la tabla "Salir sin enviar". La guía visual muestra el diálogo centrado. Mis encuestas no cambia.
+
+### Qué hizo el equipo en la práctica
+
+- Propuesta del lote 3 con antes y después; el equipo pidió centrar los botones del diálogo y separar más las acciones de Notificaciones. Aprobada.
+- Implementación en la rama `feature/navegacion-lote-3-propio` del repositorio de código.
+- Documentación en `design-system.md` y en la guía visual.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Mis tareas y Notificaciones | [design-system.md](design-system.md) § Mis tareas |
+| Diálogo y salir sin enviar | [design-system.md](design-system.md) § Diálogo de confirmación |
+| Guía visual | [design-system/index.html](design-system/index.html) § Modal y diálogo de confirmación |
 
 ---
 
