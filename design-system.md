@@ -797,6 +797,14 @@ Usos: fecha y hora del accidente; fecha límite de una tarea (sin hora).
 
 Si el rol no puede crear, solo el mensaje ("No tienes encuestas pendientes").
 
+- **Vacía al inicio sin filtros** (28-11-2026): si la lista no tiene ningún dato, no se muestran los filtros ni el
+  buscador; vuelven cuando hay datos o un filtro aplicado (por ejemplo, Eventos y Plan de trabajo).
+- **Un solo estado vacío por pantalla:** si una pantalla tiene varias secciones sin datos (Plan de trabajo: propuestas y
+  tareas), se muestra un solo estado vacío que explica de dónde salen los datos y ofrece la acción.
+- **Sección sin novedades:** cuando una pantalla tiene datos pero una sección auxiliar no tiene nada (el plan sin tareas
+  nuevas para proponer), la sección se reduce a una línea en Cuerpo `--color-text-secondary` con `circle-check` 16 px,
+  para no empujar el contenido hacia abajo.
+
 **Cargando:** skeleton (bloques `--color-bg-subtle`, `--radius-sm`, con la forma del contenido).
 Aparece solo si la carga pasa de ~300ms; pulso suave que se apaga con reducción de movimiento.
 El spinner queda solo dentro de botones.

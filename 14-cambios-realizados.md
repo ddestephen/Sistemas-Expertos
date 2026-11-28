@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Gestión SST (navegación, lote 4):** revisión de las 20 pantallas de gestión; Plan de trabajo y Eventos pasan a "Nueva tarea" y "Reportar un evento" como botón principal, con un solo estado vacío y sin filtros cuando no hay datos; el título "Eventos reportados" pasa a "Eventos"; el evento y sus estadísticas usan el "Volver" común; Nueva tarea suma "Volver" | [Ver cambio](#cambio-2026-11-28-navegacion-gestion) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Lo propio de cada persona (navegación, lote 3):** Mis tareas explica por qué una tarea con evidencia todavía no se puede completar, ordena por urgencia, pliega las terminadas y resalta la tarea que abre la notificación ("Ver la tarea"); Reportar un evento vuelve a donde se vino; salir de una encuesta o de un reporte a medio llenar pide confirmación; los diálogos de confirmación van centrados | [Ver cambio](#cambio-2026-11-28-navegacion-lo-propio) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **El inicio muestra lo pendiente (navegación, lote 2):** el inicio deja de repetir el menú como botones y muestra a cada rol lo que tiene por atender (encuesta por responder, tareas vencidas, riesgos sin control, eventos abiertos, borradores), cada cosa con un link a donde se atiende; se documenta en `design-system.md` § Inicio | [Ver cambio](#cambio-2026-11-28-navegacion-inicio) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Marco de navegación del frontend (lote 1):** tres layouts (público, empresa y plataforma), menú lateral por rol en lugar de los botones del inicio, menú de cuenta, panel de menú en celular, 404 dentro del marco y niveles de pantalla (las del menú no llevan "Volver"); se documenta en `design-system.md` § Layouts y navegación, § Menú lateral y § Menú de cuenta | [Ver cambio](#cambio-2026-11-28-navegacion-marco) |
@@ -75,6 +76,49 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-28-navegacion-gestion` {#cambio-2026-11-28-navegacion-gestion}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: pantallas de gestión SST (cuarto lote del rediseño de navegación). Solo `design-system.md` § Estados de pantalla. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **Plan de trabajo y Eventos no seguían las reglas del marco:** su acción de crear era secundaria, mientras que en Encuestas y en la Matriz era principal.
+2. **El plan vacío mostraba dos cajas vacías apiladas sin acción,** y con el plan al día la caja "El plan está al día" empujaba las tareas hacia abajo.
+3. **Eventos se titulaba "Eventos reportados"** (el menú dice "Eventos") y mostraba filtros aunque no hubiera ningún evento.
+4. **El detalle del evento y las estadísticas** tenían su propio enlace "Volver a los eventos", sin barra fija ni historial, y Nueva tarea no tenía "Volver".
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Crear es la acción principal | "Nueva tarea" y "Reportar un evento" pasan a botón principal | Todas las listas de gestión se comportan igual |
+| Un solo estado vacío | El plan vacío explica de dónde salen las tareas y ofrece "Nueva tarea" | Se entiende qué hacer para empezar |
+| Sección sin novedades en una línea | "No hay tareas nuevas para proponer." | Las tareas quedan arriba |
+| Sin filtros si no hay datos | Los filtros vuelven cuando hay datos o un filtro aplicado | No se ofrecen controles que no sirven |
+| Título igual al menú | "Eventos" y "Comparar resultados" | Un nombre por pantalla (§ Layouts y navegación) |
+| "Volver" común | El evento, las estadísticas y Nueva tarea usan el componente `Volver` | Barra fija y la pantalla anterior nombrada, como en el resto |
+
+### Cómo quedó (resumen)
+
+Encuestas, Matriz y Documentos ya cumplían el marco y no cambian, salvo el título de la comparación. `design-system.md` § Estados de pantalla suma tres reglas: vacía al inicio sin filtros, un solo estado vacío por pantalla y la sección sin novedades en una línea.
+
+### Qué hizo el equipo en la práctica
+
+- Revisión de las 20 pantallas y propuesta del lote 4 con antes y después; aprobada.
+- Implementación en la rama `feature/navegacion-lote-4-gestion-sst` del repositorio de código.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Estados vacíos | [design-system.md](design-system.md) § Estados de pantalla |
 
 ---
 
