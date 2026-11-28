@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Acceso (navegación, lote 6):** la landing nueva aprobada (qué resuelve Norvia, cómo funciona, qué cubre, privacidad y preguntas frecuentes), con su propia barra y una variante con sesión iniciada; el login explica cuándo un enlace directo a una empresa no sirve en el navegador y "Cambiar empresa" pasa a "Buscar otra empresa" | [Ver cambio](#cambio-2026-11-28-navegacion-acceso) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Empresa y plataforma (navegación, lote 5):** los detalles de los catálogos (peligro, pregunta, plantilla de documento) salen del encabezado del área y pasan a nivel 2 con su título, "Volver" y ancho de detalle; la acción de crear de cada lista de catálogos pasa a botón principal; los títulos "Auditoría de acciones" y "Empresas registradas" pasan a "Auditoría" y "Empresas" | [Ver cambio](#cambio-2026-11-28-navegacion-empresa-plataforma) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Gestión SST (navegación, lote 4):** revisión de las 20 pantallas de gestión; Plan de trabajo y Eventos pasan a "Nueva tarea" y "Reportar un evento" como botón principal, con un solo estado vacío y sin filtros cuando no hay datos; el título "Eventos reportados" pasa a "Eventos"; el evento y sus estadísticas usan el "Volver" común; Nueva tarea suma "Volver" | [Ver cambio](#cambio-2026-11-28-navegacion-gestion) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Lo propio de cada persona (navegación, lote 3):** Mis tareas explica por qué una tarea con evidencia todavía no se puede completar, ordena por urgencia, pliega las terminadas y resalta la tarea que abre la notificación ("Ver la tarea"); Reportar un evento vuelve a donde se vino; salir de una encuesta o de un reporte a medio llenar pide confirmación; los diálogos de confirmación van centrados | [Ver cambio](#cambio-2026-11-28-navegacion-lo-propio) |
@@ -77,6 +78,51 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-28-navegacion-acceso` {#cambio-2026-11-28-navegacion-acceso}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: la landing y el login (sexto y último lote del rediseño de navegación). Solo `design-system.md` y su guía visual. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **La landing solo llevaba al registro y al login:** no decía qué es Norvia, para quién es ni qué parte del reglamento cubre.
+2. **Un enlace `/login?empresa=…` abierto en otro navegador** volvía a la búsqueda por RTN sin explicar por qué.
+3. **El paso 2 del login decía "Cambiar empresa",** una expresión que el vocabulario del proyecto evita: no hay selector de empresa.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Landing con contenido | Problema, cómo funciona, qué cubre, para cada persona, privacidad, preguntas frecuentes y cierre; textos mínimos pedidos por el equipo | Una empresa entiende qué gana antes de registrarse |
+| Barra propia solo en `/` | La landing no usa la barra del layout público; el resto de las pantallas públicas sigue igual (el lote 1 no cambia) | Enlaces a las secciones y franjas de borde a borde sin dos barras |
+| Título de portada en Display (30 px) y pie sin mención académica | Decisión del equipo | Sin estilos nuevos en el design system |
+| Con sesión iniciada | Aviso y "Ir a mi inicio" en la portada, la barra y el cierre | Se mantiene lo del lote 1 dentro de la página nueva |
+| Aviso del enlace directo | "El enlace que abriste no sirve en este navegador. Busca tu empresa por su RTN para continuar." | La persona sabe por qué se le pide el RTN |
+| "Buscar otra empresa" | Reemplaza "Cambiar empresa" | Respeta el vocabulario del proyecto |
+
+### Cómo quedó (resumen)
+
+`design-system.md` tiene la sección nueva § Landing y § Layouts y navegación registra la landing como excepción del layout público. La guía visual muestra la portada. Registro, activación de cuenta, recuperación de contraseña y el acceso del staff no cambian.
+
+### Qué hizo el equipo en la práctica
+
+- Propuesta de la landing (tres versiones con ajustes del equipo) y del lote 6; aprobadas.
+- Implementación en la rama `feature/navegacion-lote-6-acceso` del repositorio de código.
+- Con este lote termina el rediseño de navegación (lotes 1 a 6).
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Landing | [design-system.md](design-system.md) § Landing |
+| Excepción del layout público | [design-system.md](design-system.md) § Layouts y navegación |
+| Guía visual | [design-system/index.html](design-system/index.html) § Componentes y estados |
 
 ---
 

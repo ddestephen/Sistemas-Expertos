@@ -952,3 +952,10 @@ a.pend-fila:hover { background: var(--color-bg-subtle); }
 /* Diálogo de confirmación: título, texto y botones centrados (28-11-2026). */
 .modal-centrado .modal-head, .modal-centrado .modal-body { justify-content: center; text-align: center; }
 .modal-centrado .modal-foot { justify-content: center; }
+
+/* Landing: maqueta de la barra propia y la portada. */
+.landing-demo { width: 100%; max-width: 640px; display: grid; border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-lg); overflow: hidden; background: var(--color-bg-canvas); }
+.landing-demo-barra { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-2) var(--space-4); background: var(--color-bg-surface); border-bottom: var(--border-width) solid var(--color-border-default); }
+.landing-demo-barra > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.landing-demo-barra .btn { flex: none; }
+.landing-demo-portada { display: grid; gap: var(--space-4); padding: var(--space-8) var(--space-6); }

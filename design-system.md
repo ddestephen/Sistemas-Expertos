@@ -627,7 +627,7 @@ Cómo se ordena cada pantalla y cómo se llega a ella. Decidido el 27-11-2026 (r
 
 | Layout | Para | Qué tiene |
 |---|---|---|
-| Público | Landing, registro, login, activación, contraseña y acceso del equipo | Barra de 60 px (`--control-height-touch` + `--space-2` arriba y abajo) con "Norvia", que lleva a la landing, y la columna de la página centrada |
+| Público | Registro, login, activación, contraseña, acceso del equipo y el 404 sin sesión | Barra de 60 px (`--control-height-touch` + `--space-2` arriba y abajo) con "Norvia", que lleva a la landing, y la columna de la página centrada. **Excepción:** la landing (`/`) usa su propia barra y franjas de borde a borde (§ Landing) |
 | Empresa | Los cuatro roles de empresa | Menú lateral con la empresa, el rol y la campana arriba, el menú del rol y la cuenta abajo |
 | Plataforma | Staff de Norvia | El mismo marco, con "Plataforma Norvia" en lugar de la empresa y sin campana |
 
@@ -730,6 +730,27 @@ el menú, no en el inicio.
   Título 3 y "Cuando haya algo por atender, aparecerá aquí." Un error nunca se muestra como "al día".
 - **Staff:** "Cómo se está usando Norvia." con dos indicadores (empresas registradas, con las suspendidas en la
   aclaración, y personas con acceso vigente) y, si hay empresas suspendidas, una fila que lleva a Empresas.
+
+### Landing
+
+La página pública de `/` (aprobada el 28-11-2026, versión 3): explica qué problema resuelve Norvia, cómo funciona y qué
+cubre del reglamento, para que una empresa decida registrarse. Es la única pantalla pública que no usa la barra del
+layout público.
+
+| Parte | Decisión |
+|---|---|
+| Barra | La misma altura y fondo que la barra pública: "Norvia" (lleva a `/`), enlaces a las secciones ("Cómo funciona", "Qué cubre", "Privacidad", "Preguntas") en Label `--color-text-secondary`, y a la derecha el botón secundario "Iniciar sesión". En celular quedan "Norvia" y el botón |
+| Portada | Título en Display (30/36; Título 1 en celular), una línea en Cuerpo grande secundario, botón principal "Registrar mi empresa" y el link "Ver cómo funciona" (`arrow-down`). A la derecha, una vista del producto armada con componentes reales: mapa de calor de muestra y una tarea del plan (`--shadow-2`), no una foto de archivo |
+| Franjas | Las secciones alternan `--color-bg-canvas` y `--color-bg-surface` (con borde arriba y abajo), de borde a borde; el contenido queda en `--layout-max-width` con el margen lateral de siempre. `--space-16` arriba y abajo (`--space-12` en celular) |
+| Secciones | El problema (tres puntos con ícono de 32 px), cómo funciona (cinco pasos numerados en una fila, apilados en celular), qué cubre (una frase sobre el acuerdo STSS-053-04 y la aclaración de ISO 45001), para cada persona (tres cards), privacidad (tres garantías con `circle-check` en `--color-success-icon`), preguntas frecuentes (desplegables) y cierre |
+| Títulos de sección | Título 2, sin etiquetas encima |
+| Pie | "Norvia" y "Seguridad y salud en el trabajo para empresas hondureñas · 2026", en Caption |
+| Con sesión iniciada | La portada cambia el botón por el aviso info "Ya entraste a {empresa} como {rol}", el botón principal "Ir a mi inicio" y la nota para entrar a otra empresa. La barra y el cierre también dicen "Ir a mi inicio" |
+
+- **Solo promete lo que está en alcance:** sin precios (no hay planes de pago), sin testimonios ni cifras de clientes,
+  y solo con lo que el reglamento pide y Norvia cubre.
+- **Un solo botón principal por sección:** la portada y el cierre repiten la acción principal porque son secciones
+  distintas; la barra usa un botón secundario.
 
 ### Mis tareas
 
