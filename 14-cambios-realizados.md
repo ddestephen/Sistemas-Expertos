@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Marco de navegación del frontend (lote 1):** tres layouts (público, empresa y plataforma), menú lateral por rol en lugar de los botones del inicio, menú de cuenta, panel de menú en celular, 404 dentro del marco y niveles de pantalla (las del menú no llevan "Volver"); se documenta en `design-system.md` § Layouts y navegación, § Menú lateral y § Menú de cuenta | [Ver cambio](#cambio-2026-11-28-navegacion-marco) |
 | 2026-11-27 | Equipo (redactado con Claude Code) | **Activación de cuentas por código, envío por Resend y correo inmediato de notificaciones:** toda cuenta local nueva (empresa, vínculo o encuestado) deja de recibir contraseña temporal y se activa con el mismo código de 6 dígitos de Microsoft (D30, RN-87; tabla **VerificacionCorreoMicrosoft** generalizada a **VerificacionCorreo**); el envío de correo deja SMTP y pasa a la API de Resend; las notificaciones de M11 intentan su correo de inmediato al crearse, con un botón de reintento manual y el estado nuevo `en_proceso` (RN-78) | [Ver cambio](#cambio-2026-11-27-activacion-por-codigo) |
 | 2026-11-26 | Jesús Zepeda | **HU-075 completada:** reporte consolidado `GET /api/riesgos/matriz/reporte` (`riesgo.matriz.reporte`, `ArmadorMatriz`) y vista imprimible apaisada `/riesgos/imprimir` para imprimir o guardar en PDF al vuelo sin guardar archivos (`art. 47.b`, `RN-52`) | [Ver cambio](#cambio-2026-11-26-hu-075) |
 | 2026-11-26 | Jesús Zepeda | **HU-099 completada:** tabla `RegistroAuditoria` inalterable (Code-First + `ProtegerRegistroAuditoriaInterceptor` sin triggers SQL), instrumentación transaccional en M1–M9 (omitiendo acciones anónimas `RN-72`/`D11`), consulta `GET /api/auditoria` (`auditoria.listar`) y vista web `/auditoria` | [Ver cambio](#cambio-2026-11-26-hu-099) |
@@ -72,6 +73,57 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-28-navegacion-marco` {#cambio-2026-11-28-navegacion-marco}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: navegación y layouts del frontend (primer lote del rediseño). Solo `design-system.md` y su guía visual. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **No había menú.** El inicio era la única forma de pasar de un módulo a otro: una fila de hasta 14 botones iguales, sin rótulos.
+2. **Diez pantallas no tenían forma de regresar** sin el botón atrás del navegador: el plan de trabajo y su tarea nueva, la lista de eventos, Mis tareas, Reportar un evento y las cinco listas de catálogos. Desde Catálogos, el staff no podía volver a su inicio.
+3. **El 404 con sesión iniciada llevaba a la landing pública,** que ofrecía registrar una empresa o iniciar sesión a quien ya había entrado.
+4. **"Volver" no nombraba varias pantallas** (el plan, los eventos, Mis tareas, los catálogos). Por ejemplo, al abrir un riesgo desde el plan, "Volver" llevaba a la matriz.
+5. **El encabezado daba el mismo peso a la cuenta que al trabajo:** "Cambiar contraseña" y "Cerrar sesión" eran botones fijos, y en celular el encabezado ocupaba unos 190 px.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Tres layouts | Público (barra con "Norvia"), empresa y plataforma (el mismo marco, con la empresa o "Plataforma Norvia") | Se reconoce de inmediato en qué sesión se está |
+| Menú lateral por rol | En escritorio, un menú fijo con los destinos del rol. En celular, una barra superior de una fila y el mismo menú en un panel | Se cambia de módulo sin pasar por el inicio y siempre se ve dónde se está |
+| Niveles de pantalla | Las pantallas del menú (nivel 1) no llevan "Volver"; los detalles y formularios (nivel 2), sí | "Volver" solo aparece donde hay un paso anterior que no está en el menú |
+| Lista única de pantallas | Ruta, nombre y texto de "Volver" de cada pantalla. De ella salen el título de la pestaña ("{nombre} · Norvia") y los textos de "Volver" | Ninguna pantalla queda sin nombre, y el mismo destino se nombra igual en todos lados |
+| Menú de cuenta | Cambiar o agregar la contraseña y cerrar sesión, al pie del menú | La cuenta deja de competir con el trabajo; el encabezado de celular pasa a una fila |
+| 404 dentro del marco | Con sesión, el menú sigue a la vista y el link es "Ir al inicio". El título de la pestaña no nombra la pantalla pedida | Ya no se cae a la landing, y se sigue sin confirmar que algo existe |
+| El admin también gestiona SST | Su menú incluye Gestión SST, como el del Responsable SST, más Personas | Coincide con los permisos actuales (decisión del 27-11-2026) |
+
+### Cómo quedó (resumen)
+
+`design-system.md` tiene tres secciones nuevas: § Layouts y navegación (layouts, niveles, lista única de pantallas, títulos, acción principal y menú por rol), § Menú lateral y § Menú de cuenta. Además cambian § Volver (cuándo va y los textos de ejemplo), § Estados de pantalla (el 404 con sesión) y las pantallas Empresas registradas y Auditoría, que ya no llevan "Volver" porque están en el menú. La guía visual muestra el marco de sesión.
+
+Los títulos de cada pantalla, su acción principal, los estados vacíos y el contenido del inicio se revisan en los lotes siguientes. Mientras tanto, el inicio conserva sus botones.
+
+### Qué hizo el equipo en la práctica
+
+- Inventario de rutas y recorrido de la app con una cuenta por rol (27-11-2026).
+- Propuesta del marco con prototipo, aprobada; propuesta del lote 1 con antes y después, aprobada.
+- Implementación en la rama `feature/navegacion-lote-1-marco` del repositorio de código.
+- Documentación en `design-system.md` y en la guía visual.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Layouts, niveles, menú por rol, menú lateral y de cuenta | [design-system.md](design-system.md) § Layouts y navegación, § Menú lateral, § Menú de cuenta |
+| "Volver" y 404 | [design-system.md](design-system.md) § Volver, § Estados de pantalla |
+| Guía visual | [design-system/index.html](design-system/index.html) § Componentes y estados |
 
 ---
 

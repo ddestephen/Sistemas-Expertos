@@ -243,7 +243,7 @@ Unidad base **4px**. Solo estos valores; los saltos son intencionales.
 |---|---|---|
 | `--layout-max-width` | `1280px` | Ancho máximo de pantallas generales |
 | `--layout-max-width-narrow` | `720px` | Formularios y documentos |
-| `--layout-sidebar-width` | `240px` | Menú lateral en escritorio |
+| `--layout-sidebar-width` | `240px` | Menú lateral en escritorio y panel del menú en celular (§ Layouts y navegación) |
 
 #### Espacios de seguridad
 
@@ -525,6 +525,7 @@ barra fija.
 
 | Parte | Decisión |
 |---|---|
+| Cuándo | Solo en pantallas de nivel 2 o más (detalles, formularios, subpantallas). Las pantallas del menú (nivel 1) no lo llevan: el menú ya está a la vista (§ Layouts y navegación) |
 | Link en su lugar | Ícono `arrow-left` 16px + "Volver a {destino}" (Label, `--color-text-link`), `--space-1` entre ícono y texto. Primer elemento de la página |
 | Destino | **La pantalla anterior** (como "atrás" del navegador), nombrada: si se llegó a los resultados desde un riesgo, "Volver al riesgo". Si no hay pantalla anterior (se entró por URL), es de la otra zona (con/sin sesión) o es la misma pantalla (tras guardar un formulario), se usa la pantalla padre fija |
 | Barra fija | Aparece cuando el link sale de la vista: pegada arriba, alto `--control-height` (44px en celular) más `--space-2` arriba y abajo (y el área segura del dispositivo), fondo `--color-bg-surface`, borde inferior `--color-border-default`, `--shadow-1` (encabezado fijo). El contenido se alinea al mismo ancho que la página |
@@ -534,8 +535,13 @@ barra fija.
 | Al volver | La pantalla anterior vuelve a la posición de desplazamiento en que se dejó |
 | Accesibilidad | Mientras está oculta, la barra es `aria-hidden` e `inert` (no recibe foco) |
 
-- **Texto:** siempre "Volver a {destino}" en minúscula: "Volver a encuestas", "Volver a mis encuestas",
-  "Volver a la encuesta", "Volver a la matriz", "Volver al riesgo".
+- **Texto:** siempre "Volver a {destino}" en minúscula, con el nombre de la pantalla en el menú y su artículo:
+  "Volver a encuestas", "Volver a mis encuestas", "Volver a la encuesta", "Volver a la matriz de riesgos",
+  "Volver al plan de trabajo", "Volver al riesgo".
+- **Un solo nombre por pantalla:** el texto sale de la lista única de pantallas (§ Layouts y navegación), tanto para la
+  pantalla anterior como para la pantalla padre. Una pantalla sin texto en la lista (un formulario ya guardado, como
+  Editar borrador) no se nombra: "Volver" usa la pantalla padre.
+- **En el layout de sesión,** la barra fija empieza a la derecha del menú lateral y se alinea con el contenido.
 - **Solo regreso por ahora:** la barra no lleva acciones de la pantalla. Si más adelante se agregan,
   se documentan aquí (un solo botón principal, regla de color 1).
 
@@ -602,6 +608,82 @@ Antes del formulario hay una pantalla corta para elegir el método. Vale igual p
 - **Sin contraseña:** en el formulario de registro con Microsoft no aparece el campo de contraseña.
 - **Microsoft es el único proveedor hoy;** si se suma Google, va como otro botón secundario justo debajo del de Microsoft, con su logo, antes del separador.
 
+### Layouts y navegación
+
+Cómo se ordena cada pantalla y cómo se llega a ella. Decidido el 27-11-2026 (rediseño de navegación, lote 1).
+
+**Tres layouts:**
+
+| Layout | Para | Qué tiene |
+|---|---|---|
+| Público | Landing, registro, login, activación, contraseña y acceso del equipo | Barra de 60 px (`--control-height-touch` + `--space-2` arriba y abajo) con "Norvia", que lleva a la landing, y la columna de la página centrada |
+| Empresa | Los cuatro roles de empresa | Menú lateral con la empresa, el rol y la campana arriba, el menú del rol y la cuenta abajo |
+| Plataforma | Staff de Norvia | El mismo marco, con "Plataforma Norvia" en lugar de la empresa y sin campana |
+
+- **Escritorio (≥1024 px):** menú lateral fijo de `--layout-sidebar-width`; el contenido empieza a su lado, alineado a
+  la izquierda y no centrado. Las listas usan hasta `--layout-max-width` y los formularios y detalles,
+  `--layout-max-width-narrow`, desde el mismo borde, así el título no cambia de lugar al pasar de una a otra.
+- **Celular y tablet:** barra superior de una fila con el botón del menú (`menu` 20 px), la empresa y el rol, y la
+  campana. No queda fija, para no sumarse a la barra de "Volver". El menú se abre en un panel (§ Menú lateral).
+- **La landing con sesión iniciada** lo dice ("Ya entraste a {empresa} como {rol}") y ofrece "Ir a mi inicio" en lugar
+  de registrar o iniciar sesión.
+
+**Niveles de pantalla:**
+
+| Nivel | Qué es | "Volver" | Menú |
+|---|---|---|---|
+| 1 | Un destino del menú (y Notificaciones, cuya entrada es la campana) | No lleva | Marca su ítem |
+| 2 o más | Detalle, formulario o subpantalla | Primer elemento de la página (§ Volver) | Sigue marcando el módulo al que pertenece |
+
+- **Sin migas de pan:** la profundidad máxima es 3 (lista, detalle, subpantalla). El menú dice el módulo y "Volver" el
+  paso anterior.
+- **Lista única de pantallas** (ruta, nombre y texto de "Volver"): de ella salen el título de la pestaña
+  ("{nombre} · Norvia"), los textos de "Volver" y, junto con el menú, el ítem marcado. Una pantalla nueva se agrega a
+  la lista además de a las rutas.
+- **Títulos:** en el nivel 1, el título de la página es el nombre del ítem del menú. En el nivel 2, el elemento ("Cortes
+  con herramientas") o la acción ("Agregar una persona").
+- **Acción principal:** una por pantalla, a la derecha del título; en celular, debajo del título a todo el ancho. En
+  las listas, la acción de crear es el botón principal si el rol puede usarla.
+- **Formularios:** "Cancelar" (link) lleva al mismo destino que "Volver".
+
+**Menú por rol:**
+
+| Rol | Destinos |
+|---|---|
+| Encuestado | Inicio, Mis encuestas, Políticas y procedimientos, Reportar un evento |
+| Colaborador | Inicio, Mis tareas, Mis encuestas, Políticas y procedimientos, Reportar un evento |
+| Responsable SST | Inicio · **Gestión SST:** Encuestas, Matriz de riesgos, Plan de trabajo, Eventos, Documentos · **Para mí:** Mis tareas, Mis encuestas, Políticas y procedimientos, Reportar un evento · **Empresa:** Perfil de la empresa, Auditoría |
+| Administrador de empresa | Igual que el Responsable SST, y **Empresa:** Personas, Perfil de la empresa, Auditoría |
+| Staff de plataforma | Inicio, Empresas, Catálogos (sus secciones siguen en la § Navegación de sección) |
+
+- **Grupos solo si hacen falta:** con cinco destinos o menos el menú va sin rótulos.
+- **Notificaciones no es un ítem:** la campana queda siempre a la vista, junto a la empresa.
+- **El menú solo muestra:** cada ruta la protege además su rol en el router y el permiso en el backend.
+
+### Menú lateral
+
+| Parte | Decisión |
+|---|---|
+| Contenedor | `--color-bg-surface`, borde derecho `--color-border-default`, alto de la pantalla y fijo al desplazar |
+| Identidad | Arriba, con `--space-4` de padding y borde inferior: "Norvia" (Caption `--color-text-secondary`), la empresa o "Plataforma Norvia" (Cuerpo Semibold, hasta dos líneas) y el rol (Caption). A la derecha, la campana |
+| Grupo | Rótulo en Caption Medium `--color-text-tertiary`; `--space-4` entre grupos y `--space-1` entre ítems |
+| Ítem | Ícono de 20 px + nombre (Label); estados de "Ítem de menú" (§ Estados de componentes). Alto `--control-height` (`--control-height-touch` en el panel) |
+| Actual | `aria-current`: `page` en la propia pantalla y `true` en sus pantallas internas. Los dos se ven igual (`--color-bg-selected`, `--color-text-selected`). El ítem actual es el de la ruta más larga que contiene a la pantalla: "/eventos/reportar" marca "Reportar un evento", no "Eventos" |
+| Panel (celular) | El mismo contenido en un panel modal desde la izquierda: `--color-bg-elevated`, `--shadow-3`, fondo `--color-overlay`. En la identidad, el botón de cerrar (`x` 20 px) en lugar de la campana. Se cierra con Esc, al tocar el fondo o al elegir un destino; el foco vuelve al botón del menú |
+
+### Menú de cuenta
+
+Al pie del menú lateral (y del panel), con borde superior: un ítem con el ícono `circle-user-round` 20 px, el correo
+(truncado) y `chevron-up` 16 px.
+
+- **Al abrirlo** se despliega hacia arriba, como la lista del select (`--color-bg-elevated`, `--radius-xl`,
+  `--shadow-2`): el rol en Caption, "Cambiar contraseña" (o "Agregar contraseña" si la cuenta se creó con Microsoft) y
+  "Cerrar sesión".
+- **Teclado:** el foco pasa a la primera opción; Esc lo cierra y devuelve el foco al botón. Dentro del panel de celular,
+  Esc cierra primero este menú y después el panel.
+- **Por qué aquí:** la cuenta se usa poco; en el encabezado ocupaba el mismo espacio que el trabajo y, en celular, dos
+  filas.
+
 ### Navegación de sección
 
 Para moverse entre las partes de un área con varias pantallas hermanas, como los catálogos del staff (HU-023).
@@ -662,6 +744,11 @@ secundario "Reintentar".
 
 **Sin acceso o no existe:** el mismo mensaje en ambos casos ("No encontramos lo que buscas" + link
 al inicio), para no confirmar que un recurso existe en otra empresa.
+
+- **Con sesión:** se muestra dentro del layout de sesión, con el menú a la vista y ningún ítem marcado. El link es
+  "Ir al inicio" (`/inicio`), no la landing pública. El título de la pestaña queda en "Norvia", sin el nombre de la
+  pantalla pedida.
+- **Sin sesión:** en el layout público, con "Volver" y "Ir a la página principal".
 
 ### Pregunta de encuesta
 
@@ -734,7 +821,7 @@ Contenido de una política o un procedimiento (HU-070). Se guarda en Markdown y 
 - **Acciones del borrador:** junto al título, solo para el Responsable SST y solo si la versión es un borrador. Un solo botón principal: el siguiente paso.
   - **Con datos por completar:** solo "Editar borrador", principal. El aviso de advertencia agrega "Cuando no falte ninguno, podrás aprobarlo."
   - **Sin datos por completar:** "Editar borrador" secundario y "Aprobar" principal (ícono `circle-check`).
-- **Documentos vigentes (HU-074):** pantalla "Políticas y procedimientos" para todas las personas de la empresa, con enlace desde el inicio.
+- **Documentos vigentes (HU-074):** pantalla "Políticas y procedimientos" para todas las personas de la empresa, en el menú de todos los roles de empresa.
   - **Lista:** campo "Buscar" (por nombre, espera a que se deje de escribir) y una card por documento con el título como enlace y debajo, en Caption, "Política · versión 2 · vigente desde el 25 nov 2026". Primero las políticas, cada grupo por título. Sin documentos vigentes, estado vacío sin buscador; sin resultados, "No hay documentos para «…»" con "Quitar la búsqueda".
   - **Documento:** el título con el botón secundario "Descargar PDF" (ícono `download`), los badges de tipo y "Vigente", y la línea con versión, fecha y quién lo aprobó. No muestra la plantilla ni avisos de borrador.
   - **Descargar PDF:** abre la impresión del navegador, que lo guarda como PDF o lo imprime. Se imprime solo el documento: sin la barra de la app, "Volver", botones, badges ni el borde de la card. El título de la página es el nombre que el navegador propone para el archivo.
@@ -902,7 +989,7 @@ parecido con los colores de riesgo, y un botón para volver al tema por defecto.
 
 ### Empresas registradas (plataforma, HU-024)
 
-Pantalla `/empresas` para `admin_plataforma` y `soporte_plataforma` al ancho general (`--layout-max-width`), con `<Volver a="/inicio">`:
+Pantalla `/empresas` para `admin_plataforma` y `soporte_plataforma` al ancho general (`--layout-max-width`). Es un destino del menú de plataforma, así que no lleva "Volver":
 
 - **Indicadores arriba:** dos `<Indicador>` (`Empresas registradas` y `Personas con acceso vigente`, adaptados cuando hay búsqueda).
 - **Búsqueda:** campo `Buscar` por nombre o rubro con espera tras dejar de escribir.
@@ -911,7 +998,7 @@ Pantalla `/empresas` para `admin_plataforma` y `soporte_plataforma` al ancho gen
 
 ### Auditoría de acciones (empresa, HU-099)
 
-Pantalla `/auditoria` de solo lectura para `admin_empresa` y `responsable_sst` al ancho general (`--layout-max-width`), accesible desde Inicio y con `<Volver a="/inicio">`:
+Pantalla `/auditoria` de solo lectura para `admin_empresa` y `responsable_sst` al ancho general (`--layout-max-width`). Es un destino del menú (grupo "Empresa"), así que no lleva "Volver":
 
 - **Filtros:** barra con `Buscar` (con espera de 300 ms tras dejar de escribir), `Módulo / entidad` (`CampoSelect` con opción `Todas`), y rango `Desde` / `Hasta` (`CampoFecha` en hora de Honduras con validación `hasta >= desde`).
 - **Tabla cronológica:** del registro más reciente al más antiguo, mostrando fecha/hora en `tabular-nums`, badge de acción, quién (`actorNombre` y correo) y entidad con enlace directo al elemento afectado cuando aplica y fragmentos legibles del `detalle`.

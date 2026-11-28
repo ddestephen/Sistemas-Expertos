@@ -924,3 +924,18 @@ svg.icon-32 { width: 32px; height: 32px; }
 .seccion-demo a { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: -1px; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; white-space: nowrap; }
 .seccion-demo a:hover { color: var(--color-text-primary); }
 .seccion-demo a[aria-current="page"] { color: var(--color-text-selected); border-bottom-color: var(--color-text-selected); }
+
+/* Layouts y navegación: maqueta del layout de sesión (menú lateral + contenido). */
+.shell-demo { display: grid; grid-template-columns: var(--layout-sidebar-width) minmax(0, 1fr); width: 100%; max-width: 640px; min-height: 380px; border: var(--border-width) solid var(--color-border-strong); border-radius: var(--radius-lg); overflow: hidden; background: var(--color-bg-canvas); }
+.shell-menu { display: flex; flex-direction: column; background: var(--color-bg-surface); border-right: var(--border-width) solid var(--color-border-default); }
+.shell-id { display: flex; justify-content: space-between; gap: var(--space-2); padding: var(--space-4); border-bottom: var(--border-width) solid var(--color-border-default); }
+.shell-lugar { font-weight: var(--font-weight-semibold); }
+.shell-bell { border: var(--border-width) solid var(--color-border-default); flex: none; }
+.shell-nav { flex: 1; display: grid; align-content: start; gap: var(--space-1); padding: var(--space-3) var(--space-2); }
+.shell-nav .nav-item, .shell-cuenta .nav-item { gap: var(--space-2); }
+.shell-grupo { padding: var(--space-3) var(--space-3) 0; font-size: var(--font-size-xs); line-height: 16px; font-weight: var(--font-weight-medium); color: var(--color-text-tertiary); }
+.shell-cuenta { padding: var(--space-2); border-top: var(--border-width) solid var(--color-border-default); }
+.shell-correo { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shell-contenido { display: grid; align-content: start; gap: var(--space-4); padding: var(--space-6); }
+.shell-relleno { height: 96px; border-radius: var(--radius-lg); background: var(--color-bg-surface); border: var(--border-width) solid var(--color-border-default); }
+.shell-relleno.corto { height: 48px; }
