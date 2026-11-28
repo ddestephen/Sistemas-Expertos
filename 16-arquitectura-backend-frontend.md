@@ -202,6 +202,15 @@ public sealed class AuthController : ControllerBase
 6. **Registro automático:** `AddApplication()` registra como *scoped* toda clase que implemente `IServicioCasoDeUso`, y todos los validadores (`AddValidatorsFromAssembly`). `AddInfrastructure()` registra los repositorios por convención (`I<X>Repositorio` → `<X>Repositorio`).
 7. **El repositorio vive en Infrastructure,** en `Persistence/Repositorios/<Modulo>/`, con el mismo nombre que el slice. El `DbContext` está solo en `Data/`.
 
+### Acceso con proveedores externos (D29)
+
+- Slices nuevos en `Features/Auth/`: `IdentidadMicrosoft` (canjea el código y emite el token de identidad), `LoginEmpresaMicrosoft` y `VincularMicrosoft`; en `Features/Empresas/`: `RegistrarEmpresaMicrosoft`. Cada uno con su servicio, sin importar otro slice.
+- La validación del `id_token` de Microsoft (firma, `aud`, `iss`, expiración) vive detrás de una interfaz `IProveedorIdentidad` en Application, con la implementación de Microsoft en Infrastructure. Agregar Google es agregar otra implementación y un valor en `Proveedor`, sin tocar los casos de uso.
+- Variables: el backend lee `Microsoft__ClientId`, `Microsoft__ClientSecret`, `Microsoft__Tenant` y `Microsoft__RedirectUris` de `Norvia.API/.env` (plantilla en `example.env`); el frontend solo necesita `VITE_MICROSOFT_CLIENT_ID` y `VITE_MICROSOFT_REDIRECT_URI`, que son públicas. El secreto nunca va en el frontend.
+- El código de 6 dígitos (RN-86) vive en **VerificacionCorreo** con `Proposito = microsoft` (una fila por correo y cuenta del proveedor; nunca en claro, solo su hash con `IHashCodigoVerificacion`). `EnviarCodigoMicrosoft` la crea o reutiliza y cuenta los envíos de la ventana; `VerificarCodigoMicrosoft` cuenta los intentos y la borra al confirmar. `RegistrarEmpresaMicrosoft` exige `CorreoVerificado` solo al crear una cuenta nueva. La misma tabla, con `Proposito = activacion_cuenta` y `AccesoId` en vez de `ProveedorUserId`, activa las cuentas locales nuevas (D30, RN-87): `AltaDeVinculo`, `RegistrarEmpresaServicio`, `VerificarCuentaServicio` y `ReenviarVerificacionCuentaServicio` comparten la misma ventana anti-spam (`VentanaEnvioCodigo`, en `Application/Common/Seguridad`).
+- El token de identidad es propio de Norvia (firmado con `JwtOpciones`, 10 min, un solo uso) y es lo único que viaja entre los pasos; el cliente nunca envía el correo ni el identificador del proveedor como dato de confianza.
+- `LoginEmpresaServicio` debe tolerar `Acceso.PasswordHash` nulo: una cuenta sin contraseña no entra por el login clásico (mismo error genérico).
+
 ## 5. Acceso a datos
 
 1. **Los repositorios no llaman a `SaveChanges`.** Solo consultan, agregan (`Add`) o marcan para borrar (`Remove`).
@@ -264,7 +273,7 @@ Request → ValidacionFiltro → IValidator<Request> (FluentValidation)
 ## 8. Configuración
 
 1. **Patrón Options:**
-   - `JwtOpciones` (Key, Issuer, Audience, AccessMinutos, RefreshDias), `CifradoOpciones` (EmpresaIdKey) y `StaffSeedOpciones`;
+   - `JwtOpciones` (Key, Issuer, Audience, AccessMinutos, RefreshDias), `CifradoOpciones` (EmpresaIdKey), `StaffSeedOpciones` y `MicrosoftOpciones` (ClientId, ClientSecret, Tenant, RedirectUris permitidas; D29);
    - se enlazan una sola vez con `AddOptions<T>().Bind(...).ValidateDataAnnotations().ValidateOnStart()`.
 2. **Los servicios reciben `IOptions<T>`,** nunca `IConfiguration`. Así la clave del JWT se lee en un solo lugar.
 3. **La autenticación HTTP (`AddJwtBearer`) se configura en la API** (`Extensiones/AutenticacionExtensiones`), usando `JwtOpciones`. Infrastructure solo **genera** tokens.

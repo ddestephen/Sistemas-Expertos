@@ -24,12 +24,19 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 | RN-57 | El login de empresa usa correo y contraseña de **Acceso** más el identificador de empresa (cifrado en cliente); la API exige vínculo `activo` para ese `AccesoId` y `EmpresaId` |
 | RN-65 | El correo de login es único en **Acceso**; todos los **VinculoEmpresa** que lo comparten usan la misma contraseña |
 | RN-66 | El refresh token se guarda solo como hash; logout y rotación de refresh **borran** la fila en **RefreshToken** |
-| RN-67 | Sin `Acceso.Verificado = true` no hay login (cuando aplique verificación de correo) |
+| RN-67 | Sin `Acceso.Verificado = true` no hay login (cuando aplique verificación de correo); una cuenta creada con un proveedor nace verificada (RN-84) |
 | RN-58 | Suspender un vínculo no altera otros vínculos de la misma persona |
 | RN-59 | Todo cambio de estado de un vínculo registra historial con motivo y actualiza el estado actual en la misma transacción |
 | RN-60 | Si la empresa está suspendida, ningún vínculo de esa empresa puede iniciar sesión |
 | RN-61 | **Fuera de alcance (recorte 13-11-2026).** El cargo en la comisión no sustituye ni amplía los permisos del rol en el vínculo |
 | RN-62 | El nombre completo de una persona se obtiene de sus columnas de nombre; no se guarda como texto concatenado |
+| RN-81 | Toda cuenta de **Acceso** debe poder iniciar sesión por al menos un medio: una contraseña o un proveedor vinculado en **AccesoProveedor** (D29). Una cuenta creada con un proveedor no tiene contraseña |
+| RN-82 | Un proveedor identifica a un solo **Acceso**, y un **Acceso** tiene a lo sumo una cuenta por proveedor |
+| RN-83 | Si alguien entra con un proveedor y su correo ya pertenece a un **Acceso** con contraseña, el proveedor solo se vincula después de confirmar la contraseña actual de ese Acceso |
+| RN-84 | El correo que entrega el proveedor no se puede editar al registrar la empresa; los nombres que entrega se muestran prellenados y sí se pueden editar |
+| RN-86 | Una cuenta nueva con un proveedor de identidad solo se crea después de que quien se registra confirme que el correo es suyo con un código de 6 dígitos enviado a ese correo. El código vence en unos 10 minutos, se permiten pocos envíos y pocos intentos, y no hace falta cuando el correo ya tiene cuenta o esa cuenta del proveedor ya está vinculada |
+| RN-87 | Toda cuenta local nueva (registro de empresa, alta de vínculo o de encuestado) nace sin contraseña: se activa con un código de 6 dígitos enviado a su correo, con la misma expiración y los mismos límites de envíos e intentos de RN-86. Quien da el alta (un administrador u otro operador) nunca conoce ni fija esa contraseña; la persona la elige al activar su cuenta. Reenviar el código genera uno nuevo y respeta la misma ventana de envíos |
+| RN-85 | Cuando la persona ya existe (misma cuenta de **Acceso**), registrar otra empresa reutiliza su **Persona**: sus nombres y datos ya guardados no se sobrescriben desde el registro; solo se completan los datos que estaban vacíos, como el documento o el teléfono. Cambiar un dato ya guardado se hace desde el perfil |
 
 ## Autorización (RBAC)
 
@@ -152,5 +159,5 @@ Las reglas con artículo vienen del reglamento hondureño, explicado en el [marc
 |---|---|
 | RN-75 | Publicar una versión vigente de una política crea una notificación para cada vínculo activo de la empresa, visible en Norvia y enviada por correo |
 | RN-77 | Asignar una tarea notifica a su responsable en Norvia y por correo |
-| RN-78 | Si el correo falla, la notificación sigue visible en Norvia y el envío se reintenta hasta un máximo de intentos |
+| RN-78 | Al crear la notificación se intenta enviar el correo de inmediato; si falla, la notificación sigue visible en Norvia y el envío queda pendiente para que un proceso de fondo lo reintente, con una espera que crece en cada intento, hasta un máximo. Quien recibió la notificación también puede reintentar el envío de inmediato con un botón, sin esperar a ese proceso; un intento no deja que otro envíe el mismo correo a la vez |
 | RN-79 | Cada operador con vínculo solo ve y marca como leídas sus propias notificaciones |

@@ -6,7 +6,7 @@
 
 Seguir este orden al cambiar el modelo o las reglas:
 
-1. [08-decisiones-bd.md](08-decisiones-bd.md) — decisiones D1–D28  
+1. [08-decisiones-bd.md](08-decisiones-bd.md) — decisiones D1–D30  
 2. [07-reglas-negocio.md](07-reglas-negocio.md) — reglas RN  
 3. [09-entidades.md](09-entidades.md) — lista de entidades  
 4. [12-modelo-datos.md](12-modelo-datos.md) — diccionario, relaciones, trazabilidad §9  

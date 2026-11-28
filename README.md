@@ -47,7 +47,7 @@ Si una palabra no te resulta conocida, búscala en el [glosario](11-glosario.md)
 
 1. Los módulos que se construyen y lo que queda fuera ([alcance](03-alcance.md)).
 2. El orden de construcción en 2 entregas ([alcance](03-alcance.md)).
-3. Las decisiones de modelado D1–D28 ([decisiones](08-decisiones-bd.md)).
+3. Las decisiones de modelado D1–D30 ([decisiones](08-decisiones-bd.md)).
 
 ## Siguiente paso
 

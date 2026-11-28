@@ -582,6 +582,26 @@ comunica estados; una etiqueta que no sea un estado usa el neutro.
 - **Todos los campos de contraseña lo llevan** (login, activar cuenta, cambiar y restablecer): lo pone
   `CampoTexto` con `type="password"`.
 
+### Elegir cómo entrar (pantalla previa de login y registro)
+
+Antes del formulario hay una pantalla corta para elegir el método. Vale igual para **iniciar sesión** y para **registrar la empresa**; solo cambian el título y el texto de los botones ("Iniciar sesión…" / "Registrarme…").
+
+| Parte | Decisión |
+|---|---|
+| Orden | 1) botón secundario "Continuar con Microsoft"; 2) separador "o"; 3) botón primario "Continuar con correo" (el flujo de siempre) |
+| Botón de Microsoft | Botón **secundario** (fondo `--color-bg-surface`, borde `--color-border-strong`, texto `--color-text-primary`) con el logo oficial de Microsoft de 16px a la izquierda y `--space-2` de separación. No se pinta con el color de marca |
+| Logo | Es una imagen con los colores de Microsoft, no un ícono ni una variable del sistema; se usa sin modificar, igual en claro y oscuro. Es la única excepción a "solo variables semánticas" (los colores de un logo ajeno no se tocan ni se personalizan por empresa) |
+| Un solo primario | Se respeta la regla de color 1: "Continuar con correo" es el único violeta de la pantalla, aunque quede debajo de los botones de proveedores |
+| Separador | Línea `--color-border-default` con el texto "o" en `--color-text-tertiary`, centrado; `--space-4` arriba y abajo |
+| Ancho | Los dos botones al mismo ancho (columna de formulario), altura `--control-height` (44px en celular) |
+| Cargando | Tras elegir Microsoft se pasa a su página; al volver, el botón muestra el estado Cargando mientras la API valida la identidad |
+| Al volver de Microsoft | **Con cuenta vinculada:** sigue a pedir la empresa si hace falta. **Sin cuenta:** formulario de registro con el correo en un input deshabilitado (`--color-bg-disabled`, con candado 16px y texto "Viene de tu cuenta de Microsoft") y los nombres prellenados y editables. **Cuenta existente:** nombres de solo lectura (RN-85) |
+| Error | Si Microsoft cancela o falla, aviso de error (`--color-error-*`) sobre los botones y se puede reintentar o usar el correo |
+
+- **Correo bloqueado ≠ deshabilitado sin explicación:** siempre lleva el texto de ayuda que dice de dónde viene.
+- **Sin contraseña:** en el formulario de registro con Microsoft no aparece el campo de contraseña.
+- **Microsoft es el único proveedor hoy;** si se suma Google, va como otro botón secundario justo debajo del de Microsoft, con su logo, antes del separador.
+
 ### Navegación de sección
 
 Para moverse entre las partes de un área con varias pantallas hermanas, como los catálogos del staff (HU-023).

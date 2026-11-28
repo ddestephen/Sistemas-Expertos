@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-27 | Equipo (redactado con Claude Code) | **Activación de cuentas por código, envío por Resend y correo inmediato de notificaciones:** toda cuenta local nueva (empresa, vínculo o encuestado) deja de recibir contraseña temporal y se activa con el mismo código de 6 dígitos de Microsoft (D30, RN-87; tabla **VerificacionCorreoMicrosoft** generalizada a **VerificacionCorreo**); el envío de correo deja SMTP y pasa a la API de Resend; las notificaciones de M11 intentan su correo de inmediato al crearse, con un botón de reintento manual y el estado nuevo `en_proceso` (RN-78) | [Ver cambio](#cambio-2026-11-27-activacion-por-codigo) |
 | 2026-11-26 | Jesús Zepeda | **HU-075 completada:** reporte consolidado `GET /api/riesgos/matriz/reporte` (`riesgo.matriz.reporte`, `ArmadorMatriz`) y vista imprimible apaisada `/riesgos/imprimir` para imprimir o guardar en PDF al vuelo sin guardar archivos (`art. 47.b`, `RN-52`) | [Ver cambio](#cambio-2026-11-26-hu-075) |
 | 2026-11-26 | Jesús Zepeda | **HU-099 completada:** tabla `RegistroAuditoria` inalterable (Code-First + `ProtegerRegistroAuditoriaInterceptor` sin triggers SQL), instrumentación transaccional en M1–M9 (omitiendo acciones anónimas `RN-72`/`D11`), consulta `GET /api/auditoria` (`auditoria.listar`) y vista web `/auditoria` | [Ver cambio](#cambio-2026-11-26-hu-099) |
 | 2026-11-26 | Jesús Zepeda | **HU-034 completada:** historial de encuestas cerradas o con versiones anteriores (`GET /api/encuestas/historial`), resultados históricos por versión (`?versionId=`) y comparación integral entre encuestas o versiones con exposición a peligros (`GET /api/encuestas/comparacion`) respetando `RN-12`, `D8` y `RN-73` | [Ver cambio](#cambio-2026-11-26-hu-034) |
@@ -20,6 +21,7 @@
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-071 completada:** el Responsable SST edita el borrador de un documento en Markdown, con la vista previa al lado y el conteo de lo que falta completar; solo se edita el borrador (**RN-50**) y la plantilla no cambia. Primer **editor de documento** del design system | [Ver cambio](#cambio-2026-11-25-hu-071) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **HU-070 completada:** el Responsable SST genera la política de SST o el procedimiento de investigación de accidentes desde una plantilla de su rubro; se llena con los datos del perfil, lo que falta queda resaltado como `[Completar: …]` y el documento queda como borrador para revisarlo. Tablas `Documento` y `VersionDocumento` creadas en el código; el admin consulta | [Ver cambio](#cambio-2026-11-25-hu-070) |
 | 2026-11-25 | Equipo (redactado con Claude Code) | **Decisiones de M9 antes de HU-070:** contenido en Markdown, seis marcadores con datos de la empresa (los que faltan quedan como `[Completar: …]`), política de SST y procedimiento de investigación de accidentes en el contenido inicial, y versión aprobada protegida por la aplicación y los valores únicos, **sin disparador** (D13, RN-49) | [Ver cambio](#cambio-2026-11-25-decisiones-m9) |
+| 2026-11-25 | Equipo (redactado con Claude Code) | **Acceso con Microsoft:** nueva tabla **AccesoProveedor** (D29), contraseña opcional en **Acceso**, reglas RN-81–RN-84 y dos historias nuevas (HU-119 registrar empresa con Microsoft, HU-120 iniciar sesión y vincular); el modelo pasa a 42 tablas | [Ver cambio](#cambio-2026-11-25-oauth-microsoft) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-052 completada:** estadísticas de eventos por tipo, gravedad y mes en un periodo, sin descartados y solo con cifras; con ella queda completo M6 (sin evidencias, que esperan a HU-100) | [Ver cambio](#cambio-2026-11-24-hu-052) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-051 completada:** desde un evento se agrega un riesgo nuevo que queda **revelado** por él o se **reevalúa** uno de la matriz; la evaluación guarda el evento (columna nueva `EvaluacionRiesgo.AccidenteId`, D10) y el evento muestra el nivel de antes y el de después | [Ver cambio](#cambio-2026-11-24-hu-051) |
 | 2026-11-24 | Equipo (redactado con Claude Code) | **HU-050 completada:** el Responsable SST agrega medidas correctivas a un evento; cada una es una **tarea del plan** con origen "accidente", y desde el evento se ve su avance (completadas, vencidas). Con esto un evento ya se puede cerrar desde la web | [Ver cambio](#cambio-2026-11-24-hu-050) |
@@ -70,6 +72,92 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-27-activacion-por-codigo` {#cambio-2026-11-27-activacion-por-codigo}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 27 de noviembre de 2026 |
+| **Alcance** | `08` (D21 ajustada, D28 ajustada, D30 nueva), `07` (RN-87 nueva, RN-78 ajustada), `09`, `12` (tabla renombrada y generalizada, columna `DebeCambiarPassword` eliminada, `CorreoEstado` con `en_proceso`, trazabilidad), `10` (HU-020, HU-022, HU-115, HU-117, HU-118), `11`, `18` (contratos de login, `/api/vinculos` y `/api/vinculos/encuestados[/lote]`). También el código: backend y frontend (`ProyectoFinal/`) y una migración nueva |
+
+### El problema (por qué hubo que cambiar)
+
+1. El correo por SMTP (Google, 587/STARTTLS) seguía siendo poco confiable desde el hosting en la nube: entregas lentas o que nunca llegaban, sin un error claro que lo explicara.
+2. Al revisar el envío de correos se notó que las notificaciones de M11 (tarea asignada, política publicada) solo se intentaban enviar cuando corría el proceso de fondo (cada 30 s), nunca al crearse; y que no había manera de que la persona pidiera un reintento inmediato sin esperar ese ciclo.
+3. El alta de personas (registro de empresa, HU-020, HU-115) seguía dándole una contraseña temporal a quien la creaba (el administrador la escribía o Norvia la generaba), distinto del código de 6 dígitos que ya existía para el registro con Microsoft (D29): dos mecanismos de activación para el mismo problema.
+4. Una vez migrado el envío a Resend, se detectó que el enlace del correo de activación apuntaba a una ruta inexistente del frontend (`/activar-cuenta`) en vez de la ruta real (`/verificar-cuenta`).
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Envío de correo por la API de Resend, no por SMTP | `SmtpEnvioCorreo` se elimina; `ResendEnvioCorreo` llama `POST https://api.resend.com/emails` con un `HttpClient` tipado | Un proveedor hecho para envío transaccional, sin depender de una cuenta de Gmail ni de una conexión SMTP saliente desde el hosting |
+| Envío inmediato de notificaciones (D28, RN-78) | Al crear la notificación se intenta el correo de una vez (mejor esfuerzo); si falla, queda `pendiente` para el proceso de fondo, que sigue activo como respaldo | El correo sale lo antes posible sin perder el reintento automático que ya existía |
+| Botón "Reintentar" por notificación | Dispara el mismo intento inmediato a pedido, sin esperar al proceso de fondo (HU-117) | La persona no depende del siguiente ciclo del proceso para forzar un reenvío |
+| Estado `en_proceso` en `CorreoEstado` | Guardo atómico: una fila solo pasa de `pendiente`/`fallido` a `en_proceso` si nadie más la tomó ya | El botón y el proceso de fondo nunca envían la misma notificación a la vez |
+| Tabla **VerificacionCorreoMicrosoft** generalizada a **VerificacionCorreo** (D30) | Gana `Proposito` (`microsoft` o `activacion_cuenta`) y `AccesoId` opcional; mismo `CodigoHash`, `Intentos`, `ExpiraEn` y ventana de envíos que ya tenía | Un solo mecanismo de código de 6 dígitos para las dos activaciones, en vez de duplicar la lógica |
+| Eliminar la contraseña temporal (RN-87) | `Acceso.DebeCambiarPassword` desaparece; una cuenta local nueva queda con `PasswordHash` nulo hasta activarse con su código, igual que una cuenta de Microsoft queda sin contraseña hasta vincularla | Nadie, ni quien da el alta, conoce la contraseña de otra persona; un solo flujo de activación para registrar empresa, dar un vínculo o crear un encuestado |
+
+### Cómo quedó (resumen)
+
+El modelo sigue en las mismas tablas (la que cambió es **VerificacionCorreo**, generalización de **VerificacionCorreoMicrosoft**; no se agregó ni se quitó ninguna tabla). `Acceso` perdió `DebeCambiarPassword`. `Notificacion.CorreoEstado` gana el valor `en_proceso`. `POST /api/vinculos` y `POST /api/vinculos/encuestados[/lote]` ya no reciben ni devuelven una contraseña: devuelven `cuentaNueva` y `correoActivacionEnviado`. El login (`SesionResponseDto`) ya no lleva `debeCambiarPassword`. Variables nuevas en `example.env`: `Correo__ApiKeyResend`, `Correo__Remitente`, `Correo__RemitenteNombre`, `Correo__UrlBaseFrontend` (reemplazan al bloque SMTP).
+
+### Qué hizo Claude Code en la práctica
+
+- Siguió la cadena de verdad `08 → 07 → 09 → 12 → 10 → 14 → 11` y además actualizó `18` (contratos afectados).
+- En el backend: reemplazó `SmtpEnvioCorreo` por `ResendEnvioCorreo` (typed `HttpClient`), quitando las dependencias `MailKit`/`MimeKit`; generalizó la entidad y la tabla `VerificacionCorreo` (migración nueva); quitó `GeneradorContrasenaTemporal` y `Acceso.DebeCambiarPassword`; unificó `AltaDeVinculo`, `RegistrarEmpresaServicio`, `VerificarCuentaServicio` y `ReenviarVerificacionCuentaServicio` al código de 6 dígitos; agregó el intento inmediato de correo (`IEnvioInmediatoNotificacion`) con guardo atómico y el endpoint de reintento manual (`POST /api/notificaciones/{id}/reintentar-correo`); corrigió el enlace del correo de activación para que apunte a `/verificar-cuenta` (antes `/activar-cuenta`, ruta que no existía en el frontend).
+- Arregló además un bug de `PlantillasCorreoSeeder` (comparaba las plantillas por `Codigo` en vez de por `Id`, la llave real) que impedía que la plantilla `activacion_cuenta` llegara a crearse en la base, dejando el envío sin plantilla.
+- En el frontend: quitó por completo el flujo de contraseña temporal (pantalla de "Cambiar contraseña" forzada, generador de contraseña, descarga de CSV con contraseñas del lote) y reescribió `VerificarCuentaPage` y los formularios de alta de personas para el código de 6 dígitos, reutilizando el patrón ya probado de `VerificarCorreoMicrosoft` (validación, reenvío y mensajes de error).
+- Actualizó las pruebas de integración afectadas (infraestructura de pruebas incluida) y confirmó `dotnet build` y `dotnet test` en verde (289 pruebas), y en el frontend `tsc -b`, `eslint` y `vite build` sin errores.
+- Pendiente: reimportar los diagramas en `Diagramas.drawio` (ya desfasado desde antes) y que el equipo revise la redacción del correo de activación.
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero |
+|----|-------------|---------|
+| HU-020 | `10` | [ ] |
+| HU-022 | `10` | [ ] |
+| HU-115 | `10` | [ ] |
+| HU-117 | `10` | [ ] |
+| HU-118 | `10` | [ ] |
+
+#### HU-020 | Agregar personas a la empresa
+
+| **Antes** | El administrador escribía o generaba una contraseña temporal para la cuenta nueva. |
+| **Ahora** | La cuenta nueva no recibe contraseña de nadie: le llega un código de 6 dígitos para activarse (D30, RN-87). |
+
+#### HU-022 | Cambiar mi contraseña
+
+| **Antes** | Mencionaba que, si se usaba una contraseña temporal, se pedía cambiarla en el primer ingreso. |
+| **Ahora** | Ya no hay contraseña temporal que cambiar: la cuenta nueva se activa directo con su contraseña definitiva. |
+
+#### HU-115 | Crear cuentas de encuestados
+
+| **Antes** | El acceso inicial requería cambiar la contraseña en el primer ingreso; en el lote, Norvia generaba una contraseña por cuenta nueva y la devolvía una sola vez. |
+| **Ahora** | La cuenta nueva no recibe contraseña de nadie: se activa con el código de 6 dígitos, individual o por lote. |
+
+#### HU-117 | Consultar notificaciones
+
+| **Antes** | Solo mostraba las notificaciones y permitía marcarlas como leídas. |
+| **Ahora** | Si el correo de una notificación no se envió, se puede pedir que se reintente de inmediato. |
+
+#### HU-118 | Configurar el envío de correos
+
+| **Antes** | El correo de una notificación solo se intentaba cuando corría el proceso de fondo, por SMTP. |
+| **Ahora** | Se envía por la API de Resend y se intenta de inmediato al crearse; el proceso de fondo y el botón de reintento manual quedan como respaldo, sin pisarse entre sí. |
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Decisiones D21, D28, D30 | `08-decisiones-bd.md` |
+| Reglas RN-78, RN-87 | `07-reglas-negocio.md` |
+| Tabla VerificacionCorreo | `12-modelo-datos.md` §4.1 |
+| Historias HU-020, HU-022, HU-115, HU-117, HU-118 | `10-historias-usuario.md` |
+| Contratos de API | `18-contratos-api-mvp.md` |
 
 ---
 
@@ -489,6 +577,83 @@ Antes de programar M9 (HU-070 a HU-074 y, con ellas, HU-116) quedaban cuatro hue
 | HU-070 | "Se llena con los datos de la empresa", con un solo marcador definido; las plantillas mínimas no venían cargadas | Seis marcadores; los datos que faltan quedan marcados y se avisan; la política de SST y el procedimiento de investigación de accidentes vienen desde el inicio |
 | HU-071 | "Puedo modificar el contenido", sin formato definido | Formato sencillo (Markdown) con vista previa; solo se edita la versión en borrador (RN-50) |
 | HU-072 | La versión aprobada la protegía un disparador | La protegen la aplicación y los valores únicos parciales, sin disparador |
+
+---
+
+## Cambio `2026-11-25-oauth-microsoft` {#cambio-2026-11-25-oauth-microsoft}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 25 de noviembre de 2026 |
+| **Alcance** | `08` (D29, ajuste de D21), `07` (RN-81 a RN-86, ajuste de RN-67), `09`, `12` (dos tablas nuevas, conteo 43, trazabilidad), `10` (HU-119, HU-120 y ajustes en HU-017 y HU-018), `11`, `13`, `15`, `16`, `18`, `README.md`, `00` y el `CLAUDE.md` de la raíz. Solo documentación: el código no se tocó |
+
+### El problema (por qué hubo que cambiar)
+
+1. El único modo de entrar era correo y contraseña. El equipo quiere permitir también la cuenta de Microsoft y dejar abierta la puerta a Google u otros.
+2. **Acceso** exigía contraseña, así que una cuenta creada con Microsoft no cabía en el modelo.
+3. No había dónde guardar con qué proveedor y con qué identificador entra cada cuenta.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Tabla nueva **AccesoProveedor** (D29) | Guarda el proveedor (`microsoft`) y el identificador de la cuenta en él, ligados a un **Acceso** | Agregar Google es agregar un valor, no rediseñar el modelo |
+| Contraseña opcional en **Acceso** | Una cuenta debe tener contraseña o al menos un proveedor (RN-81) | Las cuentas de Microsoft no guardan una clave falsa |
+| Mismo correo existente: confirmar contraseña (RN-83) | Antes de vincular Microsoft a una cuenta con contraseña se pide la actual | Evita que alguien tome una cuenta ajena solo por coincidir el correo |
+| Correo de Microsoft verificado y bloqueado (RN-84) | En el registro el correo no se edita; los nombres vienen prellenados y sí se editan | La cuenta nace verificada y no se suplanta otro correo |
+| **Persona** sin cambios | Documento y teléfono ya eran opcionales y se completan después en el perfil (HU-026) | No hace falta tocar el modelo |
+| El login sigue siendo por empresa | Microsoft solo reemplaza la contraseña; se mantiene el identificador cifrado de empresa (D1) | Conserva el aislamiento multiempresa |
+
+| Reutilizar **Persona** sin sobrescribir (RN-85) | Si la persona ya existe, se muestran sus nombres actuales y solo se completan los campos vacíos (documento, teléfono) | Registrar una empresa nueva no cambia el nombre de la persona en las otras |
+| Pantalla previa para elegir método | Microsoft o correo y contraseña antes del formulario, en login y registro; se documentó en `design-system.md` | Mantiene el flujo de correo tal cual y suma Microsoft sin mezclar formularios |
+| Código de 6 dígitos al crear cuenta con Microsoft (RN-86) | Se envía al correo de Microsoft antes de registrar la empresa; vence en unos 10 minutos y tiene límite de envíos e intentos, guardado en la tabla **VerificacionCorreoMicrosoft** (solo el hash del código, nunca en claro) | Microsoft no siempre garantiza que el correo sea de quien entra; sin esto alguien podría crear una cuenta con el correo de otra persona |
+| Variables `Microsoft__*` en `example.env` | Credenciales de la aplicación de Azure fuera del código | Los secretos no se commitean |
+
+### Cómo quedó (resumen)
+
+El modelo tiene 42 tablas. **Acceso** admite `PasswordHash` nulo y **AccesoProveedor** (global, sin `EmpresaId`) cuelga de **Acceso** con dos únicos: `(Proveedor, ProveedorUserId)` y `(AccesoId, Proveedor)`. El registro con Microsoft crea Empresa, Persona, Usuario, Acceso verificado sin contraseña, AccesoProveedor y el vínculo de administrador en una sola operación. Los contratos de API se agregaron en `18`.
+
+### Qué hizo Claude Code en la práctica
+
+- Siguió la cadena de verdad `08 → 07 → 09 → 12 → 10 → 14 → 11` y actualizó los documentos técnicos (`13`, `15`, `16`, `18`).
+- Buscó los conteos de 41 tablas y de D1–D28 para actualizarlos.
+- Implementó el código en el backend (entidad `AccesoProveedor`, migración `AccesoProveedor`, cuatro casos de uso, endpoints y 4 pruebas de integración con un Microsoft de prueba) y en el frontend (pantalla previa para elegir método, retorno de Microsoft y registro con el correo bloqueado). Variables nuevas: `Microsoft__*` en `Norvia.API/example.env` y `VITE_MICROSOFT_*` en `frontend/example.env`.
+- Pendiente: probar contra un registro real de Azure (hace falta crear la aplicación y poner las credenciales) y reimportar los diagramas en `Diagramas.drawio`.
+
+### Seguimiento por historia
+
+| HU | Doc en repo | Tablero |
+|----|-------------|---------|
+| HU-119 | `10` | [ ] |
+| HU-120 | `10` | [ ] |
+
+#### HU-119 | Registrar mi empresa con Microsoft
+
+| **Antes** | No existía. |
+| **Ahora** | Mismo formulario de HU-017 con correo bloqueado, nombres prellenados y editables y sin contraseña; la cuenta nace verificada. |
+| **Tablero** | [ ] |
+
+#### HU-120 | Iniciar sesión con Microsoft y vincularla a mi cuenta
+
+| **Antes** | No existía. |
+| **Ahora** | Se entra por empresa con Microsoft; quien ya tiene contraseña vincula Microsoft confirmándola. |
+| **Tablero** | [ ] |
+
+#### HU-017 y HU-018
+
+| **Antes** | Solo correo y contraseña. |
+| **Ahora** | Cada una indica que existe la alternativa de Microsoft (HU-119 y HU-120). |
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Decisión D29 | `08-decisiones-bd.md` |
+| Reglas RN-81 a RN-86 | `07-reglas-negocio.md` |
+| Tabla AccesoProveedor | `12-modelo-datos.md` §4.1 |
+| Historias HU-119 y HU-120 | `10-historias-usuario.md` |
+| Contratos de API | `18-contratos-api-mvp.md` |
 
 ---
 

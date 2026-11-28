@@ -2,9 +2,9 @@
 
 **Para qué sirve:** define todas las tablas de Norvia, sus columnas, relaciones, restricciones e índices. Es la base del diagrama entidad-relación (ERD) que exige el curso y de la implementación con EF Core.
 
-El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D28 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaVersion, EncuestaOpcion, DetalleRespuestaOpcion, ParticipacionEncuesta, Persona, **Acceso**, `VinculoEmpresa`, `StaffPlataforma`, **RefreshToken**, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
+El modelo aplica las [decisiones](08-decisiones-bd.md) D1 a D30 y las [reglas de negocio](07-reglas-negocio.md). Parte de las [entidades candidatas](09-entidades.md) y agrega tablas que el diseño hizo necesarias: OpcionPregunta, EncuestaVersion, EncuestaOpcion, DetalleRespuestaOpcion, ParticipacionEncuesta, Persona, **Acceso**, **AccesoProveedor**, `VinculoEmpresa`, `StaffPlataforma`, **RefreshToken**, historiales de estado y RBAC (`Permiso`, `RolPermiso`, `RolStaffPlataformaPermiso`).
 
-Tiene **41 tablas**. Tras la reducción de alcance del 13-11-2026 no hay áreas, ni integración con Google, ni tablas de comisión, equipos, EPP, personas afectadas o informes; la lista de tablas retiradas está en [entidades](09-entidades.md#recortadas-13-11-2026).
+Tiene **43 tablas**. Tras la reducción de alcance del 13-11-2026 no hay áreas, ni integración con Google, ni tablas de comisión, equipos, EPP, personas afectadas o informes; la lista de tablas retiradas está en [entidades](09-entidades.md#recortadas-13-11-2026).
 
 ### Nombres de persona (3FN)
 
@@ -58,7 +58,7 @@ Las columnas que terminan en `En`, como `CreadoEn` o `RegistradoEn`, toman la ho
 | Tipo de tabla | Tiene `EmpresaId` | Tablas |
 |---|---|---|
 | Raíz | Es la empresa | Empresa |
-| Global | No | Persona, Usuario, Acceso, RefreshToken, StaffPlataforma, RolStaffPlataforma, Rol, Permiso, RolPermiso, RolStaffPlataformaPermiso, Rubro, CategoriaRiesgo, PreguntaExploratoria, OpcionPregunta, Peligro, PlantillaTarea, PlantillaDocumento |
+| Global | No | Persona, Usuario, Acceso, AccesoProveedor, VerificacionCorreo, RefreshToken, StaffPlataforma, RolStaffPlataforma, Rol, Permiso, RolPermiso, RolStaffPlataformaPermiso, Rubro, CategoriaRiesgo, PreguntaExploratoria, OpcionPregunta, Peligro, PlantillaTarea, PlantillaDocumento |
 | De empresa | Sí, obligatorio | Las demás tablas operativas (incluye VinculoEmpresa y historiales) |
 
 Reglas que cumplen todas las tablas de empresa:
@@ -85,6 +85,7 @@ erDiagram
     Persona ||--o| Usuario : "registro Activo"
     Acceso ||--o{ VinculoEmpresa : "autentica"
     Acceso ||--o| StaffPlataforma : "autentica staff"
+    Acceso ||--o{ AccesoProveedor : "proveedores vinculados"
     Acceso ||--o{ RefreshToken : "sesiones refresh"
     VinculoEmpresa ||--o{ RefreshToken : "sesión empresa"
     Persona ||--o{ VinculoEmpresa : "tiene"
@@ -199,16 +200,53 @@ Quien solo existe como **Persona** **no** tiene fila `Usuario` hasta que se le d
 
 #### Acceso
 
-Credenciales globales (D21, D25). Un correo, un hash de contraseña; varios **VinculoEmpresa** pueden compartir el mismo `AccesoId` si usan el mismo correo institucional.
+Credenciales globales (D21, D25). Un correo y, si la cuenta tiene contraseña, su hash (D29); varios **VinculoEmpresa** pueden compartir el mismo `AccesoId` si usan el mismo correo institucional.
 
 | Columna | Tipo | Nulo | Clave | Descripción y restricciones |
 |---|---|---|---|---|
 | Id | uuid | No | PK | |
 | Email | varchar(254) | No | UQ | Minúsculas; CHECK `Email = lower(Email)` |
-| PasswordHash | varchar(255) | No | | |
-| DebeCambiarPassword | boolean | No | | Por defecto `false` |
-| Verificado | boolean | No | | Por defecto `false`; RN-67 |
+| PasswordHash | varchar(255) | Sí | | Nulo en cuentas creadas con un proveedor (D29) o mientras una cuenta local nueva no se active con su código (D30, RN-87). Regla RN-81: debe haber contraseña o al menos una fila en **AccesoProveedor** (se valida en la App) |
+| Verificado | boolean | No | | Por defecto `false`; RN-67. Las cuentas creadas con un proveedor nacen en `true` (RN-84) |
 | CreadoEn | timestamptz | No | | Lo fija el servidor |
+
+#### AccesoProveedor
+
+Proveedor de identidad externo vinculado a un **Acceso** (D29). Tabla global, sin `EmpresaId`. Hoy solo `microsoft`; agregar Google u otro es agregar un valor, no una tabla.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| AccesoId | uuid | No | FK → Acceso | `ON DELETE RESTRICT` |
+| Proveedor | varchar(20) | No | | `microsoft` (después `google`); se guarda en snake_case; CHECK con los valores permitidos |
+| ProveedorUserId | varchar(255) | No | | Identificador estable de la cuenta en el proveedor (claim `sub`) |
+| CreadoEn | timestamptz | No | | Lo fija el servidor |
+
+- UQ `(Proveedor, ProveedorUserId)`: un proveedor identifica a un solo **Acceso** (RN-82).
+- UQ `(AccesoId, Proveedor)`: un **Acceso** tiene a lo sumo una cuenta por proveedor (RN-82).
+- El correo no se repite aquí: sigue solo en `Acceso.Email`.
+
+#### VerificacionCorreo
+
+Código de 6 dígitos para confirmar un correo de Microsoft antes de crear la cuenta (D29, RN-86) o para activar una cuenta local nueva (D30, RN-87). Global, sin `EmpresaId`. Una fila por correo y cuenta del proveedor (Microsoft) o por `Acceso` (activación local); reenviar el código actualiza la misma fila.
+
+| Columna | Tipo | Nulo | Clave | Descripción y restricciones |
+|---|---|---|---|---|
+| Id | uuid | No | PK | |
+| Proposito | varchar(20) | No | | `microsoft` o `activacion_cuenta`; CHECK con los valores permitidos |
+| Email | varchar(254) | No | | |
+| ProveedorUserId | varchar(255) | Sí | | Solo `Proposito = microsoft` |
+| AccesoId | uuid | Sí | FK → Acceso | Solo `Proposito = activacion_cuenta`: el **Acceso** que se activa. `ON DELETE RESTRICT` |
+| CodigoHash | varchar(64) | No | | SHA-256 en hexadecimal; el código en claro no se guarda |
+| Intentos | smallint | No | | Por defecto 0; se reinicia al reenviar un código nuevo |
+| ExpiraEn | timestamptz | No | | Unos 10 minutos tras el envío |
+| EnviosEnVentana | smallint | No | | Por defecto 0; máximo 3 por ventana de 10 minutos (RN-86, RN-87) |
+| VentanaEnviosExpiraEn | timestamptz | No | | |
+| CreadoEn | timestamptz | No | | Lo fija el servidor |
+
+- CHECK: `Proposito = 'microsoft'` exige `ProveedorUserId` y prohíbe `AccesoId`; `Proposito = 'activacion_cuenta'`, al revés.
+- UQ `(Email, ProveedorUserId)` cuando `Proposito = microsoft`; UQ `AccesoId` cuando `Proposito = activacion_cuenta`.
+- **App:** al confirmar el código, la fila se borra (sirve una sola vez); al agotar los intentos o los envíos, la API responde 429 sin tocar la fila.
 
 #### RefreshToken
 
@@ -871,7 +909,7 @@ Aviso a un operador con vínculo (D28). Se ve dentro de Norvia y se envía por c
 | TareaId | uuid | Sí | FK compuesta → Tarea | Origen: tarea asignada (RN-77) |
 | CreadaEn | timestamptz | No | | Lo fija el servidor |
 | LeidaEn | timestamptz | Sí | | Nulo mientras no se lee |
-| CorreoEstado | varchar(10) | No | | `pendiente`, `enviado`, `fallido` (RN-78) |
+| CorreoEstado | varchar(10) | No | | `pendiente`, `en_proceso`, `enviado`, `fallido` (RN-78) |
 | CorreoIntentos | smallint | No | | Por defecto 0. CHECK `>= 0` |
 | CorreoEnviadoEn | timestamptz | Sí | | |
 | CorreoUltimoError | text | Sí | | |
@@ -980,6 +1018,13 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-65 | BD | `Acceso.Email` UQ |
 | RN-66 | App | Rotación y logout en **RefreshToken** |
 | RN-67 | BD y App | `Acceso.Verificado` |
+| RN-81 | BD y App | `Acceso.PasswordHash` opcional; el login exige contraseña o proveedor en **AccesoProveedor** |
+| RN-82 | BD | UQ `(Proveedor, ProveedorUserId)` y UQ `(AccesoId, Proveedor)` en **AccesoProveedor** |
+| RN-83 | App | Vincular un proveedor a un correo existente exige confirmar la contraseña actual |
+| RN-84 | App | Registro con proveedor: correo bloqueado, nombres editables; la cuenta nace con `Verificado = true` tras confirmar el correo (RN-86) |
+| RN-86 | BD y App | Tabla **VerificacionCorreo** (`Proposito = microsoft`, `CodigoHash`, `Intentos`, `ExpiraEn`, `EnviosEnVentana`); UQ `(Email, ProveedorUserId)` |
+| RN-87 | BD y App | Tabla **VerificacionCorreo** (`Proposito = activacion_cuenta`, `AccesoId`); UQ `AccesoId`; `Acceso.PasswordHash` nulo hasta activar |
+| RN-85 | App | Persona reutilizada: solo se completan columnas nulas de **Persona**; no se sobrescriben |
 | RN-58, RN-59 | BD y App | `HistorialEstadoVinculo` y transacción con `Estado` |
 | RN-60 | BD | `Empresa.Estado` |
 | RN-62 | App | Sin `NombreCompleto` en Persona |
@@ -1018,7 +1063,7 @@ Estas columnas repiten un dato a propósito, sin romper la 3FN:
 | RN-75 | BD y App | Notificacion por vínculo activo al aprobar la versión; UQ parcial por versión y destinatario |
 | RN-76 | App y BD | Sugerencias leídas de PlantillaTarea del peligro; solo se guarda el Control aceptado, con `PlantillaTareaId` y UQ parcial por riesgo |
 | RN-77 | App | Notificacion al asignar responsable |
-| RN-78 | BD y App | `CorreoEstado`, `CorreoIntentos` y proceso de reintento |
+| RN-78 | BD y App | `CorreoEstado` (incl. `en_proceso`), `CorreoIntentos` e intento inmediato al crear, con proceso de reintento y botón de reintento manual |
 | RN-79 | App | Filtro por `DestinatarioId` del token |
 
 ## 10. Informe anual

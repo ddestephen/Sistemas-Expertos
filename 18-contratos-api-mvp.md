@@ -77,7 +77,7 @@ Los nombres de propiedad en `errors` coinciden con el **nombre de la propiedad d
 | HU-102 | — | — | — | — | — | — | ➖ Front (react-router) |
 | HU-098 | — | pruebas de integración (`backend/Norvia.Tests`, `dotnet test`) | — | — | — | — | ✅ |
 
-`SesionResponseDto`: `{ accessToken, refreshToken, expiresIn, debeCambiarPassword }`.
+`SesionResponseDto`: `{ accessToken, refreshToken, expiresIn }`.
 
 ---
 
@@ -100,7 +100,7 @@ Transacción: `Empresa` + `Persona` + `Acceso` + `VinculoEmpresa` con `admin_emp
 |---|---|---|---|---|---|---|
 | POST | `api/vinculos` | `CrearVinculoRequestDto` | 201 `CrearVinculoResponseDto` | `vinculo.crear` | `admin_empresa` | ✅ |
 
-**CrearVinculoRequestDto:** `email`, `primerNombre`, `segundoNombre?`, `primerApellido`, `segundoApellido?`, `rolCodigo`, `passwordTemporal?`. Detalle en el [anexo](#anexo-vinculos).
+**CrearVinculoRequestDto:** `email`, `primerNombre`, `segundoNombre?`, `primerApellido`, `segundoApellido?`, `rolCodigo`. Detalle en el [anexo](#anexo-vinculos).
 
 ### HU-021 | Gestionar acceso (rol / estado) — ✅
 
@@ -119,7 +119,7 @@ Transacción: `Empresa` + `Persona` + `Acceso` + `VinculoEmpresa` con `admin_emp
 | POST | `api/vinculos/encuestados` | `CrearEncuestadoRequestDto` | 201 `CrearEncuestadoResponseDto` | `vinculo.encuestado.crear` | `admin_empresa` | ✅ |
 | POST | `api/vinculos/encuestados/lote` | `CrearEncuestadosLoteRequestDto` | 200 `CrearEncuestadosLoteResponseDto` | `vinculo.encuestado.lote` | `admin_empresa` | ✅ |
 
-El rol `encuestado` lo fija el servidor. Las cuentas nuevas reciben una contraseña temporal **generada por Norvia**, salvo que en el alta individual se envíe una, y se devuelve una sola vez. Detalle en el [anexo](#anexo-vinculos).
+El rol `encuestado` lo fija el servidor. Las cuentas nuevas no reciben contraseña de nadie: se activan con un código de 6 dígitos enviado a su correo (D30, RN-87). Detalle en el [anexo](#anexo-vinculos).
 
 ---
 
@@ -482,14 +482,12 @@ Cada fila enlaza la sección del anexo con el cuerpo JSON. **Req** = cuerpo de e
 | `accessToken` | string | JWT (Bearer). Claims: `sub` (Acceso), `tipo_sesion`, `email` (correo de la cuenta, HU-022), rol y, en sesión de empresa, `vinculo_id` y `empresa_id` cifrado |
 | `refreshToken` | string | Opaco; solo en body, no en header |
 | `expiresIn` | int | Segundos de vida del access token |
-| `debeCambiarPassword` | bool | `true` si la cuenta tiene una contraseña temporal (HU-020, HU-115). El front debe mostrar el cambio (`POST /api/auth/contrasena/establecer`) antes de continuar; la API **no** lo bloquea |
 
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
   "refreshToken": "8f3c2a1b-....",
-  "expiresIn": 900,
-  "debeCambiarPassword": false
+  "expiresIn": 900
 }
 ```
 
@@ -563,7 +561,7 @@ Mismo contrato que `POST /api/auth/login/empresa`, cambiando solo `idEmpresa` (o
 
 **Auth:** anónimo. Sirve para cambiar la contraseña con sesión (la web envía el correo de la sesión) y para "¿Olvidaste tu contraseña?" desde el login.
 
-Envía al correo un enlace `{UrlBaseFrontend}/restablecer-contrasena?token=…` (plantilla `cambio_contrasena`). Solo se envía a cuentas verificadas: una sin verificar se activa con su contraseña temporal (RN-67).
+Envía al correo un enlace `{UrlBaseFrontend}/restablecer-contrasena?token=…` (plantilla `cambio_contrasena`). Solo se envía a cuentas verificadas: una sin verificar se activa con su código de 6 dígitos (D30, RN-67, RN-87), no con este enlace.
 
 **El enlace:**
 - **Vigencia:** 30 minutos.
@@ -601,7 +599,6 @@ Envía al correo un enlace `{UrlBaseFrontend}/restablecer-contrasena?token=…` 
 **Response 204.**
 - **Alcance:** la contraseña es del Acceso (RN-65), así que vale en todas sus empresas.
 - **Sesiones:** se borran todos sus refresh, así que hay que volver a iniciar sesión.
-- **Contraseña temporal:** `DebeCambiarPassword` queda en `false`.
 
 **Errores:**
 
@@ -613,7 +610,7 @@ Envía al correo un enlace `{UrlBaseFrontend}/restablecer-contrasena?token=…` 
 
 ##### `POST /api/auth/contrasena/establecer` — `EstablecerContrasenaRequestDto` (HU-114) — ✅
 
-Cambia la contraseña de la sesión actual. Sirve también para el primer ingreso con contraseña temporal (`DebeCambiarPassword` vuelve a `false`).
+Cambia la contraseña de la sesión actual.
 
 **Auth:** Bearer de sesión de **empresa**. Permiso `auth.contrasena.establecer` para los 4 roles de empresa. El staff de plataforma recibe 403, porque una ruta solo tiene un alcance.
 
@@ -712,6 +709,47 @@ Cambia la contraseña de la sesión actual. Sirve también para el primer ingres
 
 ---
 
+### M1 — Acceso con Microsoft (HU-119, HU-120) — 🚧
+
+Flujo OAuth 2.0 de código con PKCE: la web lleva a la persona a Microsoft y recibe un `codigo`; la API lo canjea y **nunca** confía en el correo ni en el identificador que mande el cliente (RN-84). El resultado del canje es un **token de identidad** firmado, de corta vida (10 min), que acompaña a los pasos siguientes.
+
+**1. `POST /api/auth/microsoft/identidad`** (público)
+
+| Campo | Tipo | Reglas |
+|---|---|---|
+| `codigo` | string | Código de autorización devuelto por Microsoft |
+| `codeVerifier` | string | PKCE |
+| `redirectUri` | string | Debe estar en la lista permitida por configuración |
+
+Response 200: `tokenIdentidad`, `email` (verificado por Microsoft), `primerNombre`, `primerApellido` (prellenado; la persona puede dividir y corregir los 4 campos), `estado`: `sin_cuenta` (ir al registro con los datos prellenados), `cuenta_vinculada` (puede iniciar sesión) o `cuenta_con_contrasena` (debe confirmar la contraseña para vincular). Errores: 400 código inválido o vencido · 401 Microsoft rechaza el canje.
+
+**1b. Confirmar el correo con un código de 6 dígitos** (RN-86). Solo cuando `estado = sin_cuenta`; el código llega al correo de Microsoft y en base solo queda su hash (tabla `VerificacionCorreo`, `Proposito = microsoft`).
+
+- `POST /api/auth/microsoft/codigo` (anónimo): campo `tokenIdentidad`. Responde 200 con `mensaje` y `minutosVigencia`. Máximo 3 envíos cada 10 minutos (429). 409 `auth.codigo_no_requerido` si el correo ya tiene cuenta.
+- `POST /api/auth/microsoft/codigo/verificar` (anónimo): campos `tokenIdentidad` y `codigo` (6 dígitos). Responde 200 con un `tokenIdentidad` nuevo, ya con el correo confirmado: es el que se manda al registrar. 400 `auth.codigo_incorrecto`; máximo 5 intentos cada 10 minutos (429 `auth.demasiados_intentos`).
+
+**2. `POST /api/empresas/microsoft`** (HU-119)
+
+Igual a `POST /api/empresas` pero **sin `email` ni `password`**: el correo sale del `tokenIdentidad`.
+
+| Campo | Tipo | Reglas |
+|---|---|---|
+| `tokenIdentidad` | string | Obligatorio |
+| `razonSocial`, `rtn` | string | Como en `POST /api/empresas` |
+| `primerNombre`, `segundoNombre?`, `primerApellido`, `segundoApellido?` | string | Editables respecto al prellenado |
+
+Transacción: `Empresa` + `Persona` + `Usuario` + `Acceso` (sin contraseña, `Verificado = true`) + `AccesoProveedor` + `VinculoEmpresa` admin. Si el correo ya tiene `Acceso` vinculado a ese proveedor, se reutilizan `Persona`, `Usuario` y `Acceso` y solo se crean `Empresa` y `VinculoEmpresa`; los nombres enviados se ignoran y solo se completan las columnas vacías de `Persona` (RN-85). Response 201: igual a `RegistrarEmpresaResponseDto`. Errores: 403 `auth.correo_sin_verificar` (falta confirmar el correo con el código) · 409 RTN duplicado · 409 `acceso.existe` (el correo tiene cuenta con contraseña sin vincular a Microsoft: usar el paso 4) · 401 token de identidad inválido.
+
+**3. `POST /api/auth/login/empresa/microsoft`** (HU-120)
+
+Campos: `tokenIdentidad`, `idEmpresa` (cifrado). Busca `AccesoProveedor` → `Acceso` → vínculo `activo` de esa empresa y devuelve el mismo par de tokens que `POST /api/auth/login/empresa`. Errores: 401 `credenciales.invalidas` genérico (no revela si el correo existe), 403 por empresa suspendida o vínculo no activo.
+
+**4. `POST /api/auth/microsoft/vincular`** (HU-120, RN-83)
+
+Campos: `tokenIdentidad`, `password` (la actual del `Acceso` con ese correo). Si coincide, crea el `AccesoProveedor`. Errores: 401 contraseña incorrecta · 409 esa cuenta de Microsoft ya está vinculada a otro `Acceso` (RN-82).
+
+---
+
 ### M1 — Vínculos (HU-020, HU-021 y HU-115) — ✅ {#anexo-vinculos}
 
 **Auth:** Bearer (sesión **empresa**), rol `admin_empresa`.
@@ -727,8 +765,7 @@ Da acceso a la **empresa de la sesión** (sale del token, RN-06) a una persona i
   "segundoNombre": null,
   "primerApellido": "Pérez",
   "segundoApellido": null,
-  "rolCodigo": "colaborador",
-  "passwordTemporal": "Temporal#2026"
+  "rolCodigo": "colaborador"
 }
 ```
 
@@ -738,9 +775,8 @@ Da acceso a la **empresa de la sesión** (sale del token, RN-06) a una persona i
 | `primerNombre`, `primerApellido` | string | Obligatorios, máx. 80 |
 | `segundoNombre`, `segundoApellido` | string? | Opcionales, máx. 80 |
 | `rolCodigo` | string | `admin_empresa`, `responsable_sst`, `colaborador` o `encuestado` |
-| `passwordTemporal` | string? | **Obligatoria solo si el correo no tiene cuenta.** Cumple la política de HU-114. La cuenta nueva queda con `DebeCambiarPassword = true` |
 
-**Cuenta existente (RN-02, RN-65):** si el correo ya tiene cuenta en Norvia, se reutilizan la cuenta y su persona. Los nombres y la `passwordTemporal` enviados se ignoran, y la persona entra con su contraseña de siempre. Si la cuenta existe pero no tiene persona (por ejemplo, una cuenta del staff), se crea la persona con los nombres enviados.
+**Cuenta existente (RN-02, RN-65):** si el correo ya tiene cuenta en Norvia, se reutilizan la cuenta y su persona; la persona entra con su contraseña de siempre. Si la cuenta existe pero no tiene persona (por ejemplo, una cuenta del staff), se crea la persona con los nombres enviados. **Cuenta nueva (D30, RN-87):** nadie, ni quien da el alta, le pone contraseña; le llega un código de 6 dígitos a su correo para activarla (`POST /api/auth/cuenta/verificar`).
 
 **Response 201** — `CrearVinculoResponseDto`
 
@@ -753,18 +789,18 @@ Da acceso a la **empresa de la sesión** (sale del token, RN-06) a una persona i
   "rolCodigo": "colaborador",
   "estado": "activo",
   "creadoEn": "2026-11-16T02:30:00Z",
-  "cuentaNueva": true
+  "cuentaNueva": true,
+  "correoActivacionEnviado": true
 }
 ```
 
-`cuentaNueva`: `true` si se creó la cuenta con la contraseña temporal; `false` si se reutilizó una existente.
+`cuentaNueva`: `true` si se creó la cuenta; `false` si se reutilizó una existente. `correoActivacionEnviado` solo importa si `cuentaNueva` es `true`: `false` si el correo con el código no pudo enviarse (la persona puede pedir que se le reenvíe).
 
 **Errores:**
 
 | HTTP | `codigo` | Cuándo |
 |---|---|---|
-| 400 | `ValidationProblemDetails` | Datos con formato inválido o `passwordTemporal` que no cumple HU-114 |
-| 400 | `vinculos.password_temporal_requerida` | El correo no tiene cuenta y no se envió `passwordTemporal` |
+| 400 | `ValidationProblemDetails` | Datos con formato inválido |
 | 400 | `vinculos.rol_invalido` | `rolCodigo` no existe |
 | 403 | `permiso.prohibido` | El rol de la sesión no es `admin_empresa`, o es una sesión de staff |
 | 409 | `vinculos.duplicado` | La persona ya tiene un vínculo con esta empresa, en cualquier estado. Para cambiarlo se usa HU-021 |
@@ -842,12 +878,9 @@ Igual que `POST /api/vinculos`, pero **sin `rolCodigo`**: el servidor asigna `en
   "primerNombre": "Pedro",
   "segundoNombre": null,
   "primerApellido": "García",
-  "segundoApellido": null,
-  "passwordTemporal": null
+  "segundoApellido": null
 }
 ```
-
-`passwordTemporal` es opcional. Si se envía, debe cumplir HU-114. Si la cuenta es nueva y no se envía, Norvia **genera** una contraseña de 12 caracteres que cumple HU-114, sin caracteres confusos como `0/O` o `1/l/I`.
 
 **Response 201** — `CrearEncuestadoResponseDto`
 
@@ -861,11 +894,11 @@ Igual que `POST /api/vinculos`, pero **sin `rolCodigo`**: el servidor asigna `en
   "estado": "activo",
   "creadoEn": "2026-11-16T02:30:00Z",
   "cuentaNueva": true,
-  "passwordTemporal": "Kp7#mx4R?ta9"
+  "correoActivacionEnviado": true
 }
 ```
 
-`passwordTemporal` solo viene cuando Norvia la generó. **Se muestra una única vez**: no se guarda en claro. El administrador la entrega a la persona hasta que exista el envío por correo (HU-118), y la persona la cambia en su primer ingreso (`debeCambiarPassword: true` en el login).
+Si la cuenta es nueva (D30, RN-87), nadie le pone contraseña: le llega un código de 6 dígitos para activarla (`POST /api/auth/cuenta/verificar`). `correoActivacionEnviado` solo importa si `cuentaNueva` es `true`.
 
 **Errores:** 400 validación · 403 `permiso.prohibido` · 409 `vinculos.duplicado`.
 
@@ -882,7 +915,7 @@ Entre 1 y 500 filas. Cada fila se procesa por separado: las que tienen problemas
 }
 ```
 
-Cada fila acepta además `segundoNombre` y `segundoApellido`. No lleva contraseña: Norvia genera una para cada cuenta nueva.
+Cada fila acepta además `segundoNombre` y `segundoApellido`. No lleva contraseña: cada cuenta nueva recibe un código de 6 dígitos por correo para activarse (D30, RN-87).
 
 **Response 200** — `CrearEncuestadosLoteResponseDto`
 
@@ -896,7 +929,7 @@ Cada fila acepta además `segundoNombre` y `segundoApellido`. No lleva contrase�
       "email": "a@miempresa.hn",
       "nombreCompleto": "Ana Ruiz",
       "cuentaNueva": true,
-      "passwordTemporal": "Wn4$hq8Tzc2e"
+      "correoActivacionEnviado": true
     }
   ],
   "errores": [
@@ -910,7 +943,7 @@ Cada fila acepta además `segundoNombre` y `segundoApellido`. No lleva contrase�
 }
 ```
 
-`fila` es la posición en la lista enviada, desde 1. `passwordTemporal` solo viene en las cuentas nuevas y se muestra una única vez.
+`fila` es la posición en la lista enviada, desde 1. `correoActivacionEnviado` solo importa en las cuentas nuevas.
 
 | `codigo` de error por fila | Cuándo |
 |---|---|

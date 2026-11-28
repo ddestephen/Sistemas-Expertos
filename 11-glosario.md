@@ -45,7 +45,11 @@
 | Norvia | Plataforma SaaS de SST multiempresa; nombre oficial del producto (Normativa + Vía) |
 | SST360 | Nombre de trabajo anterior; usar **Norvia** en documentación nueva |
 | Persona | Identidad humana sin credenciales; nombres en cuatro columnas |
-| Acceso | Credenciales globales: correo único, hash de contraseña, `Verificado`, `DebeCambiarPassword` (D21, D25) |
+| Acceso | Credenciales globales: correo único, hash de contraseña (opcional mientras no tiene contraseña: cuenta con proveedor o cuenta nueva sin activar), `Verificado` (D21, D25, D29, D30) |
+| AccesoProveedor | Proveedor de identidad (hoy Microsoft) vinculado a un **Acceso**: permite entrar sin contraseña. Guarda el proveedor y el identificador de la cuenta en él (D29) |
+| Proveedor de identidad | Servicio externo que confirma quién es la persona (Microsoft; Google u otros a futuro). Entrega el correo verificado y los nombres, que en el registro se prellenan y se pueden editar |
+| VerificacionCorreo | Código de 6 dígitos que confirma un correo antes de dar acceso: al registrarse con un proveedor de identidad (D29, RN-86) o al activar una cuenta local nueva (D30, RN-87). Antes se llamaba **VerificacionCorreoMicrosoft**, solo para Microsoft |
+| Activación de cuenta | Paso con el que una cuenta local nueva (registro de empresa, alta de vínculo o de encuestado) queda lista para entrar: la persona recibe el código de 6 dígitos de **VerificacionCorreo** y elige su propia contraseña (D30, RN-87). Reemplaza la contraseña temporal que antes asignaba quien daba el alta |
 | RefreshToken | Sesión de refresh persistida solo como hash; opcional `VinculoEmpresaId` |
 | VinculoEmpresa | Relación persona–empresa: rol, `AccesoId`, estado del vínculo |
 | Operador (con vínculo) | Persona que inicia sesión en una empresa mediante su `VinculoEmpresa`; en HUs sustituye “usuario de la empresa” |

@@ -245,6 +245,7 @@ Cada historia termina con estos datos:
 - Los datos del perfil se completan después, según HU-026.
 - Un RTN de empresa repetido se rechaza con un mensaje claro.
 - La contraseña queda protegida y nunca se muestra ni se almacena en texto legible.
+- También se puede registrar con una cuenta de Microsoft en lugar de crear una contraseña, según HU-119.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-091, HU-092 · **Reglas:** RN-01, D2
 
@@ -259,6 +260,7 @@ Cada historia termina con estos datos:
 - Las credenciales incorrectas reciben un mensaje que no revela qué dato falló.
 - Al cerrar sesión, deja de estar disponible el acceso de esa sesión.
 - Después de iniciar sesión, el acceso queda limitado a la empresa en la que inició sesión y a las funciones del grupo al que pertenece la persona en esa empresa.
+- Las personas con cuenta de Microsoft vinculada pueden entrar también con ella, según HU-120.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-017, HU-094 · **Reglas:** RN-57, RN-60, RN-66, RN-67, D1, D21, D25
 
@@ -313,7 +315,6 @@ Cada historia termina con estos datos:
 - Antes de permitir el cambio, se envía un correo a la dirección asociada a la cuenta para confirmar que la persona puede acceder a ella.
 - La contraseña solo puede cambiarse después de confirmar la solicitud desde ese correo.
 - La contraseña nueva cumple la política definida en HU-114.
-- Si se usa una contraseña temporal, se solicita cambiarla en el primer ingreso antes de continuar.
 - Si la misma cuenta permite acceder a varias empresas, el cambio de contraseña aplica a todas.
 
 **Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-018, HU-114 · **Reglas:** ninguna
@@ -382,7 +383,7 @@ Cada historia termina con estos datos:
 
 - Se permite dar de alta a una persona o cargar varias mediante una lista de nombres y correos.
 - Para cada trabajador, Norvia crea una cuenta si no existe o reutiliza la cuenta existente, y concede acceso a esta empresa en el grupo de encuestados.
-- El acceso inicial requiere cambiar la contraseña en el primer ingreso y cumple la política definida en HU-114.
+- Si la cuenta es nueva, nadie (ni quien da el alta) le asigna una contraseña: a la persona le llega un código a su correo para activar su cuenta y elegir su propia contraseña, que cumple la política definida en HU-114.
 - En una carga por lote, Norvia informa las filas con correo inválido o acceso ya existente y continúa procesando las demás.
 - El grupo de encuestados solo permite responder encuestas, consultar las notificaciones dirigidas a la cuenta, consultar las políticas vigentes y reportar eventos de forma anónima.
 
@@ -1194,6 +1195,7 @@ Las notificaciones son internas de Norvia y por correo (D28). Las historias HU-0
 - Las notificaciones se muestran de la más reciente a la más antigua e incluyen un contador de las que no se han leído.
 - Se puede abrir el elemento relacionado con cada notificación, como una tarea o una política, y marcarla como leída.
 - Solo se muestran las notificaciones dirigidas a la cuenta de la persona y correspondientes a la empresa seleccionada.
+- Si el correo de una notificación no se envió todavía, se puede pedir que se reintente en ese momento en vez de esperar al reintento automático (HU-118).
 
 **Módulo:** M11 · **Entrega:** E2 · **Dónde:** Web · **Prioridad:** Must · **Depende de:** HU-018, HU-093 · **Reglas:** RN-79, D28
 
@@ -1620,7 +1622,8 @@ Las notificaciones son internas de Norvia y por correo (D28). Las historias HU-0
 **Criterios de aceptación:**
 
 - Las credenciales del servicio se configuran fuera del código y se almacenan de forma segura.
-- El sistema procesa automáticamente los correos pendientes y reintenta los envíos fallidos según una política configurable.
+- Al crear la notificación se intenta enviar el correo de inmediato; si falla, un proceso automático reintenta los envíos pendientes según una política configurable, con una espera que crece en cada intento.
+- Quien recibió la notificación puede pedir que se reintente el envío en ese momento (HU-117), sin esperar al proceso automático; los dos nunca procesan la misma notificación a la vez.
 - Cada intento queda registrado; al agotar los reintentos, el correo queda marcado como fallido sin revertir la operación que originó la notificación.
 - El envío de correos funciona en los entornos local y publicado mediante la configuración correspondiente.
 
@@ -1628,9 +1631,45 @@ Las notificaciones son internas de Norvia y por correo (D28). Las historias HU-0
 
 ---
 
+### HU-119 | Registrar mi empresa con Microsoft
+
+**Como** representante de una empresa, **quiero** registrarla con mi cuenta de Microsoft, **para** no tener que crear ni recordar otra contraseña.
+
+**Criterios de aceptación:**
+
+- En el registro y en el inicio de sesión hay una pantalla previa para elegir cómo continuar: con Microsoft o con correo y contraseña (el flujo de siempre). Al elegir Microsoft y volver, al volver, se muestra el mismo formulario de HU-017 sin el campo de contraseña.
+- El correo aparece ya completado y no se puede modificar.
+- Los nombres y apellidos aparecen prellenados con lo que entrega Microsoft y se pueden corregir, incluido el segundo nombre y el segundo apellido.
+- Los datos que no entrega Microsoft, como el documento o el teléfono, no se piden en este paso y se pueden completar después en el perfil.
+- Antes de crear la cuenta, Norvia envía un código de 6 dígitos al correo de Microsoft y la persona lo escribe para confirmar que ese correo es suyo; si el código es incorrecto o venció se le avisa y puede pedir otro, y tras varios intentos fallidos debe esperar unos minutos.
+- Si la persona ya existe, el formulario muestra los nombres que Norvia ya tiene, sin poder modificarlos; solo se completan los datos que estaban vacíos y nunca se sobrescribe lo ya guardado (se corrige desde el perfil).
+- Si el correo ya tiene cuenta en Norvia (por ejemplo, de otra empresa), no se crea otra persona ni otra cuenta: se reutiliza y solo se agrega su vínculo como Administrador de la empresa nueva. Si esa cuenta tiene contraseña, se explica que debe confirmar su contraseña actual para vincular Microsoft (HU-120) y no se crea una cuenta duplicada.
+- Al completar el registro, la empresa queda creada, la cuenta queda verificada y quien la registra obtiene acceso como Administrador de empresa, sin recibir una contraseña temporal.
+- Un RTN repetido se rechaza con un mensaje claro, sin borrar los datos ingresados.
+
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-017 · **Reglas:** RN-01, RN-81, RN-82, RN-84, RN-85, RN-86, D2, D29
+
+### HU-120 | Iniciar sesión con Microsoft y vincularla a mi cuenta
+
+**Como** operador de una empresa, **quiero** entrar con mi cuenta de Microsoft, **para** acceder sin escribir contraseña.
+
+**Criterios de aceptación:**
+
+- En la pantalla previa de inicio de sesión se puede elegir "Continuar con Microsoft" o "Continuar con correo"; con Microsoft se indica la empresa en la que se quiere entrar.
+- Se permite el acceso solo si esa cuenta de Microsoft está vinculada a una cuenta de Norvia con autorización vigente en esa empresa; se aplican las mismas restricciones de HU-018 (cuenta desactivada, empresa suspendida o acceso retirado).
+- Si la cuenta de Microsoft ya está vinculada a una cuenta de Norvia pero sin acceso a la empresa elegida, el mensaje es genérico y no revela datos de la empresa.
+- Si el correo de Microsoft todavía no tiene cuenta en Norvia, se ofrece continuar al registro de empresa (HU-119) con el correo ya completado y bloqueado, y los nombres prellenados y editables. No se muestra nada de otras personas: quien llega ya demostró ser dueño de ese correo.
+- Una persona que ya tiene cuenta con contraseña puede vincular Microsoft desde el inicio de sesión confirmando su contraseña actual; después puede entrar con cualquiera de las dos.
+- Una cuenta de Microsoft no se puede vincular a dos cuentas de Norvia distintas.
+- Las cuentas creadas solo con Microsoft no ofrecen cambiar contraseña (HU-022) ni se les aplica la política de HU-114 mientras no tengan una.
+
+**Módulo:** M1 · **Entrega:** E1 · **Dónde:** Web · **Prioridad:** Should · **Depende de:** HU-018, HU-119 · **Reglas:** RN-57, RN-60, RN-81, RN-82, RN-83, D1, D29
+
+---
+
 ## Resumen
 
-Total: 118 historias. En alcance: 80 (68 Must y 12 Should). Por entrega: Diseño 16, E1 44, E2 20 y Fuera de alcance 38.
+Total: 120 historias. En alcance: 82 (68 Must y 14 Should). Por entrega: Diseño 16, E1 46, E2 20 y Fuera de alcance 38.
 
 | ID | Historia | Módulo | Entrega | Dónde | Prioridad |
 |---|---|---|---|---|---|
@@ -1752,6 +1791,8 @@ Total: 118 historias. En alcance: 80 (68 Must y 12 Should). Por entrega: Diseño
 | HU-116 | Notificar una política nueva | M11 | E2 | Web | Must |
 | HU-117 | Ver mis notificaciones | M11 | E2 | Web | Must |
 | HU-118 | Configurar el envío de correos | Técnico | E2 | No aplica | Must |
+| HU-119 | Registrar mi empresa con Microsoft | M1 | E1 | Web | Should |
+| HU-120 | Iniciar sesión con Microsoft y vincularla a mi cuenta | M1 | E1 | Web | Should |
 
 ---
 
@@ -1781,6 +1822,28 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
     - Rechaza un RTN que ya pertenece a otra empresa y devuelve un resultado que permite mostrar el mensaje correspondiente en la web.
     - Protege la contraseña; no la almacena ni la devuelve en texto legible.
 
+### HU-119 | Registrar mi empresa con Microsoft
+
+- **Título:** `HU-119 Front — Registrar la empresa con Microsoft`
+  - **Criterios de aceptación:**
+    - Tras elegir Microsoft, se muestra el formulario de registro con el correo bloqueado, los nombres prellenados y editables, y sin campo de contraseña.
+    - Si el correo ya tiene cuenta con contraseña, se orienta a confirmarla (HU-120) y no se intenta crear otra cuenta.
+- **Título:** `HU-119 Back — Crear la empresa y la cuenta de administrador desde Microsoft`
+  - **Criterios de aceptación:**
+    - Crea la empresa, la persona, la cuenta verificada sin contraseña, el vínculo de Microsoft y el vínculo de Administrador de empresa como una sola operación.
+    - Toma el correo del proveedor y nunca del formulario; rechaza un RTN repetido.
+
+### HU-120 | Iniciar sesión con Microsoft y vincularla a mi cuenta
+
+- **Título:** `HU-120 Front — Botón Continuar con Microsoft y confirmación de contraseña`
+  - **Criterios de aceptación:**
+    - El inicio de sesión ofrece Microsoft para la empresa elegida y los mensajes de error no revelan si el correo existe.
+    - Quien ya tiene contraseña puede confirmarla para vincular Microsoft.
+- **Título:** `HU-120 Back — Validar la cuenta de Microsoft e iniciar sesión por empresa`
+  - **Criterios de aceptación:**
+    - Valida la identidad con Microsoft, busca la cuenta vinculada y aplica las mismas restricciones de HU-018.
+    - Vincula Microsoft a una cuenta existente solo tras confirmar su contraseña; no permite vincularla a dos cuentas.
+
 ### HU-018 | Iniciar y cerrar sesión
 
 - **Título:** `HU-018 Front — Ingresar y cerrar sesión desde la web`
@@ -1803,7 +1866,7 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
     - Si esa persona ya tiene un vínculo activo en la empresa, informa que no se puede duplicar el acceso.
 - **Título:** `HU-020 Back — Crear o reutilizar la cuenta y vincularla a la empresa`
   - **Criterios de aceptación:**
-    - Si el correo corresponde a una cuenta existente, la reutiliza; si no existe, crea una cuenta para la persona.
+    - Si el correo corresponde a una cuenta existente, la reutiliza; si no existe, crea una cuenta para la persona, sin asignarle contraseña, y le envía un código de 6 dígitos para que la active y elija la suya.
     - Vincula la cuenta a la empresa solicitante con el grupo elegido, sin crear una segunda cuenta para la misma persona.
     - Rechaza un vínculo duplicado con la misma empresa y conserva la posibilidad de que la cuenta tenga acceso a otras empresas.
 
@@ -1817,7 +1880,7 @@ Para reconocer con rapidez a qué historia pertenece cada sub-issue, usa el tít
 - **Título:** `HU-115 Back — Preparar el acceso de las cuentas de encuestados`
   - **Criterios de aceptación:**
     - Para cada trabajador crea una cuenta si no existe o reutiliza la existente, siguiendo el alta de persona de HU-020, y evita un segundo vínculo a la misma empresa.
-    - Concede el grupo encuestado y acceso inicial temporal; en el primer ingreso se debe cambiar la contraseña según HU-114.
+    - Concede el grupo encuestado; si la cuenta es nueva, le envía un código de 6 dígitos para activarla y elegir su contraseña, que cumple la política de HU-114.
     - Limita las funciones de esa cuenta a responder encuestas, ver sus notificaciones, consultar las políticas vigentes y reportar eventos de forma anónima.
 
 ### HU-021 | Gestionar roles y membresías

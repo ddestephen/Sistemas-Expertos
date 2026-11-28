@@ -19,7 +19,9 @@ El curso exige `EmpresaId` en las tablas transaccionales principales. Aquí se i
 | Raíz | Empresa | Cada empresa cliente: razón social, RTN, dirección, actividad, rubro, trabajadores y estado del tenant | M1, M2 |
 | Global | Persona | Identidad humana (nombres y documento), sin correo ni contraseña | M1 |
 | Global | Usuario | Registro de persona en la plataforma: `Activo` (sin credenciales; login vía **Acceso**) | M1 |
-| Global | Acceso | Correo (único) y contraseña compartidos por vínculos y/o staff que usen ese correo | M1 |
+| Global | Acceso | Correo (único) y contraseña (opcional si la cuenta usa un proveedor) compartidos por vínculos y/o staff que usen ese correo | M1 |
+| Global | AccesoProveedor | Proveedor de identidad vinculado a un **Acceso** (hoy Microsoft) y el identificador de la cuenta en ese proveedor (D29) | M1 |
+| Global | VerificacionCorreo | Código de 6 dígitos para confirmar un correo de Microsoft antes de crear la cuenta (D29, RN-86) o para activar una cuenta local nueva (D30, RN-87) | M1 |
 | Global | RefreshToken | Hash del refresh, tipo de sesión y vínculo opcional; el JWT de access no se guarda | M1 |
 | Global | StaffPlataforma | Fila de staff Norvia (`AccesoId`, rol de plataforma, `Activo`); credenciales en **Acceso** | M1 |
 | Global | RolStaffPlataforma | Rol del staff (p. ej. admin catálogos, soporte); no gestiona `Rol` de empresas | M1 |

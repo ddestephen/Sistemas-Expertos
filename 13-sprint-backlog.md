@@ -104,6 +104,8 @@ Para demostrar que EF Core, los filtros globales y las validaciones funcionan co
 | **HU-017** | Registrar mi empresa | `POST /api/empresas` (Transacción: empresa + `Persona` + primer `VinculoEmpresa` admin) | Must | HU-092, HU-096 |
 | **HU-018** | Iniciar y cerrar sesión | `POST /api/auth/login/empresa` y `/plataforma`; `refresh`; `logout` (**Acceso** + **RefreshToken**; JWT sin persistir) | Must | HU-094, HU-017 |
 | **HU-019** | Acceder a otra empresa | Sin “cambiar empresa”: nuevo login con otro `IdEmpresa` cifrado (mismo **Acceso** si mismo correo) | Must | HU-018 |
+| **HU-119** | Registrar mi empresa con Microsoft | `POST /api/auth/microsoft/identidad` y `POST /api/empresas/microsoft` (Transacción: empresa + `Persona` + **Acceso** sin contraseña + **AccesoProveedor** + vínculo admin) | Should | HU-017 |
+| **HU-120** | Iniciar sesión con Microsoft | `POST /api/auth/login/empresa/microsoft` y `POST /api/auth/microsoft/vincular` | Should | HU-018, HU-119 |
 | **HU-020** | Agregar vínculos | `POST /api/vinculos` (`Persona` + **Acceso** + vínculo; correo único en **Acceso**) | Must | HU-018, HU-093 |
 | **HU-021** | Gestionar roles y vínculos | `PATCH /api/vinculos/{id}` (rol, estado, `HistorialEstadoVinculo`; `Permiso`/`RolPermiso`) | Must | HU-020, HU-095 |
 

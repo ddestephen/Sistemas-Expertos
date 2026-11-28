@@ -40,7 +40,7 @@ Draw.io admite código Mermaid de forma nativa:
 
 # PARTE 1: Diagramas Entidad-Relación (Conceptuales / Negocio)
 
-Estos diagramas muestran las entidades y sus relaciones con verbos y cardinalidades. Son los mismos de la sección 3 de [modelo de datos](12-modelo-datos.md), que es la fuente de verdad. Modelo vigente: **41 tablas**, sin áreas, sin Google, sin comisión, sin equipos ni EPP, sin personas afectadas y sin informes (recorte del 13-11-2026).
+Estos diagramas muestran las entidades y sus relaciones con verbos y cardinalidades. Son los mismos de la sección 3 de [modelo de datos](12-modelo-datos.md), que es la fuente de verdad. Modelo vigente: **43 tablas**, sin áreas, sin Google, sin comisión, sin equipos ni EPP, sin personas afectadas y sin informes (recorte del 13-11-2026).
 
 ## 1.1 Acceso, empresa y catálogos
 
@@ -49,6 +49,7 @@ erDiagram
     Persona ||--o| Usuario : "registro Activo"
     Acceso ||--o{ VinculoEmpresa : "autentica"
     Acceso ||--o| StaffPlataforma : "autentica staff"
+    Acceso ||--o{ AccesoProveedor : "proveedores vinculados"
     Acceso ||--o{ RefreshToken : "sesiones refresh"
     VinculoEmpresa ||--o{ RefreshToken : "sesión empresa"
     Persona ||--o{ VinculoEmpresa : "tiene"
@@ -139,6 +140,7 @@ erDiagram
     Persona ||--o| Usuario : "registro Activo"
     Acceso ||--o{ VinculoEmpresa : "autentica"
     Acceso ||--o| StaffPlataforma : "autentica staff"
+    Acceso ||--o{ AccesoProveedor : "proveedores vinculados"
     Acceso ||--o{ RefreshToken : "sesiones refresh"
     VinculoEmpresa ||--o{ RefreshToken : "sesión empresa"
     Persona ||--o{ VinculoEmpresa : "tiene"
@@ -202,11 +204,12 @@ erDiagram
 
 Estos diagramas se generan a partir del diccionario de datos de [modelo de datos](12-modelo-datos.md) §4 y muestran las **tablas con tipos de PostgreSQL**, columnas obligatorias (`NOT NULL`), claves primarias (`PK`), claves foráneas simples y compuestas (`FK`), unicidad (`UK`) y notación *Crow's Foot*. Las restricciones compuestas y los CHECK detallados están en el diccionario.
 
-## 2.1 Dominio 1: Identidad, Multi-tenant, Acceso y RBAC (15 Tablas)
+## 2.1 Dominio 1: Identidad, Multi-tenant, Acceso y RBAC (17 Tablas)
 
 ```mermaid
 erDiagram
     Persona ||--o| Usuario : "PersonaId"
+    Acceso ||--o{ AccesoProveedor : "AccesoId"
     Acceso ||--o{ RefreshToken : "AccesoId"
     VinculoEmpresa |o--o{ RefreshToken : "VinculoEmpresaId"
     Acceso ||--o| StaffPlataforma : "AccesoId"
@@ -251,9 +254,30 @@ erDiagram
     Acceso {
         uuid Id PK
         varchar_254 Email UK "NOT NULL"
-        varchar_255 PasswordHash "NOT NULL"
-        boolean DebeCambiarPassword "NOT NULL"
+        varchar_255 PasswordHash "NULL si hay proveedor (D29) o cuenta sin activar (D30)"
         boolean Verificado "NOT NULL"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    AccesoProveedor {
+        uuid Id PK
+        uuid AccesoId FK "NOT NULL; → Acceso"
+        varchar_20 Proveedor "NOT NULL; microsoft"
+        varchar_255 ProveedorUserId "NOT NULL; UK con Proveedor"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    VerificacionCorreo {
+        uuid Id PK
+        varchar_20 Proposito "NOT NULL; microsoft, activacion_cuenta"
+        varchar_254 Email "NOT NULL; UK con ProveedorUserId"
+        varchar_255 ProveedorUserId "NULL; solo Proposito=microsoft"
+        uuid AccesoId FK "NULL; solo Proposito=activacion_cuenta; → Acceso; UK"
+        varchar_64 CodigoHash "NOT NULL"
+        smallint Intentos "NOT NULL"
+        timestamptz ExpiraEn "NOT NULL"
+        smallint EnviosEnVentana "NOT NULL"
+        timestamptz VentanaEnviosExpiraEn "NOT NULL"
         timestamptz CreadoEn "NOT NULL"
     }
 
@@ -736,7 +760,7 @@ erDiagram
         uuid TareaId FK "FK comp → Tarea"
         timestamptz CreadaEn "NOT NULL"
         timestamptz LeidaEn
-        varchar_10 CorreoEstado "NOT NULL; valores: pendiente, enviado, fallido"
+        varchar_10 CorreoEstado "NOT NULL; valores: pendiente, en_proceso, enviado, fallido"
         smallint CorreoIntentos "NOT NULL"
         timestamptz CorreoEnviadoEn
         text CorreoUltimoError
@@ -745,13 +769,14 @@ erDiagram
 
 ---
 
-## 2.5 Diagrama Relacional Físico Maestro Completo (41 Tablas)
+## 2.5 Diagrama Relacional Físico Maestro Completo (43 Tablas)
 
-*(Copia el bloque siguiente si deseas importar las 41 tablas de Norvia con todas sus relaciones foráneas en un solo lienzo de draw.io).*
+*(Copia el bloque siguiente si deseas importar las 43 tablas de Norvia con todas sus relaciones foráneas en un solo lienzo de draw.io).*
 
 ```mermaid
 erDiagram
     Persona ||--o| Usuario : "PersonaId"
+    Acceso ||--o{ AccesoProveedor : "AccesoId"
     Acceso ||--o{ RefreshToken : "AccesoId"
     VinculoEmpresa |o--o{ RefreshToken : "VinculoEmpresaId"
     Acceso ||--o| StaffPlataforma : "AccesoId"
@@ -867,9 +892,30 @@ erDiagram
     Acceso {
         uuid Id PK
         varchar_254 Email UK "NOT NULL"
-        varchar_255 PasswordHash "NOT NULL"
-        boolean DebeCambiarPassword "NOT NULL"
+        varchar_255 PasswordHash "NULL si hay proveedor (D29) o cuenta sin activar (D30)"
         boolean Verificado "NOT NULL"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    AccesoProveedor {
+        uuid Id PK
+        uuid AccesoId FK "NOT NULL; → Acceso"
+        varchar_20 Proveedor "NOT NULL; microsoft"
+        varchar_255 ProveedorUserId "NOT NULL; UK con Proveedor"
+        timestamptz CreadoEn "NOT NULL"
+    }
+
+    VerificacionCorreo {
+        uuid Id PK
+        varchar_20 Proposito "NOT NULL; microsoft, activacion_cuenta"
+        varchar_254 Email "NOT NULL; UK con ProveedorUserId"
+        varchar_255 ProveedorUserId "NULL; solo Proposito=microsoft"
+        uuid AccesoId FK "NULL; solo Proposito=activacion_cuenta; → Acceso; UK"
+        varchar_64 CodigoHash "NOT NULL"
+        smallint Intentos "NOT NULL"
+        timestamptz ExpiraEn "NOT NULL"
+        smallint EnviosEnVentana "NOT NULL"
+        timestamptz VentanaEnviosExpiraEn "NOT NULL"
         timestamptz CreadoEn "NOT NULL"
     }
 
@@ -1257,7 +1303,7 @@ erDiagram
         uuid TareaId FK "FK comp → Tarea"
         timestamptz CreadaEn "NOT NULL"
         timestamptz LeidaEn
-        varchar_10 CorreoEstado "NOT NULL; valores: pendiente, enviado, fallido"
+        varchar_10 CorreoEstado "NOT NULL; valores: pendiente, en_proceso, enviado, fallido"
         smallint CorreoIntentos "NOT NULL"
         timestamptz CorreoEnviadoEn
         text CorreoUltimoError
