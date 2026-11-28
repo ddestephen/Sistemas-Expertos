@@ -631,9 +631,11 @@ Cómo se ordena cada pantalla y cómo se llega a ella. Decidido el 27-11-2026 (r
 | Empresa | Los cuatro roles de empresa | Menú lateral con la empresa, el rol y la campana arriba, el menú del rol y la cuenta abajo |
 | Plataforma | Staff de Norvia | El mismo marco, con "Plataforma Norvia" en lugar de la empresa y sin campana |
 
-- **Escritorio (≥1024 px):** menú lateral fijo de `--layout-sidebar-width`; el contenido empieza a su lado, alineado a
-  la izquierda y no centrado. Las listas usan hasta `--layout-max-width` y los formularios y detalles,
-  `--layout-max-width-narrow`, desde el mismo borde, así el título no cambia de lugar al pasar de una a otra.
+- **Escritorio (≥1024 px):** menú lateral fijo de `--layout-sidebar-width`; cada pantalla se centra en el área a la
+  derecha del menú. Las listas usan hasta `--layout-max-width` y los formularios y detalles,
+  `--layout-max-width-narrow`. La barra fija de "Volver" se centra igual. (28-11-2026: antes el contenido se alineaba a
+  la izquierda para que el título no cambiara de lugar, pero en pantallas anchas dejaba un espacio vacío grande a la
+  derecha.)
 - **Celular y tablet:** barra superior de una fila con el botón del menú (`menu` 20 px), la empresa y el rol, y la
   campana. No queda fija, para no sumarse a la barra de "Volver". El menú se abre en un panel (§ Menú lateral).
 - **La landing con sesión iniciada** lo dice ("Ya entraste a {empresa} como {rol}") y ofrece "Ir a mi inicio" en lugar
@@ -744,6 +746,7 @@ layout público.
 | Franjas | Las secciones alternan `--color-bg-canvas` y `--color-bg-surface` (con borde arriba y abajo), de borde a borde; el contenido queda en `--layout-max-width` con el margen lateral de siempre. `--space-16` arriba y abajo (`--space-12` en celular) |
 | Secciones | El problema (tres puntos con ícono de 32 px), cómo funciona (cinco pasos numerados en una fila, apilados en celular), qué cubre (una frase sobre el acuerdo STSS-053-04 y la aclaración de ISO 45001), para cada persona (tres cards), privacidad (tres garantías con `circle-check` en `--color-success-icon`), preguntas frecuentes (desplegables) y cierre |
 | Títulos de sección | Título 2, sin etiquetas encima |
+| Preguntas frecuentes | Columna de `--layout-max-width-narrow` centrada en su franja (el título va dentro de la columna) |
 | Pie | "Norvia" y "Seguridad y salud en el trabajo para empresas hondureñas · 2026", en Caption |
 | Con sesión iniciada | La portada cambia el botón por el aviso info "Ya entraste a {empresa} como {rol}", el botón principal "Ir a mi inicio" y la nota para entrar a otra empresa. La barra y el cierre también dicen "Ir a mi inicio" |
 

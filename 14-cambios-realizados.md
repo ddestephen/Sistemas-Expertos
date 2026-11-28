@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Contenido centrado junto al menú:** en el layout de sesión, cada pantalla se centra en el área a la derecha del menú en lugar de alinearse a la izquierda, y las preguntas frecuentes de la landing van en una columna centrada; en pantallas anchas quedaba un espacio vacío grande de un solo lado | [Ver cambio](#cambio-2026-11-28-contenido-centrado) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Acceso (navegación, lote 6):** la landing nueva aprobada (qué resuelve Norvia, cómo funciona, qué cubre, privacidad y preguntas frecuentes), con su propia barra y una variante con sesión iniciada; el login explica cuándo un enlace directo a una empresa no sirve en el navegador y "Cambiar empresa" pasa a "Buscar otra empresa" | [Ver cambio](#cambio-2026-11-28-navegacion-acceso) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Empresa y plataforma (navegación, lote 5):** los detalles de los catálogos (peligro, pregunta, plantilla de documento) salen del encabezado del área y pasan a nivel 2 con su título, "Volver" y ancho de detalle; la acción de crear de cada lista de catálogos pasa a botón principal; los títulos "Auditoría de acciones" y "Empresas registradas" pasan a "Auditoría" y "Empresas" | [Ver cambio](#cambio-2026-11-28-navegacion-empresa-plataforma) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Gestión SST (navegación, lote 4):** revisión de las 20 pantallas de gestión; Plan de trabajo y Eventos pasan a "Nueva tarea" y "Reportar un evento" como botón principal, con un solo estado vacío y sin filtros cuando no hay datos; el título "Eventos reportados" pasa a "Eventos"; el evento y sus estadísticas usan el "Volver" común; Nueva tarea suma "Volver" | [Ver cambio](#cambio-2026-11-28-navegacion-gestion) |
@@ -78,6 +79,47 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-28-contenido-centrado` {#cambio-2026-11-28-contenido-centrado}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: alineación del contenido en el layout de sesión y en la landing. Solo `design-system.md` y su guía visual. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **El lote 1 alineó el contenido a la izquierda, junto al menú,** para que el título no cambiara de lugar entre listas y formularios.
+2. **En pantallas anchas eso dejaba un espacio vacío grande a la derecha,** sobre todo en formularios, detalles y estados vacíos (720 px de contenido en un área de más de 1 600 px). El equipo lo vio como contenido mal ubicado.
+3. **En la landing,** la columna de preguntas frecuentes también quedaba a la izquierda de su franja.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Centrar cada pantalla en el área a la derecha del menú | El espacio libre queda repartido a ambos lados; la barra fija de "Volver" se centra igual | En pantallas anchas el contenido queda en el centro de la vista |
+| Preguntas frecuentes en columna centrada | La columna angosta y su título, centrados en la franja | La franja no queda vacía de un lado |
+
+El costo: el título se mueve un poco al pasar de una lista (hasta 1 280 px) a un formulario (720 px).
+
+### Cómo quedó (resumen)
+
+`design-system.md` § Layouts y navegación y § Landing registran el centrado; la guía visual actualiza su leyenda.
+
+### Qué hizo el equipo en la práctica
+
+- El equipo envió capturas a 1 920 px con el contenido desplazado a la izquierda.
+- Implementación en la rama `fix/centrar-contenido` del repositorio de código; comprobado a 1 920 px (mismo espacio a cada lado) y en celular.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Alineación del contenido | [design-system.md](design-system.md) § Layouts y navegación |
+| Preguntas frecuentes | [design-system.md](design-system.md) § Landing |
 
 ---
 
