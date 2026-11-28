@@ -759,6 +759,14 @@ Para moverse entre las partes de un área con varias pantallas hermanas, como lo
 | Alto | 44px (`--control-height-touch`), también en escritorio, para que el área de toque sea cómoda |
 | Celular | La fila se desplaza en horizontal si no cabe, sin ensanchar la página ni partir las palabras |
 
+- **Solo en las listas del área** (28-11-2026): el encabezado del área ("Catálogos") y la navegación de sección van en
+  las pantallas hermanas. Los detalles y formularios (un peligro, una pregunta, una plantilla) son nivel 2: llevan su
+  propio título (el elemento o la acción), "Volver" a su lista y el ancho `--layout-max-width-narrow`. El menú sigue
+  marcando el área.
+- **Acción de crear:** cada sección es su propia pantalla, así que su acción de crear ("Nueva categoría", "Nuevo
+  peligro"…) es el botón principal, solo para quien puede editar.
+- **Solo consulta:** el aviso info para soporte de plataforma va en las listas y también en cada detalle.
+
 ### Campo de fecha
 
 Usos: fecha y hora del accidente; fecha límite de una tarea (sin hora).
@@ -1060,7 +1068,7 @@ parecido con los colores de riesgo, y un botón para volver al tema por defecto.
 
 ### Empresas registradas (plataforma, HU-024)
 
-Pantalla `/empresas` para `admin_plataforma` y `soporte_plataforma` al ancho general (`--layout-max-width`). Es un destino del menú de plataforma, así que no lleva "Volver":
+Pantalla `/empresas` para `admin_plataforma` y `soporte_plataforma` al ancho general (`--layout-max-width`). Es un destino del menú de plataforma, así que no lleva "Volver". Título "Empresas" (el nombre del menú) y la descripción "Las empresas registradas en Norvia y su uso general, sin acceso a su información de seguridad y salud.":
 
 - **Indicadores arriba:** dos `<Indicador>` (`Empresas registradas` y `Personas con acceso vigente`, adaptados cuando hay búsqueda).
 - **Búsqueda:** campo `Buscar` por nombre o rubro con espera tras dejar de escribir.
@@ -1069,7 +1077,7 @@ Pantalla `/empresas` para `admin_plataforma` y `soporte_plataforma` al ancho gen
 
 ### Auditoría de acciones (empresa, HU-099)
 
-Pantalla `/auditoria` de solo lectura para `admin_empresa` y `responsable_sst` al ancho general (`--layout-max-width`). Es un destino del menú (grupo "Empresa"), así que no lleva "Volver":
+Pantalla `/auditoria` de solo lectura para `admin_empresa` y `responsable_sst` al ancho general (`--layout-max-width`). Es un destino del menú (grupo "Empresa"), así que no lleva "Volver". Título "Auditoría" (el nombre del menú):
 
 - **Filtros:** barra con `Buscar` (con espera de 300 ms tras dejar de escribir), `Módulo / entidad` (`CampoSelect` con opción `Todas`), y rango `Desde` / `Hasta` (`CampoFecha` en hora de Honduras con validación `hasta >= desde`).
 - **Tabla cronológica:** del registro más reciente al más antiguo, mostrando fecha/hora en `tabular-nums`, badge de acción, quién (`actorNombre` y correo) y entidad con enlace directo al elemento afectado cuando aplica y fragmentos legibles del `detalle`.

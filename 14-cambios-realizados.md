@@ -10,6 +10,7 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Empresa y plataforma (navegación, lote 5):** los detalles de los catálogos (peligro, pregunta, plantilla de documento) salen del encabezado del área y pasan a nivel 2 con su título, "Volver" y ancho de detalle; la acción de crear de cada lista de catálogos pasa a botón principal; los títulos "Auditoría de acciones" y "Empresas registradas" pasan a "Auditoría" y "Empresas" | [Ver cambio](#cambio-2026-11-28-navegacion-empresa-plataforma) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Gestión SST (navegación, lote 4):** revisión de las 20 pantallas de gestión; Plan de trabajo y Eventos pasan a "Nueva tarea" y "Reportar un evento" como botón principal, con un solo estado vacío y sin filtros cuando no hay datos; el título "Eventos reportados" pasa a "Eventos"; el evento y sus estadísticas usan el "Volver" común; Nueva tarea suma "Volver" | [Ver cambio](#cambio-2026-11-28-navegacion-gestion) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **Lo propio de cada persona (navegación, lote 3):** Mis tareas explica por qué una tarea con evidencia todavía no se puede completar, ordena por urgencia, pliega las terminadas y resalta la tarea que abre la notificación ("Ver la tarea"); Reportar un evento vuelve a donde se vino; salir de una encuesta o de un reporte a medio llenar pide confirmación; los diálogos de confirmación van centrados | [Ver cambio](#cambio-2026-11-28-navegacion-lo-propio) |
 | 2026-11-28 | Equipo (redactado con Claude Code) | **El inicio muestra lo pendiente (navegación, lote 2):** el inicio deja de repetir el menú como botones y muestra a cada rol lo que tiene por atender (encuesta por responder, tareas vencidas, riesgos sin control, eventos abiertos, borradores), cada cosa con un link a donde se atiende; se documenta en `design-system.md` § Inicio | [Ver cambio](#cambio-2026-11-28-navegacion-inicio) |
@@ -76,6 +77,47 @@
 | 2026-11-09 | Jonathan | Acceso por **vínculo** por empresa (sin login global); modelo **Persona**; producto **Norvia** | [Ver cambio](#cambio-2026-11-09) |
 
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
+
+---
+
+## Cambio `2026-11-28-navegacion-empresa-plataforma` {#cambio-2026-11-28-navegacion-empresa-plataforma}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: Personas, Perfil, Auditoría, Empresas y Catálogos (quinto lote del rediseño de navegación). Solo `design-system.md`. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **Los detalles de los catálogos quedaban dentro del encabezado "Catálogos"** y su navegación de sección: el título de la página no nombraba el elemento y "Volver" era un enlace propio.
+2. **Los anchos se mezclaban:** el peligro usaba el ancho completo, y la pregunta y la plantilla, el angosto.
+3. **La acción de crear de cada catálogo era secundaria,** mientras que en el resto de las listas es principal.
+4. **"Auditoría de acciones" y "Empresas registradas"** no coincidían con el nombre del menú.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Detalles de catálogos como nivel 2 | Sin el encabezado del área: su título, "Volver" a la lista, ancho angosto y aviso de consulta para soporte | Se comportan como cualquier otro detalle |
+| Crear es la acción principal | En las cinco listas de catálogos, solo para quien puede editar | Las listas se comportan igual en toda la app |
+| Título igual al menú | "Auditoría" y "Empresas"; la descripción de Empresas conserva "registradas" | Un nombre por pantalla |
+
+### Cómo quedó (resumen)
+
+`design-system.md` § Navegación de sección aclara que va solo en las listas del área y suma la acción de crear y el aviso de consulta; § Empresas registradas y § Auditoría de acciones registran el título nuevo. Personas y Perfil de la empresa ya cumplían el marco y no cambian.
+
+### Qué hizo el equipo en la práctica
+
+- Revisión de las pantallas de empresa y de plataforma y propuesta del lote 5; aprobada.
+- Implementación en la rama `feature/navegacion-lote-5-empresa-plataforma` del repositorio de código.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Catálogos | [design-system.md](design-system.md) § Navegación de sección |
+| Títulos | [design-system.md](design-system.md) § Empresas registradas, § Auditoría de acciones |
 
 ---
 
