@@ -1,4 +1,4 @@
-# Cambios realizados
+﻿# Cambios realizados
 
 **Para qué sirve:** que **cualquier compañero** (o su IA) entienda **qué problema había**, **por qué se cambió**, **cómo quedó** y **qué trabajo hizo quién**, **leyendo solo este archivo**. Los demás `docs/` guardan el texto oficial para implementar; aquí está la historia y el razonamiento.
 
@@ -10,7 +10,14 @@
 
 | Fecha | Quién | En una frase | Detalle |
 |-------|--------|--------------|---------|
-| 2026-11-27 | Equipo (redactado con Claude Code) | **Correos más confiables y acceso con Microsoft más claro:** un solo proceso envía los correos de notificaciones (la API solo lo despierta), una fila interrumpida se retoma sin duplicar el correo, el botón "Reintentar" ya tiene su permiso, los códigos de activación se envían después de guardar y vencen en 48 horas cuando el alta la hace otra persona, quien entra con Microsoft puede agregar una contraseña, y un token de Microsoft vencido o una cuenta sin activar tienen un mensaje y una salida claros | [Ver cambio](#cambio-2026-11-27-correos-confiables) |
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Landing, versión 4:** misma copia con otra composición para transmitir profesionalismo y confianza (vista de la app en lugar del mapa de calor, franja de respaldo con el reglamento e ISO 45001, títulos centrados, tarjetas con íconos, pasos conectados, cierre enmarcado y pie con columnas) y un estilo tipográfico nuevo, Portada (40/48), solo para el título de la landing | [Ver cambio](#cambio-2026-11-28-landing-v4) |
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Contenido centrado junto al menú:** en el layout de sesión, cada pantalla se centra en el área a la derecha del menú en lugar de alinearse a la izquierda, y las preguntas frecuentes de la landing van en una columna centrada; en pantallas anchas quedaba un espacio vacío grande de un solo lado | [Ver cambio](#cambio-2026-11-28-contenido-centrado) |
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Acceso (navegación, lote 6):** la landing nueva aprobada (qué resuelve Norvia, cómo funciona, qué cubre, privacidad y preguntas frecuentes), con su propia barra y una variante con sesión iniciada; el login explica cuándo un enlace directo a una empresa no sirve en el navegador y "Cambiar empresa" pasa a "Buscar otra empresa" | [Ver cambio](#cambio-2026-11-28-navegacion-acceso) |
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Empresa y plataforma (navegación, lote 5):** los detalles de los catálogos (peligro, pregunta, plantilla de documento) salen del encabezado del área y pasan a nivel 2 con su título, "Volver" y ancho de detalle; la acción de crear de cada lista de catálogos pasa a botón principal; los títulos "Auditoría de acciones" y "Empresas registradas" pasan a "Auditoría" y "Empresas" | [Ver cambio](#cambio-2026-11-28-navegacion-empresa-plataforma) |
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Gestión SST (navegación, lote 4):** revisión de las 20 pantallas de gestión; Plan de trabajo y Eventos pasan a "Nueva tarea" y "Reportar un evento" como botón principal, con un solo estado vacío y sin filtros cuando no hay datos; el título "Eventos reportados" pasa a "Eventos"; el evento y sus estadísticas usan el "Volver" común; Nueva tarea suma "Volver" | [Ver cambio](#cambio-2026-11-28-navegacion-gestion) |
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Lo propio de cada persona (navegación, lote 3):** Mis tareas explica por qué una tarea con evidencia todavía no se puede completar, ordena por urgencia, pliega las terminadas y resalta la tarea que abre la notificación ("Ver la tarea"); Reportar un evento vuelve a donde se vino; salir de una encuesta o de un reporte a medio llenar pide confirmación; los diálogos de confirmación van centrados | [Ver cambio](#cambio-2026-11-28-navegacion-lo-propio) |
+| 2026-11-28 | Equipo (redactado con Claude Code) | **El inicio muestra lo pendiente (navegación, lote 2):** el inicio deja de repetir el menú como botones y muestra a cada rol lo que tiene por atender (encuesta por responder, tareas vencidas, riesgos sin control, eventos abiertos, borradores), cada cosa con un link a donde se atiende; se documenta en `design-system.md` § Inicio | [Ver cambio](#cambio-2026-11-28-navegacion-inicio) |
+| 2026-11-28 | Equipo (redactado con Claude Code) | **Marco de navegación del frontend (lote 1):** tres layouts (público, empresa y plataforma), menú lateral por rol en lugar de los botones del inicio, menú de cuenta, panel de menú en celular, 404 dentro del marco y niveles de pantalla (las del menú no llevan "Volver"); se documenta en `design-system.md` § Layouts y navegación, § Menú lateral y § Menú de cuenta | [Ver cambio](#cambio-2026-11-28-navegacion-marco) |
 | 2026-11-27 | Equipo (redactado con Claude Code) | **Activación de cuentas por código, envío por Resend y correo inmediato de notificaciones:** toda cuenta local nueva (empresa, vínculo o encuestado) deja de recibir contraseña temporal y se activa con el mismo código de 6 dígitos de Microsoft (D30, RN-87; tabla **VerificacionCorreoMicrosoft** generalizada a **VerificacionCorreo**); el envío de correo deja SMTP y pasa a la API de Resend; las notificaciones de M11 intentan su correo de inmediato al crearse, con un botón de reintento manual y el estado nuevo `en_proceso` (RN-78) | [Ver cambio](#cambio-2026-11-27-activacion-por-codigo) |
 | 2026-11-26 | Jesús Zepeda | **HU-075 completada:** reporte consolidado `GET /api/riesgos/matriz/reporte` (`riesgo.matriz.reporte`, `ArmadorMatriz`) y vista imprimible apaisada `/riesgos/imprimir` para imprimir o guardar en PDF al vuelo sin guardar archivos (`art. 47.b`, `RN-52`) | [Ver cambio](#cambio-2026-11-26-hu-075) |
 | 2026-11-26 | Jesús Zepeda | **HU-099 completada:** tabla `RegistroAuditoria` inalterable (Code-First + `ProtegerRegistroAuditoriaInterceptor` sin triggers SQL), instrumentación transaccional en M1–M9 (omitiendo acciones anónimas `RN-72`/`D11`), consulta `GET /api/auditoria` (`auditoria.listar`) y vista web `/auditoria` | [Ver cambio](#cambio-2026-11-26-hu-099) |
@@ -75,6 +82,365 @@
 *(Cada fila nueva se agrega **arriba** de esta tabla.)*
 
 ---
+
+## Cambio `2026-11-28-landing-v4` {#cambio-2026-11-28-landing-v4}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: la landing. `design-system.md` (§ Tipografía y § Landing) y su guía visual. No cambian los textos aprobados (versión 3), el layout público ni el resto de la app. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **La landing implementada no transmitía profesionalismo ni confianza** (opinión del equipo al verla).
+2. **El mapa de calor dominaba la portada:** 25 celdas de colores fuertes se leían como un semáforo, y el título quedaba chico.
+3. **Todas las secciones tenían la misma forma,** con un título chico a la izquierda y espacio vacío a la derecha, y el argumento del reglamento era la franja más vacía.
+4. **El cierre y el pie eran mínimos,** así que la página no terminaba.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Estilo Portada (40/48) | Variable `--font-size-3xl: 40px`, solo para el título de la landing; Título 1 en celular | El título manda en la portada |
+| Vista de la app real | El menú y el inicio con lo pendiente, en lugar del mapa de calor | Muestra el producto como es, sin un semáforo gigante |
+| Franja de respaldo | Reglamento, ISO 45001, anonimato y datos separados bajo la portada | Lo que un cliente busca antes de confiar |
+| Títulos centrados y tarjetas con íconos en cuadro | Cada sección tiene forma propia | La página se lee como un producto, no como documentación |
+| Pasos conectados | Una línea une los cinco pasos | Se lee como un proceso |
+| Barra con dos botones | "Iniciar sesión" y "Registrar mi empresa" | La acción principal queda a la vista |
+| Cierre enmarcado y pie con columnas | — | La página termina |
+
+El equipo descartó las tres marcas cortas bajo los botones ("Sin instalar nada · Respuestas anónimas · Desde el teléfono") y conservó la franja de respaldo.
+
+### Cómo quedó (resumen)
+
+`design-system.md` suma el estilo Portada en § Tipografía y reescribe § Landing con la composición nueva. La guía visual muestra la barra con dos botones y la portada en 40 px.
+
+### Qué hizo el equipo en la práctica
+
+- Propuesta de la versión 4 con antes y después, comparable en escritorio, celular y con título de 30 o 40 px; aprobada con las tres decisiones de arriba.
+- Implementación en la rama `feature/landing-v4` del repositorio de código.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Estilo Portada | [design-system.md](design-system.md) § Tipografía |
+| Landing | [design-system.md](design-system.md) § Landing |
+
+---
+
+## Cambio `2026-11-28-contenido-centrado` {#cambio-2026-11-28-contenido-centrado}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: alineación del contenido en el layout de sesión y en la landing. Solo `design-system.md` y su guía visual. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **El lote 1 alineó el contenido a la izquierda, junto al menú,** para que el título no cambiara de lugar entre listas y formularios.
+2. **En pantallas anchas eso dejaba un espacio vacío grande a la derecha,** sobre todo en formularios, detalles y estados vacíos (720 px de contenido en un área de más de 1 600 px). El equipo lo vio como contenido mal ubicado.
+3. **En la landing,** la columna de preguntas frecuentes también quedaba a la izquierda de su franja.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Centrar cada pantalla en el área a la derecha del menú | El espacio libre queda repartido a ambos lados; la barra fija de "Volver" se centra igual | En pantallas anchas el contenido queda en el centro de la vista |
+| Preguntas frecuentes en columna centrada | La columna angosta y su título, centrados en la franja | La franja no queda vacía de un lado |
+
+El costo: el título se mueve un poco al pasar de una lista (hasta 1 280 px) a un formulario (720 px).
+
+### Cómo quedó (resumen)
+
+`design-system.md` § Layouts y navegación y § Landing registran el centrado; la guía visual actualiza su leyenda.
+
+### Qué hizo el equipo en la práctica
+
+- El equipo envió capturas a 1 920 px con el contenido desplazado a la izquierda.
+- Implementación en la rama `fix/centrar-contenido` del repositorio de código; comprobado a 1 920 px (mismo espacio a cada lado) y en celular.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Alineación del contenido | [design-system.md](design-system.md) § Layouts y navegación |
+| Preguntas frecuentes | [design-system.md](design-system.md) § Landing |
+
+---
+
+## Cambio `2026-11-28-navegacion-acceso` {#cambio-2026-11-28-navegacion-acceso}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: la landing y el login (sexto y último lote del rediseño de navegación). Solo `design-system.md` y su guía visual. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **La landing solo llevaba al registro y al login:** no decía qué es Norvia, para quién es ni qué parte del reglamento cubre.
+2. **Un enlace `/login?empresa=…` abierto en otro navegador** volvía a la búsqueda por RTN sin explicar por qué.
+3. **El paso 2 del login decía "Cambiar empresa",** una expresión que el vocabulario del proyecto evita: no hay selector de empresa.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Landing con contenido | Problema, cómo funciona, qué cubre, para cada persona, privacidad, preguntas frecuentes y cierre; textos mínimos pedidos por el equipo | Una empresa entiende qué gana antes de registrarse |
+| Barra propia solo en `/` | La landing no usa la barra del layout público; el resto de las pantallas públicas sigue igual (el lote 1 no cambia) | Enlaces a las secciones y franjas de borde a borde sin dos barras |
+| Título de portada en Display (30 px) y pie sin mención académica | Decisión del equipo | Sin estilos nuevos en el design system |
+| Con sesión iniciada | Aviso y "Ir a mi inicio" en la portada, la barra y el cierre | Se mantiene lo del lote 1 dentro de la página nueva |
+| Aviso del enlace directo | "El enlace que abriste no sirve en este navegador. Busca tu empresa por su RTN para continuar." | La persona sabe por qué se le pide el RTN |
+| "Buscar otra empresa" | Reemplaza "Cambiar empresa" | Respeta el vocabulario del proyecto |
+
+### Cómo quedó (resumen)
+
+`design-system.md` tiene la sección nueva § Landing y § Layouts y navegación registra la landing como excepción del layout público. La guía visual muestra la portada. Registro, activación de cuenta, recuperación de contraseña y el acceso del staff no cambian.
+
+### Qué hizo el equipo en la práctica
+
+- Propuesta de la landing (tres versiones con ajustes del equipo) y del lote 6; aprobadas.
+- Implementación en la rama `feature/navegacion-lote-6-acceso` del repositorio de código.
+- Con este lote termina el rediseño de navegación (lotes 1 a 6).
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Landing | [design-system.md](design-system.md) § Landing |
+| Excepción del layout público | [design-system.md](design-system.md) § Layouts y navegación |
+| Guía visual | [design-system/index.html](design-system/index.html) § Componentes y estados |
+
+---
+
+## Cambio `2026-11-28-navegacion-empresa-plataforma` {#cambio-2026-11-28-navegacion-empresa-plataforma}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: Personas, Perfil, Auditoría, Empresas y Catálogos (quinto lote del rediseño de navegación). Solo `design-system.md`. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **Los detalles de los catálogos quedaban dentro del encabezado "Catálogos"** y su navegación de sección: el título de la página no nombraba el elemento y "Volver" era un enlace propio.
+2. **Los anchos se mezclaban:** el peligro usaba el ancho completo, y la pregunta y la plantilla, el angosto.
+3. **La acción de crear de cada catálogo era secundaria,** mientras que en el resto de las listas es principal.
+4. **"Auditoría de acciones" y "Empresas registradas"** no coincidían con el nombre del menú.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Detalles de catálogos como nivel 2 | Sin el encabezado del área: su título, "Volver" a la lista, ancho angosto y aviso de consulta para soporte | Se comportan como cualquier otro detalle |
+| Crear es la acción principal | En las cinco listas de catálogos, solo para quien puede editar | Las listas se comportan igual en toda la app |
+| Título igual al menú | "Auditoría" y "Empresas"; la descripción de Empresas conserva "registradas" | Un nombre por pantalla |
+
+### Cómo quedó (resumen)
+
+`design-system.md` § Navegación de sección aclara que va solo en las listas del área y suma la acción de crear y el aviso de consulta; § Empresas registradas y § Auditoría de acciones registran el título nuevo. Personas y Perfil de la empresa ya cumplían el marco y no cambian.
+
+### Qué hizo el equipo en la práctica
+
+- Revisión de las pantallas de empresa y de plataforma y propuesta del lote 5; aprobada.
+- Implementación en la rama `feature/navegacion-lote-5-empresa-plataforma` del repositorio de código.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Catálogos | [design-system.md](design-system.md) § Navegación de sección |
+| Títulos | [design-system.md](design-system.md) § Empresas registradas, § Auditoría de acciones |
+
+---
+
+## Cambio `2026-11-28-navegacion-gestion` {#cambio-2026-11-28-navegacion-gestion}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: pantallas de gestión SST (cuarto lote del rediseño de navegación). Solo `design-system.md` § Estados de pantalla. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **Plan de trabajo y Eventos no seguían las reglas del marco:** su acción de crear era secundaria, mientras que en Encuestas y en la Matriz era principal.
+2. **El plan vacío mostraba dos cajas vacías apiladas sin acción,** y con el plan al día la caja "El plan está al día" empujaba las tareas hacia abajo.
+3. **Eventos se titulaba "Eventos reportados"** (el menú dice "Eventos") y mostraba filtros aunque no hubiera ningún evento.
+4. **El detalle del evento y las estadísticas** tenían su propio enlace "Volver a los eventos", sin barra fija ni historial, y Nueva tarea no tenía "Volver".
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Crear es la acción principal | "Nueva tarea" y "Reportar un evento" pasan a botón principal | Todas las listas de gestión se comportan igual |
+| Un solo estado vacío | El plan vacío explica de dónde salen las tareas y ofrece "Nueva tarea" | Se entiende qué hacer para empezar |
+| Sección sin novedades en una línea | "No hay tareas nuevas para proponer." | Las tareas quedan arriba |
+| Sin filtros si no hay datos | Los filtros vuelven cuando hay datos o un filtro aplicado | No se ofrecen controles que no sirven |
+| Título igual al menú | "Eventos" y "Comparar resultados" | Un nombre por pantalla (§ Layouts y navegación) |
+| "Volver" común | El evento, las estadísticas y Nueva tarea usan el componente `Volver` | Barra fija y la pantalla anterior nombrada, como en el resto |
+
+### Cómo quedó (resumen)
+
+Encuestas, Matriz y Documentos ya cumplían el marco y no cambian, salvo el título de la comparación. `design-system.md` § Estados de pantalla suma tres reglas: vacía al inicio sin filtros, un solo estado vacío por pantalla y la sección sin novedades en una línea.
+
+### Qué hizo el equipo en la práctica
+
+- Revisión de las 20 pantallas y propuesta del lote 4 con antes y después; aprobada.
+- Implementación en la rama `feature/navegacion-lote-4-gestion-sst` del repositorio de código.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Estados vacíos | [design-system.md](design-system.md) § Estados de pantalla |
+
+---
+
+## Cambio `2026-11-28-navegacion-lo-propio` {#cambio-2026-11-28-navegacion-lo-propio}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: Mis tareas, Notificaciones, Reportar un evento, responder una encuesta y el diálogo de confirmación (tercer lote del rediseño de navegación). Solo `design-system.md` y su guía visual. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **Mis tareas mostraba deshabilitado "Marcar como completada"** en las tareas que piden evidencia, sin decir que todavía no se pueden adjuntar archivos (HU-100).
+2. **"Volver a pendiente"** usaba la palabra reservada para navegar en una acción de estado, y las tareas no tenían orden ni se separaban las terminadas.
+3. **La notificación de una tarea abría la lista completa,** sin indicar cuál era.
+4. **Reportar un evento siempre salía al inicio,** aunque se hubiera llegado desde la lista de eventos.
+5. **Con el menú siempre a la vista** (lote 1), un toque bastaba para perder una encuesta o un reporte a medio llenar: solo avisaba el navegador al cerrar la pestaña.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Explicar la evidencia (decisión del 27-11-2026) | Aviso info en la tarea y sin botón de completar mientras no haya carga de archivos | La persona sabe por qué no puede completarla |
+| "Marcar como pendiente" | Botón secundario, como "Empezar" | "Volver" queda solo para navegar |
+| Orden y terminadas plegadas | Vencidas primero, luego por fecha límite; terminadas plegadas | Lo urgente arriba y la lista no crece |
+| "Ver la tarea" | La notificación abre Mis tareas con esa tarea resaltada | Se llega directo a lo que se avisó |
+| Salida según el origen | El reporte vuelve a Eventos si se vino de ahí; si no, al inicio | Se vuelve a donde se estaba |
+| Confirmar al salir sin enviar | El diálogo de confirmación del editor de documentos, también en la encuesta y en el reporte | No se pierde lo escrito sin querer |
+| Diálogo centrado | Título, texto y botones de todos los diálogos de confirmación, centrados | Pedido del equipo; todos los diálogos se ven igual |
+| Más aire en Notificaciones | `--space-4` entre el link y "Marcar como leída" | El borde del botón no queda pegado al link |
+
+### Cómo quedó (resumen)
+
+`design-system.md` tiene la sección nueva § Mis tareas (orden, terminadas, acciones, evidencia, tarea resaltada y separación en Notificaciones), y § Diálogo de confirmación suma el centrado y la tabla "Salir sin enviar". La guía visual muestra el diálogo centrado. Mis encuestas no cambia.
+
+### Qué hizo el equipo en la práctica
+
+- Propuesta del lote 3 con antes y después; el equipo pidió centrar los botones del diálogo y separar más las acciones de Notificaciones. Aprobada.
+- Implementación en la rama `feature/navegacion-lote-3-propio` del repositorio de código.
+- Documentación en `design-system.md` y en la guía visual.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Mis tareas y Notificaciones | [design-system.md](design-system.md) § Mis tareas |
+| Diálogo y salir sin enviar | [design-system.md](design-system.md) § Diálogo de confirmación |
+| Guía visual | [design-system/index.html](design-system/index.html) § Modal y diálogo de confirmación |
+
+---
+
+## Cambio `2026-11-28-navegacion-inicio` {#cambio-2026-11-28-navegacion-inicio}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: la pantalla de inicio (segundo lote del rediseño de navegación). Solo `design-system.md` y su guía visual. No cambia el modelo, las reglas, los permisos ni las historias, y no hace falta ningún endpoint nuevo. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **Con el menú del lote 1, el inicio quedó repitiendo el menú** con botones: hasta 14 para el administrador.
+2. **El inicio no decía qué había por hacer.** En la empresa de demostración había una tarea vencida, un riesgo crítico sin control y dos eventos sin investigar, y no aparecían.
+3. **El encuestado y el colaborador,** que son la mayoría, tenían que abrir otra pantalla para saber si les tocaba algo.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| El inicio muestra lo pendiente | Una fila por cosa por atender, cada una con un link a donde se atiende | Se ve de un vistazo qué hacer, y se llega en un toque |
+| La encuesta por responder va destacada | Con el único botón principal del inicio, "Responder ahora", que abre esa encuesta | El encuestado responde sin pasar por "Mis encuestas" |
+| Orden por urgencia | Lo que no cargó, lo vencido, lo que necesita atención y lo demás | Lo urgente queda arriba |
+| Para ti / En la empresa | La gestión ve sus propias tareas separadas de lo que debe atender en la empresa | No se mezcla lo personal con lo de la empresa |
+| Cada fuente se carga por separado | Si una falla, su fila dice "No se pudo cargar…" con "Reintentar" y las demás se ven igual. "Estás al día" solo aparece si todo cargó | Un error no se confunde con no tener pendientes |
+| Staff | Dos indicadores (empresas y personas con acceso vigente) y las empresas suspendidas, si hay | El staff no tiene pendientes de empresa |
+
+### Cómo quedó (resumen)
+
+`design-system.md` tiene la sección nueva § Inicio: encabezado, encuesta destacada, fila de pendiente, orden, tabla de filas por rol, estados (cargando, error de una fuente, al día) y el inicio del staff. La guía visual muestra la lista de pendientes. Las cifras salen de los endpoints que ya existían.
+
+### Qué hizo el equipo en la práctica
+
+- Propuesta del lote 2 con antes y después, con las cifras reales de las empresas de demostración; aprobada.
+- Implementación en la rama `feature/navegacion-lote-2-inicio` del repositorio de código.
+- Documentación en `design-system.md` y en la guía visual.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Inicio | [design-system.md](design-system.md) § Inicio |
+| Guía visual | [design-system/index.html](design-system/index.html) § Componentes y estados |
+
+---
+
+## Cambio `2026-11-28-navegacion-marco` {#cambio-2026-11-28-navegacion-marco}
+
+| | |
+|---|---|
+| **Quién documentó** | Equipo (redactado con Claude Code) |
+| **Fecha** | 2026-11-28 |
+| **Alcance** | Diseño de la interfaz: navegación y layouts del frontend (primer lote del rediseño). Solo `design-system.md` y su guía visual. No cambia el modelo, las reglas, los permisos ni las historias. |
+
+### El problema (por qué hubo que cambiar)
+
+1. **No había menú.** El inicio era la única forma de pasar de un módulo a otro: una fila de hasta 14 botones iguales, sin rótulos.
+2. **Diez pantallas no tenían forma de regresar** sin el botón atrás del navegador: el plan de trabajo y su tarea nueva, la lista de eventos, Mis tareas, Reportar un evento y las cinco listas de catálogos. Desde Catálogos, el staff no podía volver a su inicio.
+3. **El 404 con sesión iniciada llevaba a la landing pública,** que ofrecía registrar una empresa o iniciar sesión a quien ya había entrado.
+4. **"Volver" no nombraba varias pantallas** (el plan, los eventos, Mis tareas, los catálogos). Por ejemplo, al abrir un riesgo desde el plan, "Volver" llevaba a la matriz.
+5. **El encabezado daba el mismo peso a la cuenta que al trabajo:** "Cambiar contraseña" y "Cerrar sesión" eran botones fijos, y en celular el encabezado ocupaba unos 190 px.
+
+### Qué se decidió y por qué
+
+| Decisión | Qué significa | Por qué ayuda |
+|----------|---------------|---------------|
+| Tres layouts | Público (barra con "Norvia"), empresa y plataforma (el mismo marco, con la empresa o "Plataforma Norvia") | Se reconoce de inmediato en qué sesión se está |
+| Menú lateral por rol | En escritorio, un menú fijo con los destinos del rol. En celular, una barra superior de una fila y el mismo menú en un panel | Se cambia de módulo sin pasar por el inicio y siempre se ve dónde se está |
+| Niveles de pantalla | Las pantallas del menú (nivel 1) no llevan "Volver"; los detalles y formularios (nivel 2), sí | "Volver" solo aparece donde hay un paso anterior que no está en el menú |
+| Lista única de pantallas | Ruta, nombre y texto de "Volver" de cada pantalla. De ella salen el título de la pestaña ("{nombre} · Norvia") y los textos de "Volver" | Ninguna pantalla queda sin nombre, y el mismo destino se nombra igual en todos lados |
+| Menú de cuenta | Cambiar o agregar la contraseña y cerrar sesión, al pie del menú | La cuenta deja de competir con el trabajo; el encabezado de celular pasa a una fila |
+| 404 dentro del marco | Con sesión, el menú sigue a la vista y el link es "Ir al inicio". El título de la pestaña no nombra la pantalla pedida | Ya no se cae a la landing, y se sigue sin confirmar que algo existe |
+| El admin también gestiona SST | Su menú incluye Gestión SST, como el del Responsable SST, más Personas | Coincide con los permisos actuales (decisión del 27-11-2026) |
+
+### Cómo quedó (resumen)
+
+`design-system.md` tiene tres secciones nuevas: § Layouts y navegación (layouts, niveles, lista única de pantallas, títulos, acción principal y menú por rol), § Menú lateral y § Menú de cuenta. Además cambian § Volver (cuándo va y los textos de ejemplo), § Estados de pantalla (el 404 con sesión) y las pantallas Empresas registradas y Auditoría, que ya no llevan "Volver" porque están en el menú. La guía visual muestra el marco de sesión.
+
+Los títulos de cada pantalla, su acción principal, los estados vacíos y el contenido del inicio se revisan en los lotes siguientes. Mientras tanto, el inicio conserva sus botones.
+
+### Qué hizo el equipo en la práctica
+
+- Inventario de rutas y recorrido de la app con una cuenta por rol (27-11-2026).
+- Propuesta del marco con prototipo, aprobada; propuesta del lote 1 con antes y después, aprobada.
+- Implementación en la rama `feature/navegacion-lote-1-marco` del repositorio de código.
+- Documentación en `design-system.md` y en la guía visual.
+
+### Mapa rápido (archivos oficiales)
+
+| Tema | Archivo |
+|------|---------|
+| Layouts, niveles, menú por rol, menú lateral y de cuenta | [design-system.md](design-system.md) § Layouts y navegación, § Menú lateral, § Menú de cuenta |
+| "Volver" y 404 | [design-system.md](design-system.md) § Volver, § Estados de pantalla |
+| Guía visual | [design-system/index.html](design-system/index.html) § Componentes y estados |
 
 ## Cambio `2026-11-27-correos-confiables` {#cambio-2026-11-27-correos-confiables}
 
@@ -171,6 +537,7 @@
 | Reglas RN-78, RN-81, RN-87 | `07-reglas-negocio.md` |
 | Historias HU-022, HU-120 | `10-historias-usuario.md` |
 | Contratos (claim, errores de Microsoft, reintento) | `18-contratos-api-mvp.md` |
+
 
 ---
 
